@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Conecta Saúde - Cadastros Básicos</title>
+<link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style type="text/tailwindcss">
+        :root {
+            --primary-color: #1380ec;
+            --secondary-color: #e7edf3;
+            --text-primary: #0d141b;
+            --text-secondary: #4c739a;
+            --background-light: #f8fafc;
+            --background-dark: #1e293b;
+            --border-color: #cfdbe7;
+        }
+        .dark {
+            --background-light: #0d141b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --secondary-color: #334155;
+            --border-color: #334155;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .sidebar-link.active {
+            background-color: var(--secondary-color);
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+        .sidebar-link:hover {
+            background-color: var(--secondary-color);
+        }
+        .tab-link.active {
+            border-bottom-color: var(--primary-color);
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body class="bg-background-light text-text-primary">
+<div class="flex min-h-screen">
+<aside class="w-64 flex-shrink-0 bg-background-light dark:bg-background-dark border-r border-border-color dark:border-border-color-dark p-4 flex flex-col justify-between">
+<div>
+<div class="px-4 mb-8">
+<h1 class="text-xl font-bold text-text-primary dark:text-text-primary-dark">Conecta Saúde</h1>
+</div>
+<nav class="flex flex-col gap-2">
+<a class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-text-secondary dark:text-text-secondary-dark sidebar-link" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm">Painel de Controle</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-text-secondary dark:text-text-secondary-dark sidebar-link" href="#">
+<span class="material-symbols-outlined">pill</span>
+<span class="text-sm">Medicamentos</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-text-secondary dark:text-text-secondary-dark sidebar-link" href="#">
+<span class="material-symbols-outlined">groups</span>
+<span class="text-sm">Pacientes</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-text-secondary dark:text-text-secondary-dark sidebar-link" href="#">
+<span class="material-symbols-outlined">badge</span>
+<span class="text-sm">Motoristas</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-text-secondary dark:text-text-secondary-dark sidebar-link" href="#">
+<span class="material-symbols-outlined">local_shipping</span>
+<span class="text-sm">Veículos</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2.5 rounded-lg sidebar-link active" href="#">
+<span class="material-symbols-outlined text-primary-color dark:text-primary-color-dark">category</span>
+<span class="text-sm">Cadastros Básicos</span>
+</a>
+</nav>
+</div>
+<div>
+<a class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-text-secondary dark:text-text-secondary-dark sidebar-link" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm">Configurações</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-text-secondary dark:text-text-secondary-dark sidebar-link" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="text-sm">Sair</span>
+</a>
+</div>
+</aside>
+<main class="flex-1 p-8 overflow-y-auto">
+<header class="flex justify-between items-center mb-8">
+<h2 class="text-3xl font-bold text-text-primary dark:text-text-primary-dark">Cadastros Básicos</h2>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-text-secondary dark:text-text-secondary-dark">
+                        dark_mode
+                    </button>
+<div class="flex items-center gap-2">
+<div class="w-10 h-10 rounded-full bg-slate-200"></div>
+<div class="text-sm">
+<p class="font-semibold text-text-primary dark:text-text-primary-dark">Admin</p>
+<p class="text-text-secondary dark:text-text-secondary-dark">admin@email.com</p>
+</div>
+</div>
+</div>
+</header>
+<div class="border-b border-border-color dark:border-border-color-dark">
+<nav class="flex gap-8 -mb-px">
+<a class="py-4 px-1 border-b-2 tab-link active" href="#">Cargos</a>
+<a class="py-4 px-1 border-b-2 border-transparent text-text-secondary hover:text-text-primary dark:hover:text-text-primary-dark tab-link" href="#">Perfis de Acesso</a>
+<a class="py-4 px-1 border-b-2 border-transparent text-text-secondary hover:text-text-primary dark:hover:text-text-primary-dark tab-link" href="#">Tipos de Veículos</a>
+<a class="py-4 px-1 border-b-2 border-transparent text-text-secondary hover:text-text-primary dark:hover:text-text-primary-dark tab-link" href="#">Doenças Crônicas</a>
+</nav>
+</div>
+<div class="mt-8">
+<div class="flex justify-between items-center mb-6">
+<h3 class="text-xl font-semibold text-text-primary dark:text-text-primary-dark">Lista de Cargos</h3>
+<button class="flex items-center gap-2 min-w-[84px] cursor-pointer rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold bg-[var(--primary-color)]">
+<span class="material-symbols-outlined">add</span>
+<span class="truncate">Adicionar Cargo</span>
+</button>
+</div>
+<div class="overflow-x-auto bg-background-light dark:bg-background-dark rounded-lg border border-border-color dark:border-border-color-dark">
+<table class="w-full text-left">
+<thead class="bg-slate-50 dark:bg-slate-800 border-b border-border-color dark:border-border-color-dark">
+<tr>
+<th class="p-4 text-sm font-semibold text-text-primary dark:text-text-primary-dark">Nome do Cargo</th>
+<th class="p-4 text-sm font-semibold text-text-primary dark:text-text-primary-dark">Descrição</th>
+<th class="p-4 text-sm font-semibold text-text-primary dark:text-text-primary-dark text-right">Ações</th>
+</tr>
+</thead>
+<tbody>
+<tr class="border-b border-border-color dark:border-border-color-dark">
+<td class="p-4 text-sm text-text-primary dark:text-text-primary-dark">Enfermeiro</td>
+<td class="p-4 text-sm text-text-secondary dark:text-text-secondary-dark max-w-sm truncate">Profissional de saúde responsável por cuidados diretos aos pacientes.</td>
+<td class="p-4 text-sm text-right">
+<button class="p-2 text-text-secondary hover:text-primary rounded-md"><span class="material-symbols-outlined text-base">edit</span></button>
+<button class="p-2 text-text-secondary hover:text-red-500 rounded-md"><span class="material-symbols-outlined text-base">delete</span></button>
+</td>
+</tr>
+<tr class="border-b border-border-color dark:border-border-color-dark">
+<td class="p-4 text-sm text-text-primary dark:text-text-primary-dark">Médico</td>
+<td class="p-4 text-sm text-text-secondary dark:text-text-secondary-dark max-w-sm truncate">Profissional de saúde com formação em medicina.</td>
+<td class="p-4 text-sm text-right">
+<button class="p-2 text-text-secondary hover:text-primary rounded-md"><span class="material-symbols-outlined text-base">edit</span></button>
+<button class="p-2 text-text-secondary hover:text-red-500 rounded-md"><span class="material-symbols-outlined text-base">delete</span></button>
+</td>
+</tr>
+<tr>
+<td class="p-4 text-sm text-text-primary dark:text-text-primary-dark">Administrador</td>
+<td class="p-4 text-sm text-text-secondary dark:text-text-secondary-dark max-w-sm truncate">Responsável pela gestão do sistema e usuários.</td>
+<td class="p-4 text-sm text-right">
+<button class="p-2 text-text-secondary hover:text-primary rounded-md"><span class="material-symbols-outlined text-base">edit</span></button>
+<button class="p-2 text-text-secondary hover:text-red-500 rounded-md"><span class="material-symbols-outlined text-base">delete</span></button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</main>
+</div>
+
+</body></html>

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+<link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Inter%3Awght%40400%3B500%3B700%3B900&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900" onload="this.rel='stylesheet'" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<title>Cadastro de Veículo - Conecta Saúde</title>
+<link href="data:image/x-icon;base64," rel="icon" type="image/x-icon"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style type="text/tailwindcss">
+      :root {
+        --foreground-rgb: 0, 0, 0;
+        --background-start-rgb: 249, 250, 251;
+        --background-end-rgb: 249, 250, 251;
+      }
+      .dark {
+        --foreground-rgb: 255, 255, 255;
+        --background-start-rgb: 3, 7, 18;
+        --background-end-rgb: 3, 7, 18;
+      }
+      body {
+        color: rgb(var(--foreground-rgb));
+        background: linear-gradient(
+            to bottom,
+            transparent,
+            rgb(var(--background-end-rgb))
+          )
+          rgb(var(--background-start-rgb));
+      }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+<div class="relative flex size-full min-h-screen flex-col group/design-root overflow-x-hidden" style='font-family: Inter, "Noto Sans", sans-serif;'>
+<div class="layout-container flex h-full grow flex-col">
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-gray-200 dark:border-gray-800 px-10 py-4">
+<div class="flex items-center gap-4 text-gray-900 dark:text-gray-100">
+<div class="size-8 text-blue-600">
+<svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M24 45.8096C19.6865 45.8096 15.4698 44.5305 11.8832 42.134C8.29667 39.7376 5.50128 36.3314 3.85056 32.3462C2.19985 28.361 1.76794 23.9758 2.60947 19.7452C3.451 15.5145 5.52816 11.6284 8.57829 8.5783C11.6284 5.52817 15.5145 3.45101 19.7452 2.60948C23.9758 1.76795 28.361 2.19986 32.3462 3.85057C36.3314 5.50129 39.7376 8.29668 42.134 11.8833C44.5305 15.4698 45.8096 19.6865 45.8096 24L24 24L24 45.8096Z" fill="currentColor"></path>
+</svg>
+</div>
+<h2 class="text-xl font-bold tracking-tight">Conecta Saúde</h2>
+</div>
+<div class="flex items-center gap-6">
+<nav class="hidden md:flex items-center gap-6">
+<a class="text-sm font-medium hover:text-blue-600 dark:hover:text-blue-500 transition-colors" href="#">Início</a>
+<a class="text-sm font-medium hover:text-blue-600 dark:hover:text-blue-500 transition-colors" href="#">Medicamentos</a>
+<a class="text-sm font-medium hover:text-blue-600 dark:hover:text-blue-500 transition-colors" href="#">Motoristas</a>
+<a class="text-sm font-medium text-blue-600 dark:text-blue-500" href="#">Veículos</a>
+<a class="text-sm font-medium hover:text-blue-600 dark:hover:text-blue-500 transition-colors" href="#">Munícipes</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="hidden md:inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 w-10 border dark:border-gray-700">
+<span class="material-symbols-outlined">dark_mode</span>
+</button>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCybWOhxpZXqYFMTTQ96vZ7dWXGDzk4Z-AgsKnRYEMYhq0IYgrK9tQLiFOlm-ouE6F4Ue4plo50jrmLeEldba795iJRNo_4OHyu5_2ju9K-HLG6ELgih_BCpeqG2Nqy6If4qjUwpjRTIcc90_vdM_oiXDRQNIcPQZ7y68hf62EVwOR1ZXqpxwC76fhcLKwFVsLAtfIDfncFuzPF2T1cUS2aZPl4QpVAiZki2nGVV0-qErk2v_VQrRn0kE5nzrB49gVfwB1VYMFqsA");'></div>
+</div>
+</div>
+</header>
+<main class="flex-1 px-4 py-8 sm:px-6 md:px-8 lg:px-10">
+<div class="mx-auto max-w-2xl">
+<div class="mb-8">
+<h1 class="text-3xl font-bold tracking-tight">Cadastro de Veículo</h1>
+<p class="mt-2 text-gray-500 dark:text-gray-400">Preencha os campos abaixo para adicionar um novo veículo ao sistema.</p>
+</div>
+<form class="space-y-6">
+<div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+<div class="space-y-2">
+<label class="text-sm font-medium leading-none" for="marca">Marca</label>
+<input class="flex h-10 w-full rounded-md border border-gray-300 dark:border-gray-700 bg-transparent px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-500 dark:placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2" id="marca" placeholder="Ex: Fiat"/>
+</div>
+<div class="space-y-2">
+<label class="text-sm font-medium leading-none" for="modelo">Modelo</label>
+<input class="flex h-10 w-full rounded-md border border-gray-300 dark:border-gray-700 bg-transparent px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-500 dark:placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2" id="modelo" placeholder="Ex: Cronos"/>
+</div>
+</div>
+<div class="grid grid-cols-1 gap-6 sm:grid-cols-3">
+<div class="space-y-2">
+<label class="text-sm font-medium leading-none" for="ano">Ano</label>
+<input class="flex h-10 w-full rounded-md border border-gray-300 dark:border-gray-700 bg-transparent px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-500 dark:placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2" id="ano" placeholder="Ex: 2023" type="number"/>
+</div>
+<div class="space-y-2">
+<label class="text-sm font-medium leading-none" for="placa">Placa</label>
+<input class="flex h-10 w-full rounded-md border border-gray-300 dark:border-gray-700 bg-transparent px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-500 dark:placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2" id="placa" placeholder="ABC1D23"/>
+</div>
+<div class="space-y-2">
+<label class="text-sm font-medium leading-none" for="capacidade">Capacidade</label>
+<input class="flex h-10 w-full rounded-md border border-gray-300 dark:border-gray-700 bg-transparent px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-500 dark:placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2" id="capacidade" placeholder="Ex: 5" type="number"/>
+</div>
+</div>
+<div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+<div class="space-y-2">
+<label class="text-sm font-medium leading-none" for="combustivel">Tipo de Combustível</label>
+<select class="flex h-10 w-full items-center justify-between rounded-md border border-gray-300 dark:border-gray-700 bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" id="combustivel">
+<option value="">Selecione o tipo</option>
+<option value="gasolina">Gasolina</option>
+<option value="etanol">Etanol</option>
+<option value="flex">Flex</option>
+<option value="diesel">Diesel</option>
+<option value="gnv">GNV</option>
+<option value="eletrico">Elétrico</option>
+</select>
+</div>
+<div class="space-y-2">
+<label class="text-sm font-medium leading-none" for="situacao">Situação</label>
+<select class="flex h-10 w-full items-center justify-between rounded-md border border-gray-300 dark:border-gray-700 bg-transparent px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" id="situacao">
+<option value="">Selecione a situação</option>
+<option value="ativo">Ativo</option>
+<option value="inativo">Inativo</option>
+<option value="manutencao">Em Manutenção</option>
+</select>
+</div>
+</div>
+<div class="flex justify-end pt-4">
+<button class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 w-full sm:w-auto" type="submit">
+                  Cadastrar Veículo
+                </button>
+</div>
+</form>
+</div>
+</main>
+</div>
+</div>
+
+</body></html>

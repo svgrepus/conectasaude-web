@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+<link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Inter%3Awght%40400%3B500%3B600%3B700&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900" onload="this.rel='stylesheet'" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<title>Relatório de Munícipes - Conecta Saúde</title>
+<link href="data:image/x-icon;base64," rel="icon" type="image/x-icon"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style type="text/tailwindcss">
+      :root {
+        --primary-color: #1173d4;
+        --light-bg: #f8fafc;
+        --dark-bg: #0d141b;
+        --light-text: #0d141b;
+        --dark-text: #f8fafc;
+        --light-border: #e2e8f0;
+        --dark-border: #1e293b;
+        --light-card: #ffffff;
+        --dark-card: #1e293b;
+      }
+      .dark .dark\:bg-dark-bg { background-color: var(--dark-bg); }
+      .dark .dark\:text-dark-text { color: var(--dark-text); }
+      .dark .dark\:border-dark-border { border-color: var(--dark-border); }
+      .dark .dark\:bg-dark-card { background-color: var(--dark-card); }
+      .dark .dark\:hover\:bg-slate-700:hover { background-color: #334155; }
+      .dark .dark\:text-slate-400 { color: #94a3b8; }
+      .dark .dark\:placeholder-slate-500::placeholder { color: #64748b; }
+      .dark .dark\:focus\:border-primary-color:focus { border-color: var(--primary-color); }
+      .group:hover .group-hover\:text-primary-color {
+        color: var(--primary-color);
+      }
+    </style>
+</head>
+<body class="bg-light-bg text-light-text dark:bg-dark-bg dark:text-dark-text" style='font-family: Inter, "Noto Sans", sans-serif;'>
+<div class="relative flex size-full min-h-screen flex-col group/design-root overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<header class="flex items-center justify-between whitespace-nowrap border-b border-light-border dark:border-dark-border px-6 md:px-10 py-4">
+<div class="flex items-center gap-3 text-light-text dark:text-dark-text">
+<div class="size-8 text-primary-color">
+<svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M24 45.8096C19.6865 45.8096 15.4698 44.5305 11.8832 42.134C8.29667 39.7376 5.50128 36.3314 3.85056 32.3462C2.19985 28.361 1.76794 23.9758 2.60947 19.7452C3.451 15.5145 5.52816 11.6284 8.57829 8.5783C11.6284 5.52817 15.5145 3.45101 19.7452 2.60948C23.9758 1.76795 28.361 2.19986 32.3462 3.85057C36.3314 5.50129 39.7376 8.29668 42.134 11.8833C44.5305 15.4698 45.8096 19.6865 45.8096 24L24 24L24 45.8096Z" fill="currentColor"></path>
+</svg>
+</div>
+<h2 class="text-xl font-bold">Conecta Saúde</h2>
+</div>
+<nav class="hidden lg:flex items-center gap-6 text-sm font-medium">
+<a class="text-slate-600 dark:text-slate-300 hover:text-primary-color" href="#">Início</a>
+<a class="text-slate-600 dark:text-slate-300 hover:text-primary-color" href="#">Medicamentos</a>
+<a class="text-slate-600 dark:text-slate-300 hover:text-primary-color" href="#">Motoristas</a>
+<a class="text-slate-600 dark:text-slate-300 hover:text-primary-color" href="#">Veículos</a>
+<a class="text-slate-600 dark:text-slate-300 hover:text-primary-color" href="#">Munícipes</a>
+<a class="font-semibold text-primary-color" href="#">Relatórios</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-slate-600 dark:text-slate-300">dark_mode</button>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCb89Pooyc1amMxSFxI7gEhgsA7DAaeRvMwPjCt6REA-AKcrBu1b2pAwt8JS9EeVzXQfnUzEpjBb_GCKy0AzkIdlm00Zd33gx2kurmsPAUTFA9pQNQMKSQdESJCqi8vXhEljhu2LL-hzwgFGy-qfpmyseZfO4uq1A9KGqnG8y3KKrHIjuBpngR_RclRcKDlR9K0z2-cmd0pIMLbw66Wte1kCy_bATblcNGfHfOhUhWDh3Wgaa4rWbxfjkmJTUB9qbursnRIemJCqw");'></div>
+<button class="lg:hidden material-symbols-outlined text-slate-600 dark:text-slate-300">menu</button>
+</div>
+</header>
+<main class="flex-1 px-4 sm:px-6 lg:px-8 py-8">
+<div class="max-w-7xl mx-auto">
+<div class="flex flex-col md:flex-row justify-between items-start gap-4 mb-8">
+<div>
+<h1 class="text-3xl font-bold text-light-text dark:text-dark-text">Relatório de Munícipes</h1>
+<p class="text-slate-500 dark:text-slate-400 mt-1">Visualize dados e métricas relevantes sobre os munícipes.</p>
+</div>
+<button class="flex items-center gap-2 min-w-[84px] cursor-pointer justify-center rounded-md h-10 px-4 bg-slate-100 dark:bg-slate-800 text-light-text dark:text-dark-text text-sm font-semibold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+<span class="material-symbols-outlined text-base">download</span>
+<span class="truncate">Exportar para CSV</span>
+</button>
+</div>
+<div class="bg-light-card dark:bg-dark-card border border-light-border dark:border-dark-border rounded-lg p-6 mb-8">
+<h3 class="text-lg font-semibold text-light-text dark:text-dark-text mb-4">Filtros</h3>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
+<div class="flex flex-col">
+<label class="text-sm font-medium text-slate-600 dark:text-slate-300 mb-1" for="period">Período</label>
+<select class="form-select w-full rounded-md border-slate-300 dark:border-slate-600 bg-light-bg dark:bg-dark-bg dark:text-dark-text focus:border-primary-color focus:ring-primary-color dark:focus:border-primary-color dark:placeholder-slate-500" id="period">
+<option selected="">Todos</option>
+<option>Últimos 30 dias</option>
+<option>Últimos 3 meses</option>
+<option>Último ano</option>
+</select>
+</div>
+<div class="flex flex-col">
+<label class="text-sm font-medium text-slate-600 dark:text-slate-300 mb-1" for="disease">Doença Crônica</label>
+<select class="form-select w-full rounded-md border-slate-300 dark:border-slate-600 bg-light-bg dark:bg-dark-bg dark:text-dark-text focus:border-primary-color focus:ring-primary-color dark:focus:border-primary-color dark:placeholder-slate-500" id="disease">
+<option selected="">Todas</option>
+<option>Hipertensão</option>
+<option>Diabetes</option>
+<option>Asma</option>
+</select>
+</div>
+<button class="flex items-center gap-2 w-full md:w-auto justify-center rounded-md h-10 px-4 bg-primary-color text-white text-sm font-bold hover:bg-opacity-90 transition-colors">
+<span class="material-symbols-outlined text-base">filter_alt</span>
+<span class="truncate">Aplicar Filtros</span>
+</button>
+</div>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+<div class="flex flex-col gap-2 rounded-lg p-6 bg-light-card dark:bg-dark-card border border-light-border dark:border-dark-border">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Total de Munícipes</p>
+<p class="text-light-text dark:text-dark-text text-3xl font-bold">1.250</p>
+</div>
+<div class="flex flex-col gap-2 rounded-lg p-6 bg-light-card dark:bg-dark-card border border-light-border dark:border-dark-border">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Doenças Crônicas Prevalentes</p>
+<p class="text-light-text dark:text-dark-text text-xl font-bold">Hipertensão (25%), Diabetes (18%)</p>
+</div>
+<div class="flex flex-col gap-2 rounded-lg p-6 bg-light-card dark:bg-dark-card border border-light-border dark:border-dark-border">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Média de Idade</p>
+<p class="text-light-text dark:text-dark-text text-3xl font-bold">52 anos</p>
+</div>
+</div>
+<div class="bg-light-card dark:bg-dark-card border border-light-border dark:border-dark-border rounded-lg overflow-x-auto">
+<table class="w-full text-sm text-left text-slate-500 dark:text-slate-400">
+<thead class="text-xs text-slate-700 uppercase bg-slate-50 dark:bg-slate-700 dark:text-slate-300">
+<tr>
+<th class="px-6 py-3" scope="col">Nome</th>
+<th class="px-6 py-3" scope="col">Data de Nascimento</th>
+<th class="px-6 py-3" scope="col">Doença Crônica</th>
+<th class="px-6 py-3" scope="col">Medicamentos</th>
+</tr>
+</thead>
+<tbody>
+<tr class="bg-light-card border-b dark:bg-dark-card dark:border-dark-border hover:bg-slate-50 dark:hover:bg-slate-800">
+<th class="px-6 py-4 font-medium text-light-text dark:text-dark-text whitespace-nowrap" scope="row">Sofia Almeida</th>
+<td class="px-6 py-4">15/03/1970</td>
+<td class="px-6 py-4">Hipertensão</td>
+<td class="px-6 py-4">Losartana</td>
+</tr>
+<tr class="bg-light-card border-b dark:bg-dark-card dark:border-dark-border hover:bg-slate-50 dark:hover:bg-slate-800">
+<th class="px-6 py-4 font-medium text-light-text dark:text-dark-text whitespace-nowrap" scope="row">Carlos Pereira</th>
+<td class="px-6 py-4">22/07/1965</td>
+<td class="px-6 py-4">Diabetes</td>
+<td class="px-6 py-4">Metformina</td>
+</tr>
+<tr class="bg-light-card border-b dark:bg-dark-card dark:border-dark-border hover:bg-slate-50 dark:hover:bg-slate-800">
+<th class="px-6 py-4 font-medium text-light-text dark:text-dark-text whitespace-nowrap" scope="row">Ana Silva</th>
+<td class="px-6 py-4">10/11/1982</td>
+<td class="px-6 py-4">Asma</td>
+<td class="px-6 py-4">Salbutamol</td>
+</tr>
+<tr class="bg-light-card border-b dark:bg-dark-card dark:border-dark-border hover:bg-slate-50 dark:hover:bg-slate-800">
+<th class="px-6 py-4 font-medium text-light-text dark:text-dark-text whitespace-nowrap" scope="row">Ricardo Costa</th>
+<td class="px-6 py-4">05/02/1958</td>
+<td class="px-6 py-4">Hipertensão</td>
+<td class="px-6 py-4">Atenolol</td>
+</tr>
+<tr class="bg-light-card dark:bg-dark-card hover:bg-slate-50 dark:hover:bg-slate-800">
+<th class="px-6 py-4 font-medium text-light-text dark:text-dark-text whitespace-nowrap" scope="row">Isabel Santos</th>
+<td class="px-6 py-4">18/09/1975</td>
+<td class="px-6 py-4">Diabetes</td>
+<td class="px-6 py-4">Insulina</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</main>
+</div>
+</div>
+
+</body></html>

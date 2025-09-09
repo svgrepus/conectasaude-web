@@ -1,0 +1,201 @@
+{
+  "info": {
+    "name": "ConectaSaúde API",
+    "description": "Collection completa para testes da API ConectaSaúde",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://neqkqjpynrinlsodfrkf.supabase.co"
+    },
+    {
+      "key": "anon_key",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5lcWtxanB5bnJpbmxzb2RmcmtmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjU5MDI3MjEsImV4cCI6MjA0MTQ3ODcyMX0.CIGIkXVC39..."
+    },
+    {
+      "key": "access_token",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Autenticação",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "apikey",
+                "value": "{{anon_key}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@conectasaude.com\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/v1/token?grant_type=password",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "v1", "token"],
+              "query": [
+                {
+                  "key": "grant_type",
+                  "value": "password"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('access_token', response.access_token);",
+                  "    pm.environment.set('user_id', response.user.id);",
+                  "    console.log('Token salvo:', response.access_token);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Criar Usuário",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "apikey",
+                "value": "{{anon_key}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@conectasaude.com\",\n  \"password\": \"admin123\",\n  \"data\": {\n    \"nome\": \"Administrador\",\n    \"perfil\": \"admin\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/v1/signup",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "v1", "signup"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Medicamentos",
+      "item": [
+        {
+          "name": "Listar Medicamentos",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{anon_key}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/rest/v1/medicamentos?select=*&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "medicamentos"],
+              "query": [
+                {
+                  "key": "select",
+                  "value": "*"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Criar Medicamento",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "apikey",
+                "value": "{{anon_key}}"
+              },
+              {
+                "key": "Prefer",
+                "value": "return=representation"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dcb_dci\": \"Ibuprofeno\",\n  \"forca_concentracao\": \"600mg\",\n  \"unidade_controle_id\": \"uuid-da-unidade\",\n  \"validade\": \"2026-12-31\",\n  \"custo\": 0.50,\n  \"valor_repasse\": 0.80\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/rest/v1/medicamentos",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "medicamentos"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Estoque",
+      "item": [
+        {
+          "name": "Entrada de Estoque",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "apikey",
+                "value": "{{anon_key}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"p_medicamento_id\": \"uuid-do-medicamento\",\n  \"p_unidade_destino_id\": \"uuid-da-unidade\",\n  \"p_quantidade\": 100,\n  \"p_lote\": \"LOTE-001\",\n  \"p_motivo\": \"Compra mensal\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/rest/v1/rpc/rpc_estoque_entrada",
+              "host": ["{{base_url}}"],
+              "path": ["rest", "v1", "rpc", "rpc_estoque_entrada"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,216 @@
+<html><head>
+<meta charset="utf-8"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style type="text/tailwindcss">
+      :root {
+        --foreground: 222.2 47.4% 11.2%;
+        --muted: 210 40% 96.1%;
+        --muted-foreground: 215.4 16.3% 46.9%;
+        --popover: 0 0% 100%;
+        --popover-foreground: 222.2 47.4% 11.2%;
+        --card: 0 0% 100%;
+        --card-foreground: 222.2 47.4% 11.2%;
+        --border: 214.3 31.8% 91.4%;
+        --input: 214.3 31.8% 91.4%;
+        --primary: 352 90% 55%;
+        --primary-foreground: 0 0% 100%;
+        --secondary: 210 40% 96.1%;
+        --secondary-foreground: 222.2 47.4% 11.2%;
+        --accent: 210 40% 96.1%;
+        --accent-foreground: 222.2 47.4% 11.2%;
+        --destructive: 0 100% 50%;
+        --destructive-foreground: 210 40% 98%;
+        --ring: 215 20.2% 65.1%;
+        --radius: 0.5rem;
+      }
+      .dark {
+        --background: 224 71% 4%;
+        --foreground: 213 31% 91%;
+        --muted: 223 47% 11%;
+        --muted-foreground: 215.4 16.3% 56.9%;
+        --accent: 216 34% 17%;
+        --accent-foreground: 210 40% 98%;
+        --popover: 224 71% 4%;
+        --popover-foreground: 215 20.2% 65.1%;
+        --border: 216 34% 17%;
+        --input: 216 34% 17%;
+        --card: 224 71% 4%;
+        --card-foreground: 213 31% 91%;
+        --primary: 352 90% 55%;
+        --primary-foreground: 210 40% 98%;
+        --secondary: 222.2 47.4% 11.2%;
+        --secondary-foreground: 210 40% 98%;
+        --destructive: 0 63% 31%;
+        --destructive-foreground: 210 40% 98%;
+        --ring: 216 34% 17%;
+        --radius: 0.5rem;
+      }
+      * {
+        font-family: 'Spline Sans', sans-serif;
+      }
+    </style>
+</head>
+<body class="bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50">
+<div class="flex min-h-screen w-full">
+<aside class="fixed z-10 hidden h-screen w-64 flex-col border-r border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 sm:flex">
+<div class="flex h-16 items-center border-b border-zinc-200 dark:border-zinc-800 px-6">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-red-500" style="font-size: 28px;">health_and_safety</span>
+<h1 class="text-xl font-bold">Conecta<span class="text-red-500"> Saúde</span></h1>
+</div>
+</div>
+<nav class="flex-1 space-y-2 p-4">
+<a class="flex items-center gap-3 rounded-md bg-red-500/10 dark:bg-red-500/20 text-red-600 dark:text-red-400 px-3 py-2 text-sm font-semibold" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+            Dashboard
+          </a>
+<a class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800" href="#">
+<span class="material-symbols-outlined">pill</span>
+            Medicamentos
+          </a>
+<a class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800" href="#">
+<span class="material-symbols-outlined">group</span>
+            Motoristas
+          </a>
+<a class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800" href="#">
+<span class="material-symbols-outlined">local_shipping</span>
+            Veículos
+          </a>
+<a class="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800" href="#">
+<span class="material-symbols-outlined">groups</span>
+            Munícipes
+          </a>
+</nav>
+<div class="mt-auto p-4">
+<button class="flex w-full items-center justify-center gap-2 rounded-md bg-zinc-100 dark:bg-zinc-800 p-2 text-sm text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700">
+<span class="material-symbols-outlined">dark_mode</span>
+<span>Mudar Tema</span>
+</button>
+</div>
+</aside>
+<div class="flex flex-1 flex-col sm:pl-64">
+<header class="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-zinc-200 dark:border-zinc-800 bg-white/50 dark:bg-zinc-950/50 backdrop-blur-sm px-6">
+<h2 class="text-2xl font-bold">Dashboard</h2>
+<div class="flex items-center gap-4">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500">search</span>
+<input class="w-full rounded-md border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="Pesquisar..." type="text"/>
+</div>
+<img alt="User avatar" class="h-10 w-10 rounded-full border border-zinc-200 dark:border-zinc-800" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCD5n7zDZ7eWVVgqNzDxkVPIbQWU6vqhLwxOLpVzYNjaANrO6UNqD-Zl8aAtKutHWCmwelSzqCF3n71tG3SbmQ9YwRLQOE7zAqlKfPOhp8UENgsMQcQGTIxwi9gnTHPC2L5ZfNYc7j3VdynaXvx5_vR24QRetVUkXmSCRL6OYM2Cc4scH7B3tg_CsUk4ooci850hQtcV__RHrBIv59-l_5Vs941AqfsbeiLyp60Fp2qIiTTWmGRvDxTb740dN3nRY095faY8JfsIA"/>
+</div>
+</header>
+<main class="flex-1 p-6">
+<div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+<div class="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4">
+<h3 class="font-medium text-zinc-500 dark:text-zinc-400">Total de Medicamentos</h3>
+<p class="text-3xl font-bold">1,250</p>
+</div>
+<div class="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4">
+<h3 class="font-medium text-zinc-500 dark:text-zinc-400">Estoque Baixo</h3>
+<p class="text-3xl font-bold text-orange-500">23</p>
+</div>
+<div class="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4">
+<h3 class="font-medium text-zinc-500 dark:text-zinc-400">Próximo ao Vencimento</h3>
+<p class="text-3xl font-bold text-yellow-500">12</p>
+</div>
+<div class="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4">
+<h3 class="font-medium text-zinc-500 dark:text-zinc-400">Medicamentos Vencidos</h3>
+<p class="text-3xl font-bold text-red-500">5</p>
+</div>
+</div>
+<div class="mt-6 flex flex-col gap-6 lg:flex-row">
+<div class="w-full lg:w-2/3">
+<div class="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4">
+<div class="flex items-center justify-between">
+<h3 class="text-lg font-semibold">Estoque por Unidade</h3>
+<div class="flex items-center gap-4">
+<select class="rounded-md border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
+<option>Últimos 30 dias</option>
+<option>Últimos 60 dias</option>
+<option>Últimos 90 dias</option>
+</select>
+</div>
+</div>
+<div class="mt-4 h-80">
+<img alt="Gráfico de barras mostrando o estoque por unidade" class="h-full w-full object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD-Ien52gg2FP_XLUNLfTX7JbAa34cNP7yWOHCHUILHOfZ6KYGlQII6uqvuO8_MHmeHbg7Garl8N6kLh6_bkHRuySlzXTdaqaUmHF309HKCgrj7l9JvR9be2cyYVmkITS0gnm3wSegG0fakpADhcaaiDbHpEDpBszGoOWC4eX-z25g1LjjaqjCZwfINfeRTNOWNBdSZeGTcZHfghQdIT8V9JctWk6euhjgqmISITVvZco36U_CFurcSyuvhNF80aqCN768ForzQDg"/>
+</div>
+</div>
+</div>
+<div class="w-full lg:w-1/3">
+<div class="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4">
+<div class="flex items-center justify-between">
+<h3 class="text-lg font-semibold">Alertas</h3>
+<button class="flex items-center gap-2 rounded-md bg-red-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-600">
+<span class="material-symbols-outlined text-sm">download</span>
+                        Exportar CSV
+                    </button>
+</div>
+<div class="mt-4 space-y-4">
+<div class="flex items-start gap-3 rounded-lg bg-orange-500/10 p-3">
+<span class="material-symbols-outlined mt-1 text-orange-500">warning</span>
+<div>
+<p class="font-semibold">Estoque Baixo: Paracetamol</p>
+<p class="text-sm text-zinc-600 dark:text-zinc-400">Unidade A - Apenas 15 unidades restantes.</p>
+</div>
+</div>
+<div class="flex items-start gap-3 rounded-lg bg-yellow-500/10 p-3">
+<span class="material-symbols-outlined mt-1 text-yellow-500">inventory</span>
+<div>
+<p class="font-semibold">Vencimento Próximo: Dipirona</p>
+<p class="text-sm text-zinc-600 dark:text-zinc-400">Unidade A - Vence em 15/08/2024.</p>
+</div>
+</div>
+<div class="flex items-start gap-3 rounded-lg bg-orange-500/10 p-3">
+<span class="material-symbols-outlined mt-1 text-orange-500">warning</span>
+<div>
+<p class="font-semibold">Estoque Baixo: Ibuprofeno</p>
+<p class="text-sm text-zinc-600 dark:text-zinc-400">Unidade B - Apenas 8 unidades restantes.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-6">
+<h3 class="text-lg font-semibold mb-4">Medicamentos Próximos do Vencimento</h3>
+<div class="overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-800">
+<table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-800">
+<thead class="bg-zinc-50 dark:bg-zinc-900">
+<tr>
+<th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400" scope="col">Medicamento</th>
+<th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400" scope="col">Unidade</th>
+<th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400" scope="col">Data de Vencimento</th>
+<th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400" scope="col">Lote</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-zinc-200 dark:divide-zinc-800 bg-white dark:bg-zinc-950">
+<tr>
+<td class="whitespace-nowrap px-6 py-4 text-sm font-medium">Dipirona</td>
+<td class="whitespace-nowrap px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">Unidade A</td>
+<td class="whitespace-nowrap px-6 py-4 text-sm text-yellow-600 dark:text-yellow-400">15/08/2024</td>
+<td class="whitespace-nowrap px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">12345</td>
+</tr>
+<tr>
+<td class="whitespace-nowrap px-6 py-4 text-sm font-medium">Cefalexina</td>
+<td class="whitespace-nowrap px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">Unidade B</td>
+<td class="whitespace-nowrap px-6 py-4 text-sm text-yellow-600 dark:text-yellow-400">20/09/2024</td>
+<td class="whitespace-nowrap px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">67890</td>
+</tr>
+<tr>
+<td class="whitespace-nowrap px-6 py-4 text-sm font-medium">Diclofenaco</td>
+<td class="whitespace-nowrap px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">Unidade C</td>
+<td class="whitespace-nowrap px-6 py-4 text-sm text-yellow-600 dark:text-yellow-400">10/10/2024</td>
+<td class="whitespace-nowrap px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">11223</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</main>
+</div>
+</div>
+</body></html>

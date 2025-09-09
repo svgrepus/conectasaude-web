@@ -1,0 +1,230 @@
+# Docker Compose para ConectaSaúde
+# Este arquivo configura um ambiente completo de desenvolvimento
+
+version: '3.8'
+
+services:
+  # ========================================
+  # APLICAÇÃO PRINCIPAL
+  # ========================================
+  app:
+    build:
+      context: .
+      target: development
+    container_name: conectasaude_app
+    ports:
+      - "3000:3000"
+      - "54321:54321"  # Supabase Studio
+      - "54322:54322"  # PostgREST
+      - "54323:54323"  # GoTrue
+      - "54324:54324"  # Realtime
+    environment:
+      - NODE_ENV=development
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
+      - DATABASE_URL=${DATABASE_URL}
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - ./logs:/app/logs
+    depends_on:
+      - postgres
+    networks:
+      - conectasaude_network
+    restart: unless-stopped
+
+  # ========================================
+  # BANCO DE DADOS POSTGRESQL (DESENVOLVIMENTO)
+  # ========================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: conectasaude_postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: conectasaude
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./sql/migrations:/docker-entrypoint-initdb.d
+    networks:
+      - conectasaude_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ========================================
+  # PGADMIN (ADMINISTRAÇÃO DO BANCO)
+  # ========================================
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: conectasaude_pgadmin
+    ports:
+      - "8080:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@conectasaude.local
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    networks:
+      - conectasaude_network
+    restart: unless-stopped
+
+  # ========================================
+  # REDIS (CACHE E SESSÕES)
+  # ========================================
+  redis:
+    image: redis:7-alpine
+    container_name: conectasaude_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - conectasaude_network
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass redis123
+
+  # ========================================
+  # NGINX (PROXY REVERSO)
+  # ========================================
+  nginx:
+    image: nginx:alpine
+    container_name: conectasaude_nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./logs/nginx:/var/log/nginx
+    depends_on:
+      - app
+    networks:
+      - conectasaude_network
+    restart: unless-stopped
+
+  # ========================================
+  # MIGRAÇÕES (EXECUÇÃO ÚNICA)
+  # ========================================
+  migrations:
+    build:
+      context: .
+      target: migrations
+    container_name: conectasaude_migrations
+    environment:
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
+      - SUPABASE_PROJECT_REF=${SUPABASE_PROJECT_REF}
+      - DATABASE_URL=${DATABASE_URL}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+    volumes:
+      - ./sql:/app/sql
+      - ./functions:/app/functions
+      - ./tests:/app/tests
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - conectasaude_network
+    restart: "no"
+
+  # ========================================
+  # MONITORING (PROMETHEUS)
+  # ========================================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: conectasaude_prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+    networks:
+      - conectasaude_network
+    restart: unless-stopped
+
+  # ========================================
+  # GRAFANA (DASHBOARDS)
+  # ========================================
+  grafana:
+    image: grafana/grafana:latest
+    container_name: conectasaude_grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+    depends_on:
+      - prometheus
+    networks:
+      - conectasaude_network
+    restart: unless-stopped
+
+# ========================================
+# VOLUMES PERSISTENTES
+# ========================================
+volumes:
+  postgres_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+  redis_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+# ========================================
+# REDE INTERNA
+# ========================================
+networks:
+  conectasaude_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# ========================================
+# CONFIGURAÇÕES ADICIONAIS
+# ========================================
+
+# Para produção, use:
+# docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+# Para desenvolvimento, use:
+# docker-compose up -d
+
+# Para executar apenas migrações:
+# docker-compose run --rm migrations
+
+# Para visualizar logs:
+# docker-compose logs -f app
+
+# Para acessar shell do container:
+# docker-compose exec app sh
+
+# Para backup do banco:
+# docker-compose exec postgres pg_dump -U postgres conectasaude > backup.sql
+
+# Para restaurar backup:
+# docker-compose exec -T postgres psql -U postgres conectasaude < backup.sql

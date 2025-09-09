@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="pt-br"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+<link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Inter:wght@400;500;600;700&amp;family=Noto+Sans:wght@400;500;700" onload="this.rel='stylesheet'" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<title>Conecta Saúde - Gerenciar Cadastros</title>
+<link href="data:image/x-icon;base64," rel="icon" type="image/x-icon"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style type="text/tailwindcss">
+    :root {
+      --primary-color: #1173d4;
+      --primary-hover: #0e5eac;
+      --text-primary: #18222c;
+      --text-secondary: #57697e;
+      --bg-light: #f8fafc;
+      --bg-dark: #1e293b;
+      --border-light: #e2e8f0;
+      --border-dark: #334155;
+    }
+    .dark .dark\:bg-gray-900 {
+      background-color: var(--bg-dark);
+    }
+    .dark .dark\:text-white {
+      color: var(--bg-light);
+    }
+    .dark .dark\:text-gray-400 {
+      color: #94a3b8;
+    }
+    .dark .dark\:border-gray-700 {
+      border-color: var(--border-dark);
+    }
+    .dark .dark\:bg-gray-800 {
+      background-color: #334155;
+    }
+    .dark .dark\:hover\:bg-gray-700:hover {
+        background-color: #475569;
+    }
+    .dark .dark\:bg-blue-600 {
+        background-color: var(--primary-color);
+    }
+    .dark .dark\:hover\:bg-blue-700:hover {
+        background-color: var(--primary-hover);
+    }
+    .dark .dark\:focus\:ring-blue-800:focus {
+        --tw-ring-color: #1e40af;
+    }
+    .material-symbols-outlined {
+      font-variation-settings:
+      'FILL' 0,
+      'wght' 400,
+      'GRAD' 0,
+      'opsz' 24
+    }
+  </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-text-primary dark:text-white" style='font-family: Inter, "Noto Sans", sans-serif;'>
+<div class="relative flex size-full min-h-screen flex-col group/design-root overflow-x-hidden">
+<div class="flex flex-col lg:flex-row h-full grow">
+<aside class="flex flex-col w-full lg:w-64 bg-white dark:bg-gray-900 border-r border-border-light dark:border-gray-700 p-4 shrink-0">
+<div class="flex items-center gap-3 mb-8">
+<svg class="h-8 w-auto text-[var(--primary-color)]" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C13.6569 2 15 3.34315 15 5V6H17C18.1046 6 19 6.89543 19 8V10C19 11.1046 18.1046 12 17 12H16V14C16 15.6569 14.6569 17 13 17H11C9.34315 17 8 15.6569 8 14V12H7C5.89543 12 5 11.1046 5 10V8C5 6.89543 5.89543 6 7 6H9V5C9 3.34315 10.3431 2 12 2ZM13 6V5C13 4.44772 12.5523 4 12 4C11.4477 4 11 4.44772 11 5V6H13ZM15 10V8H9V10H15ZM14 12H10V14C10 14.5523 10.4477 15 11 15H13C13.5523 15 14 14.5523 14 14V12Z M20.595 14.3418C21.059 14.8841 21.0116 15.6841 20.4883 16.1481L19.5042 17.0097C19.5042 17.0097 19.5042 17.0097 19.5042 17.0097C18.8995 17.5255 18.0673 17.4891 17.5303 16.8924L16.2954 15.5418C16.8043 15.1764 17.2407 14.7171 17.5684 14.1952L20.595 14.3418Z M3.40503 14.3418C2.94099 14.8841 2.98842 15.6841 3.51169 16.1481L4.49585 17.0097C4.49585 17.0097 4.49585 17.0097 4.49585 17.0097C5.10052 17.5255 5.93275 17.4891 6.46972 16.8924L7.70464 15.5418C7.1957 15.1764 6.75932 14.7171 6.43163 14.1952L3.40503 14.3418Z"></path></svg>
+<h1 class="text-xl font-bold text-text-primary dark:text-white">Conecta Saúde</h1>
+</div>
+<nav class="flex flex-col gap-2 flex-grow">
+<a class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800" href="#">
+<span class="material-symbols-outlined text-text-secondary dark:text-gray-400">home</span>
+<p class="text-sm font-medium text-text-secondary dark:text-gray-400">Início</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800" href="#">
+<span class="material-symbols-outlined text-text-secondary dark:text-gray-400">calendar_month</span>
+<p class="text-sm font-medium text-text-secondary dark:text-gray-400">Agendamentos</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800" href="#">
+<span class="material-symbols-outlined text-text-secondary dark:text-gray-400">group</span>
+<p class="text-sm font-medium text-text-secondary dark:text-gray-400">Pacientes</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800" href="#">
+<span class="material-symbols-outlined text-text-secondary dark:text-gray-400">local_shipping</span>
+<p class="text-sm font-medium text-text-secondary dark:text-gray-400">Motoristas</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-md bg-blue-50 dark:bg-[var(--primary-hover)]" href="#">
+<span class="material-symbols-outlined text-[var(--primary-color)] dark:text-white">settings</span>
+<p class="text-sm font-semibold text-[var(--primary-color)] dark:text-white">Gerenciar</p>
+</a>
+</nav>
+<div class="flex flex-col gap-2 pt-4 border-t border-border-light dark:border-gray-700">
+<button class="w-full flex items-center justify-center gap-2 rounded-md h-10 px-4 bg-[var(--primary-color)] text-white text-sm font-bold hover:bg-[var(--primary-hover)] transition-colors">
+<span class="material-symbols-outlined">add</span>
+<span class="truncate">Novo Agendamento</span>
+</button>
+<a class="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800" href="#">
+<span class="material-symbols-outlined text-text-secondary dark:text-gray-400">help_outline</span>
+<p class="text-sm font-medium text-text-secondary dark:text-gray-400">Suporte</p>
+</a>
+</div>
+</aside>
+<main class="flex-1 p-6 lg:p-8 bg-gray-50 dark:bg-gray-900">
+<div class="max-w-7xl mx-auto">
+<div class="flex flex-col sm:flex-row justify-between items-start gap-4 mb-8">
+<h1 class="text-3xl font-bold text-text-primary dark:text-white">Gerenciar Cadastros</h1>
+<div class="flex items-center gap-2">
+<button class="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 text-text-secondary dark:text-gray-400" id="theme-toggle-light-icon">
+<span class="material-symbols-outlined">light_mode</span>
+</button>
+<button class="hidden p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 text-text-secondary dark:text-gray-400" id="theme-toggle-dark-icon">
+<span class="material-symbols-outlined">dark_mode</span>
+</button>
+</div>
+</div>
+<div class="border-b border-border-light dark:border-gray-700 mb-6">
+<nav aria-label="Tabs" class="flex flex-wrap -mb-px text-sm font-medium text-center">
+<a aria-current="page" class="inline-block p-4 border-b-2 border-[var(--primary-color)] text-[var(--primary-color)] rounded-t-lg active dark:text-[var(--primary-color)] dark:border-[var(--primary-color)]" href="#">
+                Cargos
+              </a>
+<a class="inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300" href="#">
+                Perfis de Acesso
+              </a>
+<a class="inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300" href="#">
+                Tipos de Veículos
+              </a>
+<a class="inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300" href="#">
+                Doenças Crônicas
+              </a>
+</nav>
+</div>
+<div class="bg-white dark:bg-gray-800 shadow-md rounded-lg overflow-hidden">
+<div class="p-6">
+<div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+<h2 class="text-xl font-semibold text-text-primary dark:text-white">Lista de Cargos</h2>
+<button class="flex items-center justify-center gap-2 min-w-[84px] max-w-[480px] rounded-md h-10 px-4 bg-[var(--primary-color)] text-white text-sm font-bold hover:bg-[var(--primary-hover)] transition-colors">
+<span class="material-symbols-outlined text-base">add</span>
+<span class="truncate">Adicionar Cargo</span>
+</button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+<thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+<tr>
+<th class="px-6 py-3" scope="col">Nome do Cargo</th>
+<th class="px-6 py-3" scope="col">Descrição</th>
+<th class="px-6 py-3" scope="col"><span class="sr-only">Ações</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+<th class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white" scope="row">Enfermeiro</th>
+<td class="px-6 py-4">Profissional de saúde responsável por cuidados diretos ao paciente.</td>
+<td class="px-6 py-4 text-right">
+<a class="font-medium text-[var(--primary-color)] dark:text-[var(--primary-color)] hover:underline" href="#">Editar</a>
+</td>
+</tr>
+<tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+<th class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white" scope="row">Médico</th>
+<td class="px-6 py-4">Profissional de saúde com formação em medicina.</td>
+<td class="px-6 py-4 text-right">
+<a class="font-medium text-[var(--primary-color)] dark:text-[var(--primary-color)] hover:underline" href="#">Editar</a>
+</td>
+</tr>
+<tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+<th class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white" scope="row">Motorista</th>
+<td class="px-6 py-4">Responsável pelo transporte de pacientes e materiais.</td>
+<td class="px-6 py-4 text-right">
+<a class="font-medium text-[var(--primary-color)] dark:text-[var(--primary-color)] hover:underline" href="#">Editar</a>
+</td>
+</tr>
+<tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+<th class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white" scope="row">Administrador</th>
+<td class="px-6 py-4">Responsável pela gestão do sistema e usuários.</td>
+<td class="px-6 py-4 text-right">
+<a class="font-medium text-[var(--primary-color)] dark:text-[var(--primary-color)] hover:underline" href="#">Editar</a>
+</td>
+</tr>
+<tr class="bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-600">
+<th class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white" scope="row">Recepcionista</th>
+<td class="px-6 py-4">Responsável pelo atendimento e agendamento de pacientes.</td>
+<td class="px-6 py-4 text-right">
+<a class="font-medium text-[var(--primary-color)] dark:text-[var(--primary-color)] hover:underline" href="#">Editar</a>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+<script>
+    const themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
+    const themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
+    // Change the icons inside the button based on previous settings
+    if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        themeToggleLightIcon.classList.remove('hidden');
+        document.documentElement.classList.add('dark');
+    } else {
+        themeToggleDarkIcon.classList.remove('hidden');
+        document.documentElement.classList.remove('dark')
+    }
+    const themeToggleBtn = document.getElementById('theme-toggle-light-icon').parentElement;
+    themeToggleBtn.addEventListener('click', function() {
+        // toggle icons inside button
+        themeToggleDarkIcon.classList.toggle('hidden');
+        themeToggleLightIcon.classList.toggle('hidden');
+        // if set via local storage previously
+        if (localStorage.getItem('color-theme')) {
+            if (localStorage.getItem('color-theme') === 'light') {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('color-theme', 'dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('color-theme', 'light');
+            }
+        // if NOT set via local storage previously
+        } else {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('color-theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('color-theme', 'dark');
+            }
+        }
+    });
+    document.getElementById('theme-toggle-dark-icon').parentElement.addEventListener('click', function() {
+        themeToggleDarkIcon.classList.toggle('hidden');
+        themeToggleLightIcon.classList.toggle('hidden');
+        if (localStorage.getItem('color-theme')) {
+            if (localStorage.getItem('color-theme') === 'light') {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('color-theme', 'dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('color-theme', 'light');
+            }
+        } else {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('color-theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('color-theme', 'dark');
+            }
+        }
+    });
+  </script>
+
+</body></html>

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+<link as="style" href="https://fonts.googleapis.com/css2?display=swap&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900&amp;family=Spline+Sans%3Awght%40400%3B500%3B700" onload="this.rel='stylesheet'" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<title>Conecta Saúde - Movimentação de Medicamentos</title>
+<link href="data:image/x-icon;base64," rel="icon" type="image/x-icon"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style type="text/tailwindcss">
+      :root {
+        --primary-50: #f0f9ff;
+        --primary-100: #e0f2fe;
+        --primary-200: #bae6fd;
+        --primary-300: #7dd3fc;
+        --primary-400: #38bdf8;
+        --primary-500: #0ea5e9;
+        --primary-600: #0284c7;
+        --primary-700: #0369a1;
+        --primary-800: #075985;
+        --primary-900: #0c4a6e;
+        --primary-950: #082f49;
+        --secondary-50: #fafafa;
+        --secondary-100: #f4f4f5;
+        --secondary-200: #e4e4e7;
+        --secondary-300: #d4d4d8;
+        --secondary-400: #a1a1aa;
+        --secondary-500: #71717a;
+        --secondary-600: #52525b;
+        --secondary-700: #3f3f46;
+        --secondary-800: #27272a;
+        --secondary-900: #18181b;
+        --secondary-950: #09090b;
+      }
+      .dark {
+        --primary-50: #082f49;
+        --primary-100: #0c4a6e;
+        --primary-200: #075985;
+        --primary-300: #0369a1;
+        --primary-400: #0284c7;
+        --primary-500: #0ea5e9;
+        --primary-600: #38bdf8;
+        --primary-700: #7dd3fc;
+        --primary-800: #bae6fd;
+        --primary-900: #e0f2fe;
+        --primary-950: #f0f9ff;
+        --secondary-50: #09090b;
+        --secondary-100: #18181b;
+        --secondary-200: #27272a;
+        --secondary-300: #3f3f46;
+        --secondary-400: #52525b;
+        --secondary-500: #71717a;
+        --secondary-600: #a1a1aa;
+        --secondary-700: #d4d4d8;
+        --secondary-800: #e4e4e7;
+        --secondary-900: #f4f4f5;
+        --secondary-950: #fafafa;
+      }
+    </style>
+</head>
+<body class="bg-secondary-50 text-secondary-900 dark:bg-secondary-950 dark:text-secondary-100 transition-colors duration-300">
+<div class="relative flex size-full min-h-screen flex-col group/design-root overflow-x-hidden" style='font-family: "Spline Sans", "Noto Sans", sans-serif;'>
+<div class="layout-container flex h-full grow flex-col">
+<header class="flex items-center justify-between whitespace-nowrap border-b border-secondary-200 dark:border-secondary-800 px-10 py-3">
+<div class="flex items-center gap-4">
+<svg class="text-primary-500" fill="currentColor" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M12 2L2 7l10 5 10-5-10-5zm0 11.5L5.5 10.25l-3.5 1.75L12 17l10-5-3.5-1.75L12 13.5zm0 4.5L5.5 14.75l-3.5 1.75L12 21l10-5-3.5-1.75L12 18z"></path>
+</svg>
+<h2 class="text-lg font-bold leading-tight tracking-[-0.015em] text-secondary-800 dark:text-secondary-200">Conecta Saúde</h2>
+</div>
+<div class="flex flex-1 justify-end items-center gap-4">
+<nav class="hidden md:flex items-center gap-6">
+<a class="text-sm font-medium text-secondary-600 dark:text-secondary-300 hover:text-primary-500 dark:hover:text-primary-400 transition-colors" href="#">Início</a>
+<a class="text-sm font-medium text-secondary-600 dark:text-secondary-300 hover:text-primary-500 dark:hover:text-primary-400 transition-colors" href="#">Medicamentos</a>
+<a class="text-sm font-medium text-secondary-600 dark:text-secondary-300 hover:text-primary-500 dark:hover:text-primary-400 transition-colors" href="#">Motoristas</a>
+<a class="text-sm font-medium text-secondary-600 dark:text-secondary-300 hover:text-primary-500 dark:hover:text-primary-400 transition-colors" href="#">Veículos</a>
+<a class="text-sm font-medium text-secondary-600 dark:text-secondary-300 hover:text-primary-500 dark:hover:text-primary-400 transition-colors" href="#">Munícipes</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="p-2 rounded-full hover:bg-secondary-100 dark:hover:bg-secondary-800 transition-colors" id="theme-toggle">
+<span class="material-symbols-outlined text-secondary-600 dark:text-secondary-400">dark_mode</span>
+</button>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAvdFUKBj6XHDJJLBNO_NCYiunt4lkgO46rGZI8mz7TujGcIuOFDGd4XZf1ZIj5O_si3s6Uf0sf9UlYBICG3rNWzEIy5-UKl-bByw6JqjqEUbSmqllew-OzN5Dd-KT9Thkwk7cdkRHz2OqAWda0sKqOVJOC_3PMGrCsBo9T2bM0EdIzNAw3vCzoChdeK1sv-yg4Z4MpiYGssB29rfciDpQYA4Q6hsMHNM2XesE_cfk9smbmFmKfoQkMBboZzRSiL9PJm4AAA0fuxg");'></div>
+</div>
+</div>
+</header>
+<main class="flex flex-1 justify-center py-10 px-4 sm:px-6 lg:px-8">
+<div class="w-full max-w-2xl">
+<div class="mb-8 text-center">
+<h1 class="text-3xl font-bold tracking-tight text-secondary-800 dark:text-secondary-100 sm:text-4xl">Registrar Movimentação de Medicamento</h1>
+<p class="mt-2 text-base text-secondary-500 dark:text-secondary-400">Selecione o tipo de movimentação e preencha os detalhes abaixo.</p>
+</div>
+<div class="mb-6 border-b border-secondary-200 dark:border-secondary-700">
+<nav aria-label="Tabs" class="-mb-px flex justify-center space-x-8">
+<a class="border-primary-500 text-primary-600 dark:text-primary-400 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" href="#">Entrada</a>
+<a class="border-transparent text-secondary-500 hover:text-secondary-700 hover:border-secondary-300 dark:text-secondary-400 dark:hover:text-secondary-200 dark:hover:border-secondary-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" href="#">Saída</a>
+<a class="border-transparent text-secondary-500 hover:text-secondary-700 hover:border-secondary-300 dark:text-secondary-400 dark:hover:text-secondary-200 dark:hover:border-secondary-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" href="#">Transferência</a>
+</nav>
+</div>
+<form class="space-y-6">
+<div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+<div class="sm:col-span-1">
+<label class="block text-sm font-medium text-secondary-700 dark:text-secondary-300" for="quantidade">Quantidade</label>
+<div class="mt-1">
+<input class="form-input block w-full rounded-md border-secondary-300 dark:border-secondary-700 bg-secondary-100 dark:bg-secondary-800 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm py-3 px-4 placeholder:text-secondary-400 dark:placeholder:text-secondary-500" id="quantidade" min="1" name="quantidade" placeholder="Ex: 100" required="" type="number"/>
+</div>
+</div>
+<div class="sm:col-span-1">
+<label class="block text-sm font-medium text-secondary-700 dark:text-secondary-300" for="lote">Lote</label>
+<div class="mt-1">
+<input class="form-input block w-full rounded-md border-secondary-300 dark:border-secondary-700 bg-secondary-100 dark:bg-secondary-800 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm py-3 px-4 placeholder:text-secondary-400 dark:placeholder:text-secondary-500" id="lote" name="lote" placeholder="Ex: LOTE-12345" type="text"/>
+</div>
+</div>
+</div>
+<div>
+<label class="block text-sm font-medium text-secondary-700 dark:text-secondary-300" for="data-entrada">Data de Entrada</label>
+<div class="mt-1 relative">
+<input class="form-input block w-full rounded-md border-secondary-300 dark:border-secondary-700 bg-secondary-100 dark:bg-secondary-800 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm py-3 px-4" id="data-entrada" name="data-entrada" type="date"/>
+</div>
+</div>
+<div>
+<label class="block text-sm font-medium text-secondary-700 dark:text-secondary-300" for="origem">Origem</label>
+<div class="mt-1">
+<input class="form-input block w-full rounded-md border-secondary-300 dark:border-secondary-700 bg-secondary-100 dark:bg-secondary-800 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm py-3 px-4 placeholder:text-secondary-400 dark:placeholder:text-secondary-500" id="origem" name="origem" placeholder="Ex: Fornecedor X" type="text"/>
+</div>
+</div>
+<div>
+<label class="block text-sm font-medium text-secondary-700 dark:text-secondary-300" for="destino">Destino</label>
+<div class="mt-1">
+<input class="form-input block w-full rounded-md border-secondary-300 dark:border-secondary-700 bg-secondary-100 dark:bg-secondary-800 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm py-3 px-4 placeholder:text-secondary-400 dark:placeholder:text-secondary-500" id="destino" name="destino" placeholder="Ex: Almoxarifado Central" type="text"/>
+</div>
+</div>
+<div>
+<label class="block text-sm font-medium text-secondary-700 dark:text-secondary-300" for="motivo">Motivo</label>
+<div class="mt-1">
+<textarea class="form-textarea block w-full rounded-md border-secondary-300 dark:border-secondary-700 bg-secondary-100 dark:bg-secondary-800 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm py-3 px-4 placeholder:text-secondary-400 dark:placeholder:text-secondary-500" id="motivo" name="motivo" placeholder="Descreva o motivo da movimentação" rows="3"></textarea>
+</div>
+<p class="mt-2 text-sm text-secondary-500 dark:text-secondary-400">Preenchimento obrigatório para saídas e transferências.</p>
+</div>
+<div class="flex justify-end pt-4">
+<button class="flex items-center justify-center rounded-md border border-transparent bg-primary-600 px-6 py-3 text-base font-medium text-white shadow-sm hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-secondary-50 dark:focus:ring-offset-secondary-950 transition-all" type="submit">
+<span class="material-symbols-outlined mr-2">save</span>
+            Registrar Entrada
+        </button>
+</div>
+</form>
+</div>
+</main>
+</div>
+</div>
+<script>
+        const themeToggle = document.getElementById('theme-toggle');
+        const sunIcon = `<span class="material-symbols-outlined text-secondary-600 dark:text-secondary-400">light_mode</span>`;
+        const moonIcon = `<span class="material-symbols-outlined text-secondary-600 dark:text-secondary-400">dark_mode</span>`;
+        function applyTheme(theme) {
+            if (theme === 'dark') {
+                document.documentElement.classList.add('dark');
+                document.body.classList.add('dark');
+                themeToggle.innerHTML = sunIcon;
+            } else {
+                document.documentElement.classList.remove('dark');
+                document.body.classList.remove('dark');
+                themeToggle.innerHTML = moonIcon;
+            }
+        }
+        themeToggle.addEventListener('click', () => {
+            const isDarkMode = document.documentElement.classList.contains('dark');
+            const newTheme = isDarkMode ? 'light' : 'dark';
+            applyTheme(newTheme);
+            localStorage.setItem('theme', newTheme);
+        });
+        const savedTheme = localStorage.getItem('theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (savedTheme) {
+            applyTheme(savedTheme);
+        } else if (prefersDark) {
+            applyTheme('dark');
+        } else {
+            applyTheme('light');
+        }
+    </script>
+
+</body></html>

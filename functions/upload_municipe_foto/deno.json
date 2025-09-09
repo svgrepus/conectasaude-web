@@ -1,0 +1,10 @@
+{
+  "importMap": "../import_map.json",
+  "tasks": {
+    "start": "deno run --allow-all index.ts"
+  },
+  "compilerOptions": {
+    "allowJs": true,
+    "lib": ["deno.window", "deno.ns", "dom"]
+  }
+}
