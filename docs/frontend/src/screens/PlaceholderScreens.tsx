@@ -46,6 +46,17 @@ export const MunicipesScreen: React.FC = () => {
   );
 };
 
+export const CadastrosBasicosScreen: React.FC = () => {
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.content}>
+        <Text style={styles.title}>Cadastros Básicos</Text>
+        <Text style={styles.subtitle}>Tela em desenvolvimento</Text>
+      </View>
+    </SafeAreaView>
+  );
+};
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,

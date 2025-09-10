@@ -8,7 +8,8 @@ import { DashboardScreen } from '../screens/DashboardScreen';
 import { 
   MedicamentosScreen, 
   MotoristasScreen, 
-  VeiculosScreen 
+  VeiculosScreen,
+  CadastrosBasicosScreen
 } from '../screens/PlaceholderScreens';
 import { MunicipesContainer } from '../screens/municipes/MunicipesContainer';
 
@@ -30,6 +31,7 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ isDarkMode = false }
     { key: 'Motoristas', label: 'Motoristas', icon: 'people', component: MotoristasScreen },
     { key: 'Veículos', label: 'Veículos', icon: 'car', component: VeiculosScreen },
     { key: 'Munícipes', label: 'Munícipes', icon: 'person', component: MunicipesContainer },
+    { key: 'CadastrosBasicos', label: 'Cadastros Básicos', icon: 'settings', component: CadastrosBasicosScreen },
   ];
 
   const ActiveComponent = menuItems.find(item => item.key === activeScreen)?.component || DashboardScreen;
