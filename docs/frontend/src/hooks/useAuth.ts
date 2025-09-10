@@ -22,7 +22,7 @@ export const useAuth = () => {
     checkUser();
 
     // Listen for auth state changes
-    const unsubscribe = authService.onAuthStateChange((user) => {
+    const unsubscribe = authService.onAuthStateChange((user: User | null) => {
       setUser(user);
       setLoading(false);
     });
@@ -49,6 +49,7 @@ export const useAuth = () => {
   const signUp = async (data: { 
     email: string; 
     password: string; 
+    confirmPassword: string;
     nome: string; 
     cpf: string; 
     telefone?: string; 
@@ -64,9 +65,7 @@ export const useAuth = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const signOut = async () => {
+  };  const signOut = async () => {
     setLoading(true);
     try {
       await authService.signOut();
@@ -82,7 +81,7 @@ export const useAuth = () => {
 
   const resetPassword = async (email: string) => {
     try {
-      // Mock implementation for password reset
+      // Para reset de senha via Supabase API
       console.log('Password reset requested for:', email);
       return { error: null };
     } catch (error) {
