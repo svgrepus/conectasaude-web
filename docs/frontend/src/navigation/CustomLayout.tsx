@@ -13,6 +13,12 @@ import {
   CadastrosBasicosScreen
 } from '../screens/PlaceholderScreens';
 import { MunicipesContainer } from '../screens/municipes/MunicipesContainer';
+import { 
+  DoencaCronicaScreen, 
+  TipoDoencaScreen, 
+  TipoVeiculoScreen, 
+  CargoScreen 
+} from '../screens/cadastros';
 
 const { width } = Dimensions.get('window');
 const isWeb = width > 768; // Detecta se é web/desktop
@@ -25,6 +31,7 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ isDarkMode = false }
   const { isDark, toggleTheme } = useTheme();
   const [activeScreen, setActiveScreen] = useState('Dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(isWeb);
+  const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
 
   const menuItems = [
     { key: 'Dashboard', label: 'Dashboard', icon: 'grid', component: DashboardScreen },
@@ -32,10 +39,60 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ isDarkMode = false }
     { key: 'Motoristas', label: 'Motoristas', icon: 'people', component: MotoristasScreen },
     { key: 'Veículos', label: 'Veículos', icon: 'car', component: VeiculosScreen },
     { key: 'Munícipes', label: 'Munícipes', icon: 'person', component: MunicipesContainer },
-    { key: 'CadastrosBasicos', label: 'Cadastros Básicos', icon: 'settings', component: CadastrosBasicosScreen },
+    { 
+      key: 'CadastrosBasicos', 
+      label: 'Cadastros Básicos', 
+      icon: 'settings', 
+      component: CadastrosBasicosScreen,
+      hasSubmenu: true,
+      submenu: [
+        { key: 'DoencaCronica', label: 'Área da Saúde - Doença Crônica', component: DoencaCronicaScreen },
+        { key: 'TipoDoenca', label: 'Área da Saúde - Tipo de Doença', component: TipoDoencaScreen },
+        { key: 'TipoVeiculo', label: 'Veículo - Tipo de Veículo', component: TipoVeiculoScreen },
+        { key: 'Cargo', label: 'Colaboradores - Cargo', component: CargoScreen },
+      ]
+    },
   ];
 
-  const ActiveComponent = menuItems.find(item => item.key === activeScreen)?.component || DashboardScreen;
+  const toggleSubmenu = (menuKey: string) => {
+    setExpandedMenus(prev => 
+      prev.includes(menuKey) 
+        ? prev.filter(key => key !== menuKey)
+        : [...prev, menuKey]
+    );
+  };
+
+  const handleMenuClick = (item: any, submenuItem?: any) => {
+    if (submenuItem) {
+      setActiveScreen(submenuItem.key);
+    } else if (item.hasSubmenu) {
+      toggleSubmenu(item.key);
+    } else {
+      setActiveScreen(item.key);
+    }
+  };
+
+  const getActiveComponent = () => {
+    // Procura primeiro nos itens principais
+    const mainItem = menuItems.find(item => item.key === activeScreen);
+    if (mainItem && !mainItem.hasSubmenu) {
+      return mainItem.component;
+    }
+
+    // Procura nos submenus
+    for (const item of menuItems) {
+      if (item.submenu) {
+        const submenuItem = item.submenu.find(sub => sub.key === activeScreen);
+        if (submenuItem) {
+          return submenuItem.component;
+        }
+      }
+    }
+
+    return DashboardScreen;
+  };
+
+  const ActiveComponent = getActiveComponent();
 
   const styles = StyleSheet.create({
     container: {
@@ -120,6 +177,38 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ isDarkMode = false }
       color: '#8A9E8E', // Verde institucional Jambeiro
       fontWeight: '600',
     },
+    submenuContainer: {
+      backgroundColor: isDark ? '#1a1a1a' : '#F8F9FA',
+      marginLeft: 20,
+      borderLeftWidth: 2,
+      borderLeftColor: '#8A9E8E',
+      paddingLeft: 12,
+    },
+    submenuItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: 12,
+      paddingHorizontal: 16,
+      borderRadius: 8,
+      marginVertical: 2,
+    },
+    submenuItemActive: {
+      backgroundColor: isDark ? '#8A9E8E' : '#8A9E8E',
+    },
+    submenuText: {
+      fontSize: 14,
+      fontWeight: '500',
+      color: isDark ? '#B6B9B7' : '#666666',
+      fontFamily: 'Arial, Helvetica, sans-serif',
+      flex: 1,
+    },
+    submenuTextActive: {
+      color: '#FFFFFF',
+      fontWeight: '600',
+    },
+    menuChevron: {
+      marginLeft: 8,
+    },
     content: {
       flex: 1,
       flexDirection: 'column',
@@ -203,29 +292,70 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ isDarkMode = false }
 
         <ScrollView style={styles.menuContainer}>
           {menuItems.map((item) => (
-            <TouchableOpacity
-              key={item.key}
-              style={[
-                styles.menuItem,
-                activeScreen === item.key && styles.menuItemActive,
-              ]}
-              onPress={() => setActiveScreen(item.key)}
-            >
-              <Ionicons
-                name={item.icon as any}
-                size={20}
-                color={activeScreen === item.key ? '#8A9E8E' : (isDark ? '#B6B9B7' : '#B6B9B7')}
-                style={styles.menuIcon}
-              />
-              <Text
+            <View key={item.key}>
+              {/* Item principal do menu */}
+              <TouchableOpacity
                 style={[
-                  styles.menuText,
-                  activeScreen === item.key && styles.menuTextActive,
+                  styles.menuItem,
+                  (activeScreen === item.key || 
+                   (item.submenu && item.submenu.some(sub => sub.key === activeScreen))) && 
+                  styles.menuItemActive,
                 ]}
+                onPress={() => handleMenuClick(item)}
               >
-                {item.label}
-              </Text>
-            </TouchableOpacity>
+                <Ionicons
+                  name={item.icon as any}
+                  size={20}
+                  color={(activeScreen === item.key || 
+                         (item.submenu && item.submenu.some(sub => sub.key === activeScreen))) 
+                         ? '#8A9E8E' : (isDark ? '#B6B9B7' : '#B6B9B7')}
+                  style={styles.menuIcon}
+                />
+                <Text
+                  style={[
+                    styles.menuText,
+                    (activeScreen === item.key || 
+                     (item.submenu && item.submenu.some(sub => sub.key === activeScreen))) && 
+                    styles.menuTextActive,
+                  ]}
+                >
+                  {item.label}
+                </Text>
+                {item.hasSubmenu && (
+                  <Ionicons
+                    name={expandedMenus.includes(item.key) ? 'chevron-down' : 'chevron-forward'}
+                    size={16}
+                    color={isDark ? '#B6B9B7' : '#B6B9B7'}
+                    style={styles.menuChevron}
+                  />
+                )}
+              </TouchableOpacity>
+
+              {/* Submenu */}
+              {item.hasSubmenu && item.submenu && expandedMenus.includes(item.key) && (
+                <View style={styles.submenuContainer}>
+                  {item.submenu.map((submenuItem: any) => (
+                    <TouchableOpacity
+                      key={submenuItem.key}
+                      style={[
+                        styles.submenuItem,
+                        activeScreen === submenuItem.key && styles.submenuItemActive,
+                      ]}
+                      onPress={() => handleMenuClick(item, submenuItem)}
+                    >
+                      <Text
+                        style={[
+                          styles.submenuText,
+                          activeScreen === submenuItem.key && styles.submenuTextActive,
+                        ]}
+                      >
+                        {submenuItem.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            </View>
           ))}
         </ScrollView>
       </View>

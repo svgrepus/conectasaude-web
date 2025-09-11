@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Alert } from 'react-native';
 import { TextInput, Button } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth, useTheme } from '../../hooks';
 import { validateEmail } from '../../utils';
 import { BrasaoJambeiro } from '../../components/BrasaoJambeiro';
+import { doencaCronicaService } from '../../services/doencaCronicaService';
+import { authService } from '../../services/auth-simple';
 
 const { width, height } = Dimensions.get('window');
 
@@ -56,6 +58,41 @@ export default function LoginScreen({ navigation }: any) {
       console.error('Erro inesperado:', error);
       const errorMessage = error instanceof Error ? error.message : 'Erro inesperado ao fazer login';
       setErrorMessage(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Função de teste da API
+  const testAPI = async () => {
+    try {
+      console.log('🧪 Testando API...');
+      setLoading(true);
+      
+      // Verificar se existe token
+      const token = authService.getAccessToken();
+      console.log('Token atual:', token ? 'Existe' : 'Não existe');
+      
+      if (!token) {
+        Alert.alert('Teste API', 'Primeiro faça login para obter um token de acesso');
+        return;
+      }
+      
+      // Testar a API de doenças crônicas
+      const response = await doencaCronicaService.getDoencasCronicas(1, 5);
+      console.log('✅ Teste da API bem-sucedido:', response);
+      
+      Alert.alert(
+        'Teste API Sucesso', 
+        `API funcionando!\nTotal: ${response.count} registros\nCarregados: ${response.data.length} itens`
+      );
+      
+    } catch (error) {
+      console.error('❌ Erro no teste da API:', error);
+      Alert.alert(
+        'Teste API Erro', 
+        `Erro: ${error instanceof Error ? error.message : 'Erro desconhecido'}`
+      );
     } finally {
       setLoading(false);
     }
@@ -323,6 +360,18 @@ export default function LoginScreen({ navigation }: any) {
             buttonColor="#8A9E8E"
           >
             ENTRAR
+          </Button>
+
+          {/* Test API Button - Temporário */}
+          <Button
+            mode="outlined"
+            onPress={testAPI}
+            loading={loading}
+            disabled={loading}
+            style={[styles.loginButton, { marginTop: 10, borderColor: '#8A9E8E' }]}
+            labelStyle={[styles.loginButtonText, { color: '#8A9E8E' }]}
+          >
+            TESTAR API
           </Button>
 
           {/* Register Link */}
