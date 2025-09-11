@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta httpEquiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1.00001,viewport-fit=cover">
+  <title>ConectaSaúde - Jambeiro</title>
+  
+  <!-- Fonte Work Sans (oficial da Prefeitura de Jambeiro) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Work Sans', system-ui, -apple-system, sans-serif;
+      overflow: auto;
+      overscroll-behavior-y: none;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      -ms-text-size-adjust: 100%;
+      -webkit-text-size-adjust: 100%;
+    }
+    
+    #root {
+      display: flex;
+      flex: 1 1 100%;
+      height: 100vh;
+    }
+    
+    /* Loading screen */
+    .expo-loading-screen {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background-color: #1e40af;
+    }
+    
+    .expo-loading-screen-image {
+      width: 80px;
+      height: 80px;
+      margin-bottom: 20px;
+    }
+    
+    .expo-loading-screen-text {
+      color: white;
+      font-family: 'Work Sans', sans-serif;
+      font-size: 18px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <noscript>You need to enable JavaScript to run this app.</noscript>
+  <div id="root">
+    <div class="expo-loading-screen">
+      <div class="expo-loading-screen-image"></div>
+      <div class="expo-loading-screen-text">ConectaSaúde</div>
+    </div>
+  </div>
+</body>
+</html>

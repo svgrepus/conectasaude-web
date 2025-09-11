@@ -2,7 +2,7 @@ import type { Theme } from '../types';
 
 export const lightTheme: Theme = {
   colors: {
-    primary: '#ea2a33',
+    primary: '#8A9E8E', // Verde institucional da Prefeitura de Jambeiro
     secondary: '#4CAF50',
     background: '#fdf2f2',
     surface: '#FFFFFF',
@@ -12,7 +12,7 @@ export const lightTheme: Theme = {
     error: '#F44336',
     success: '#4CAF50',
     warning: '#FF9800',
-    info: '#ea2a33',
+    info: '#8A9E8E', // Verde institucional da Prefeitura de Jambeiro
   },
   spacing: {
     xs: 4,
@@ -33,7 +33,7 @@ export const lightTheme: Theme = {
 
 export const darkTheme: Theme = {
   colors: {
-    primary: '#ea2a33',
+    primary: '#8A9E8E', // Verde institucional da Prefeitura de Jambeiro
     secondary: '#81C784',
     background: '#1f2937',
     surface: '#374151',
@@ -43,7 +43,7 @@ export const darkTheme: Theme = {
     error: '#EF5350',
     success: '#66BB6A',
     warning: '#FFA726',
-    info: '#ea2a33',
+    info: '#8A9E8E', // Verde institucional da Prefeitura de Jambeiro
   },
   spacing: {
     xs: 4,

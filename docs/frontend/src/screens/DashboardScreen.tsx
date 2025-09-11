@@ -330,7 +330,7 @@ const styles = StyleSheet.create({
   exportButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#dc2626',
+    backgroundColor: '#8A9E8E', // Verde institucional da Prefeitura de Jambeiro
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 6,

@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   required: {
-    color: '#dc2626',
+    color: '#B8860B', // Cor de destaque para campos obrigatórios
   },
   pickerButton: {
     flexDirection: 'row',

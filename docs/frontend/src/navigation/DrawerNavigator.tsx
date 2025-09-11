@@ -42,7 +42,7 @@ export const DrawerNavigator: React.FC<DrawerNavigatorProps> = ({ isDarkMode = f
           fontWeight: '600',
           fontSize: 18,
         },
-        drawerActiveTintColor: '#ea2a33',
+        drawerActiveTintColor: '#8A9E8E', // Verde institucional da Prefeitura de Jambeiro
         drawerInactiveTintColor: isDark ? '#9ca3af' : '#6b7280',
         drawerLabelStyle: {
           fontSize: 16,

@@ -34,7 +34,7 @@ export const ChartComponent: React.FC<ChartComponentProps> = ({ isDarkMode }) =>
                   styles.bar,
                   {
                     height,
-                    backgroundColor: '#dc2626',
+                    backgroundColor: '#8A9E8E', // Verde institucional da Prefeitura de Jambeiro
                   },
                 ]}
               />

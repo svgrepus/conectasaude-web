@@ -90,7 +90,7 @@ export default function App() {
       return (
         <SafeAreaProvider>
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={customTheme.light.primary} />
+            <ActivityIndicator size="large" color={customTheme.light.jambeiroBlue} />
           </View>
         </SafeAreaProvider>
       );

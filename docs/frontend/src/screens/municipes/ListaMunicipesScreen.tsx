@@ -88,7 +88,7 @@ export const ListaMunicipesScreen: React.FC<ListaMunicipesScreenProps> = ({
       style={[
         styles.paginationButton,
         currentPage === page && styles.paginationButtonActive,
-        { backgroundColor: currentPage === page ? '#ea2a33' : 'transparent' }
+        { backgroundColor: currentPage === page ? '#8A9E8E' : 'transparent' }
       ]}
       onPress={() => setCurrentPage(page)}
     >
@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
   addButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ea2a33',
+    backgroundColor: '#8A9E8E', // Verde institucional da Prefeitura de Jambeiro
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 8,
@@ -310,7 +310,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   editButton: {
-    color: '#ea2a33',
+    color: '#8A9E8E', // Verde institucional da Prefeitura de Jambeiro
     fontSize: 14,
     fontWeight: '500',
   },
@@ -336,7 +336,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   paginationButtonActive: {
-    backgroundColor: '#ea2a33',
+    backgroundColor: '#8A9E8E', // Verde institucional da Prefeitura de Jambeiro
   },
   paginationText: {
     fontSize: 14,

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Dimensions, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../hooks';
+import { BrasaoJambeiro } from '../components/BrasaoJambeiro';
 
 // Screens
 import { DashboardScreen } from '../screens/DashboardScreen';
@@ -40,31 +41,55 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ isDarkMode = false }
     container: {
       flex: 1,
       flexDirection: 'row',
-      backgroundColor: isDark ? '#111827' : '#f9fafb',
+      backgroundColor: isDark ? '#1a1a1a' : '#FFFFFF',
     },
     sidebar: {
       width: sidebarOpen ? 280 : 0,
-      backgroundColor: isDark ? '#1f2937' : '#ffffff',
+      backgroundColor: isDark ? '#2a2a2a' : '#FFFFFF',
       borderRightWidth: 1,
-      borderRightColor: isDark ? '#374151' : '#e5e7eb',
+      borderRightColor: isDark ? '#3a3a3a' : '#E6EAE7',
       overflow: 'hidden',
     },
     sidebarHeader: {
       padding: 20,
       borderBottomWidth: 1,
-      borderBottomColor: isDark ? '#374151' : '#e5e7eb',
-      flexDirection: 'row',
-      alignItems: 'center',
+      borderBottomColor: isDark ? '#3a3a3a' : '#E6EAE7',
+      backgroundColor: isDark ? '#8A9E8E' : '#8A9E8E', // Verde institucional
     },
     logo: {
       flexDirection: 'row',
       alignItems: 'center',
     },
+    brasaoContainer: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: 'rgba(255, 255, 255, 0.15)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 12,
+    },
+    logoTextContainer: {
+      flex: 1,
+    },
+    logoTitle: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: '#FFFFFF',
+      fontFamily: 'Arial Black, Helvetica, sans-serif',
+    },
+    logoSubtitle: {
+      fontSize: 12,
+      fontWeight: '400',
+      color: 'rgba(255, 255, 255, 0.9)',
+      fontFamily: 'Arial, Helvetica, sans-serif',
+    },
     logoText: {
       fontSize: 20,
       fontWeight: 'bold',
-      color: isDark ? '#ffffff' : '#111827',
+      color: isDark ? '#FFFFFF' : '#333333',
       marginLeft: 12,
+      fontFamily: 'Arial, Helvetica, sans-serif',
     },
     menuContainer: {
       flex: 1,
@@ -78,9 +103,9 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ isDarkMode = false }
       marginVertical: 2,
     },
     menuItemActive: {
-      backgroundColor: isDark ? '#374151' : '#f3f4f6',
+      backgroundColor: isDark ? '#3a3a3a' : '#E6EAE7',
       borderRightWidth: 3,
-      borderRightColor: '#ea2a33',
+      borderRightColor: '#8A9E8E', // Verde institucional Jambeiro
     },
     menuIcon: {
       marginRight: 12,
@@ -88,10 +113,11 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ isDarkMode = false }
     menuText: {
       fontSize: 16,
       fontWeight: '500',
-      color: isDark ? '#ffffff' : '#111827',
+      color: isDark ? '#FFFFFF' : '#333333',
+      fontFamily: 'Arial, Helvetica, sans-serif',
     },
     menuTextActive: {
-      color: '#ea2a33',
+      color: '#8A9E8E', // Verde institucional Jambeiro
       fontWeight: '600',
     },
     content: {
@@ -100,9 +126,9 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ isDarkMode = false }
     },
     header: {
       height: 60,
-      backgroundColor: isDark ? '#1f2937' : '#ffffff',
+      backgroundColor: isDark ? '#2a2a2a' : '#FFFFFF',
       borderBottomWidth: 1,
-      borderBottomColor: isDark ? '#374151' : '#e5e7eb',
+      borderBottomColor: isDark ? '#3a3a3a' : '#E6EAE7',
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
@@ -115,8 +141,9 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ isDarkMode = false }
     headerTitle: {
       fontSize: 18,
       fontWeight: '600',
-      color: isDark ? '#ffffff' : '#111827',
+      color: isDark ? '#FFFFFF' : '#333333',
       marginLeft: 16,
+      fontFamily: 'Arial, Helvetica, sans-serif',
     },
     headerRight: {
       flexDirection: 'row',
@@ -126,16 +153,17 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ isDarkMode = false }
     searchContainer: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: isDark ? '#374151' : '#f3f4f6',
+      backgroundColor: isDark ? '#3a3a3a' : '#E6EAE7',
       paddingHorizontal: 12,
       paddingVertical: 8,
-      borderRadius: 20,
+      borderRadius: 6,
       minWidth: 200,
     },
     searchPlaceholder: {
       marginLeft: 8,
       fontSize: 14,
-      color: isDark ? '#9ca3af' : '#6b7280',
+      color: isDark ? '#B6B9B7' : '#B6B9B7',
+      fontFamily: 'Arial, Helvetica, sans-serif',
     },
     themeToggle: {
       width: 36,
@@ -153,7 +181,7 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ isDarkMode = false }
     },
     screenContainer: {
       flex: 1,
-      backgroundColor: isDark ? '#111827' : '#f9fafb',
+      backgroundColor: isDark ? '#1a1a1a' : '#FFFFFF',
     },
   });
 
@@ -163,8 +191,13 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ isDarkMode = false }
       <View style={styles.sidebar}>
         <View style={styles.sidebarHeader}>
           <View style={styles.logo}>
-            <Ionicons name="heart" size={32} color="#ea2a33" />
-            <Text style={styles.logoText}>Conecta Saúde</Text>
+            <View style={styles.brasaoContainer}>
+              <BrasaoJambeiro size={28} />
+            </View>
+            <View style={styles.logoTextContainer}>
+              <Text style={styles.logoTitle}>ConectaSaúde</Text>
+              <Text style={styles.logoSubtitle}>Prefeitura de Jambeiro</Text>
+            </View>
           </View>
         </View>
 
@@ -181,7 +214,7 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ isDarkMode = false }
               <Ionicons
                 name={item.icon as any}
                 size={20}
-                color={activeScreen === item.key ? '#ea2a33' : (isDark ? '#9ca3af' : '#6b7280')}
+                color={activeScreen === item.key ? '#8A9E8E' : (isDark ? '#B6B9B7' : '#B6B9B7')}
                 style={styles.menuIcon}
               />
               <Text
@@ -209,7 +242,7 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ isDarkMode = false }
               <Ionicons
                 name="menu"
                 size={24}
-                color={isDark ? '#ffffff' : '#111827'}
+                color={isDark ? '#FFFFFF' : '#333333'}
               />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>{activeScreen}</Text>
@@ -217,7 +250,7 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ isDarkMode = false }
 
           <View style={styles.headerRight}>
             <View style={styles.searchContainer}>
-              <Ionicons name="search" size={16} color={isDark ? '#9ca3af' : '#6b7280'} />
+              <Ionicons name="search" size={16} color={isDark ? '#B6B9B7' : '#B6B9B7'} />
               <Text style={styles.searchPlaceholder}>Buscar...</Text>
             </View>
 
@@ -225,7 +258,7 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ isDarkMode = false }
               <Ionicons
                 name={isDark ? 'sunny' : 'moon'}
                 size={20}
-                color={isDark ? '#fbbf24' : '#6b7280'}
+                color={isDark ? '#fbbf24' : '#B6B9B7'}
               />
             </TouchableOpacity>
           </View>

@@ -24,7 +24,7 @@ export const DashboardCard: React.FC<DashboardCardProps> = ({
       case 'alert':
         return '#eab308';
       case 'danger':
-        return '#dc2626';
+        return '#B8860B'; // Cor de alerta para casos críticos
       default:
         return currentTheme.text;
     }

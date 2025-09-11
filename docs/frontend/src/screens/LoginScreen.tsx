@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../hooks';
 import { validateEmail } from '../utils';
 import { authService } from '../services/auth-simple';
+import { BrasaoJambeiro } from '../components/BrasaoJambeiro';
 
 const { width, height } = Dimensions.get('window');
 
@@ -56,7 +57,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
   const styles = StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: isDark ? '#1f2937' : '#fdf2f2',
+      backgroundColor: isDark ? '#1a1a1a' : '#FFFFFF',
     },
     scrollContainer: {
       flexGrow: 1,
@@ -72,7 +73,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
       width: 44,
       height: 44,
       borderRadius: 22,
-      backgroundColor: isDark ? '#374151' : '#ffffff',
+      backgroundColor: isDark ? '#3a3a3a' : '#E6EAE7',
       justifyContent: 'center',
       alignItems: 'center',
       shadowColor: '#000',
@@ -85,14 +86,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
     card: {
       width: '100%',
       maxWidth: 400,
-      backgroundColor: isDark ? '#374151' : '#ffffff',
-      borderRadius: 16,
+      backgroundColor: isDark ? '#2a2a2a' : '#E6EAE7',
+      borderRadius: 12,
       padding: 32,
       shadowColor: '#000',
-      shadowOffset: { width: 0, height: 10 },
-      shadowOpacity: 0.25,
-      shadowRadius: 20,
-      elevation: 15,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.1,
+      shadowRadius: 8,
+      elevation: 8,
     },
     logoContainer: {
       alignItems: 'center',
@@ -106,16 +107,17 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
     title: {
       fontSize: 28,
       fontWeight: 'bold',
-      color: isDark ? '#ffffff' : '#111827',
+      color: isDark ? '#FFFFFF' : '#333333',
       textAlign: 'center',
       marginBottom: 8,
-      fontFamily: 'Spline Sans',
+      fontFamily: 'Arial Black, Helvetica, sans-serif',
     },
     subtitle: {
       fontSize: 14,
-      color: isDark ? '#9ca3af' : '#6b7280',
+      color: isDark ? '#B6B9B7' : '#B6B9B7',
       textAlign: 'center',
       marginBottom: 32,
+      fontFamily: 'Arial, Helvetica, sans-serif',
     },
     inputContainer: {
       marginBottom: 16,
@@ -124,14 +126,15 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
       position: 'relative',
     },
     input: {
-      backgroundColor: isDark ? '#4b5563' : '#fce8e8',
+      backgroundColor: isDark ? '#3a3a3a' : '#FFFFFF',
       paddingLeft: 40,
       height: 48,
-      borderRadius: 8,
+      borderRadius: 6,
       borderWidth: 1,
-      borderColor: isDark ? '#6b7280' : '#d1d5db',
+      borderColor: isDark ? '#B6B9B7' : '#E6EAE7',
       fontSize: 14,
-      color: isDark ? '#ffffff' : '#111827',
+      color: isDark ? '#FFFFFF' : '#333333',
+      fontFamily: 'Arial, Helvetica, sans-serif',
     },
     inputIcon: {
       position: 'absolute',
@@ -145,8 +148,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
     },
     forgotPasswordText: {
       fontSize: 14,
-      color: '#ea2a33',
+      color: '#8A9E8E',
       fontWeight: '500',
+      fontFamily: 'Arial, Helvetica, sans-serif',
     },
     messageContainer: {
       marginBottom: 16,
@@ -176,16 +180,18 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
       color: isDark ? '#86efac' : '#16a34a',
     },
     loginButton: {
-      backgroundColor: '#ea2a33',
+      backgroundColor: '#8A9E8E',
       height: 48,
-      borderRadius: 8,
+      borderRadius: 6,
       justifyContent: 'center',
       marginBottom: 16,
     },
     loginButtonText: {
-      color: '#ffffff',
+      color: '#FFFFFF',
       fontSize: 16,
       fontWeight: '600',
+      fontFamily: 'Arial, Helvetica, sans-serif',
+      textTransform: 'uppercase',
     },
     registerContainer: {
       flexDirection: 'row',
@@ -194,13 +200,15 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
     },
     registerText: {
       fontSize: 14,
-      color: isDark ? '#9ca3af' : '#6b7280',
+      color: isDark ? '#B6B9B7' : '#B6B9B7',
+      fontFamily: 'Arial, Helvetica, sans-serif',
     },
     registerLink: {
       fontSize: 14,
-      color: '#ea2a33',
+      color: '#8A9E8E',
       fontWeight: '500',
       marginLeft: 4,
+      fontFamily: 'Arial, Helvetica, sans-serif',
     },
   });
 
@@ -211,7 +219,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
         <Ionicons 
           name={isDark ? 'sunny' : 'moon'} 
           size={24} 
-          color={isDark ? '#fbbf24' : '#6b7280'} 
+          color={isDark ? '#fbbf24' : '#B6B9B7'} 
         />
       </TouchableOpacity>
 
@@ -219,9 +227,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
         <View style={styles.card}>
           {/* Logo and Title */}
           <View style={styles.logoContainer}>
-            <Ionicons name="heart" size={48} color="#ea2a33" />
-            <Text style={styles.title}>Conecta Saúde</Text>
-            <Text style={styles.subtitle}>Bem-vindo de volta!</Text>
+            <BrasaoJambeiro size={48} />
+            <Text style={styles.title}>ConectaSaúde</Text>
+            <Text style={styles.subtitle}>Prefeitura de Jambeiro</Text>
           </View>
 
           {/* Email Input */}
@@ -309,9 +317,9 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
             disabled={loading}
             style={styles.loginButton}
             labelStyle={styles.loginButtonText}
-            buttonColor="#ea2a33"
+            buttonColor="#8A9E8E"
           >
-            Entrar
+            ENTRAR
           </Button>
 
           {/* Register Link */}

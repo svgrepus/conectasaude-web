@@ -197,18 +197,18 @@ export const CadastroMunicipeScreen: React.FC<CadastroMunicipeScreenProps> = ({ 
             style={[
               styles.tab,
               activeTab === 'pessoais' && styles.activeTab,
-              activeTab === 'pessoais' && { borderBottomColor: '#ea2a33' }
+              activeTab === 'pessoais' && { borderBottomColor: '#8A9E8E' }
             ]}
             onPress={() => setActiveTab('pessoais')}
           >
             <Ionicons
               name="person"
               size={20}
-              color={activeTab === 'pessoais' ? '#ea2a33' : currentTheme.mutedForeground}
+              color={activeTab === 'pessoais' ? '#8A9E8E' : currentTheme.mutedForeground}
             />
             <Text style={[
               styles.tabText,
-              { color: activeTab === 'pessoais' ? '#ea2a33' : currentTheme.mutedForeground }
+              { color: activeTab === 'pessoais' ? '#8A9E8E' : currentTheme.mutedForeground }
             ]}>
               Dados Pessoais
             </Text>
@@ -218,18 +218,18 @@ export const CadastroMunicipeScreen: React.FC<CadastroMunicipeScreenProps> = ({ 
             style={[
               styles.tab,
               activeTab === 'saude' && styles.activeTab,
-              activeTab === 'saude' && { borderBottomColor: '#ea2a33' }
+              activeTab === 'saude' && { borderBottomColor: '#8A9E8E' }
             ]}
             onPress={() => setActiveTab('saude')}
           >
             <Ionicons
               name="medical"
               size={20}
-              color={activeTab === 'saude' ? '#ea2a33' : currentTheme.mutedForeground}
+              color={activeTab === 'saude' ? '#8A9E8E' : currentTheme.mutedForeground}
             />
             <Text style={[
               styles.tabText,
-              { color: activeTab === 'saude' ? '#ea2a33' : currentTheme.mutedForeground }
+              { color: activeTab === 'saude' ? '#8A9E8E' : currentTheme.mutedForeground }
             ]}>
               Dados de Saúde
             </Text>
@@ -928,7 +928,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   saveButton: {
-    backgroundColor: '#ea2a33',
+    backgroundColor: '#8A9E8E', // Verde institucional da Prefeitura de Jambeiro
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
@@ -999,7 +999,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   required: {
-    color: '#ea2a33',
+    color: '#8A9E8E', // Verde institucional da Prefeitura de Jambeiro
     fontWeight: '600',
   },
 });

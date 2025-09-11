@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Button, Card } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth, useTheme } from '../hooks';
+import { BrasaoJambeiro } from '../components/BrasaoJambeiro';
 
 export default function HomeScreen() {
   const { user, signOut } = useAuth();
@@ -19,7 +20,7 @@ export default function HomeScreen() {
 
   const getRoleColor = (role: string) => {
     switch (role) {
-      case 'admin': return '#ea2a33';
+      case 'admin': return '#8A9E8E'; // Verde institucional da Prefeitura de Jambeiro
       case 'funcionario': return '#059669';
       case 'municipe': return '#2563eb';
       default: return theme.colors.primary;
@@ -41,7 +42,9 @@ export default function HomeScreen() {
       marginTop: 20,
     },
     logo: {
-      marginBottom: 16,
+      marginBottom: 20,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     title: {
       fontSize: 28,
@@ -117,7 +120,7 @@ export default function HomeScreen() {
       borderRadius: 8,
     },
     logoutButton: {
-      backgroundColor: '#ef4444',
+      backgroundColor: '#B8860B', // Tom de ouro/bronze para o botão de logout
       borderRadius: 8,
       marginTop: 8,
     },
@@ -133,10 +136,10 @@ export default function HomeScreen() {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.logo}>
-            <Ionicons name="heart" size={48} color="#ea2a33" />
+            <BrasaoJambeiro size={64} />
           </View>
-          <Text style={styles.title}>Conecta Saúde</Text>
-          <Text style={styles.subtitle}>Sistema Municipal de Saúde</Text>
+          <Text style={styles.title}>ConectaSaúde</Text>
+          <Text style={styles.subtitle}>Prefeitura de Jambeiro - Sistema Municipal de Saúde</Text>
         </View>
 
         {/* Welcome Card */}
@@ -164,7 +167,7 @@ export default function HomeScreen() {
             <>
               <Button 
                 mode="contained" 
-                buttonColor="#ea2a33"
+                buttonColor="#8A9E8E"
                 style={styles.actionButton}
                 icon="shield-account"
               >

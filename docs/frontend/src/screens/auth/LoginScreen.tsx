@@ -4,6 +4,7 @@ import { TextInput, Button } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth, useTheme } from '../../hooks';
 import { validateEmail } from '../../utils';
+import { BrasaoJambeiro } from '../../components/BrasaoJambeiro';
 
 const { width, height } = Dimensions.get('window');
 
@@ -152,7 +153,7 @@ export default function LoginScreen({ navigation }: any) {
     },
     forgotPasswordText: {
       fontSize: 14,
-      color: '#ea2a33',
+      color: '#8A9E8E', // Verde institucional da Prefeitura de Jambeiro
       fontWeight: '500',
     },
     messageContainer: {
@@ -183,7 +184,7 @@ export default function LoginScreen({ navigation }: any) {
       color: isDark ? '#86efac' : '#16a34a',
     },
     loginButton: {
-      backgroundColor: '#ea2a33',
+      backgroundColor: '#8A9E8E', // Verde institucional da Prefeitura de Jambeiro
       height: 48,
       borderRadius: 8,
       justifyContent: 'center',
@@ -205,7 +206,7 @@ export default function LoginScreen({ navigation }: any) {
     },
     registerLink: {
       fontSize: 14,
-      color: '#ea2a33',
+      color: '#8A9E8E', // Verde institucional da Prefeitura de Jambeiro
       fontWeight: '500',
       marginLeft: 4,
     },
@@ -226,9 +227,9 @@ export default function LoginScreen({ navigation }: any) {
         <View style={styles.card}>
           {/* Logo and Title */}
           <View style={styles.logoContainer}>
-            <Ionicons name="heart" size={48} color="#ea2a33" />
-            <Text style={styles.title}>Conecta Saúde</Text>
-            <Text style={styles.subtitle}>Bem-vindo de volta!</Text>
+            <BrasaoJambeiro size={48} />
+            <Text style={styles.title}>ConectaSaúde</Text>
+            <Text style={styles.subtitle}>Prefeitura de Jambeiro - Bem-vindo de volta!</Text>
           </View>
 
           {/* Email Input */}
@@ -319,9 +320,9 @@ export default function LoginScreen({ navigation }: any) {
             disabled={loading}
             style={styles.loginButton}
             labelStyle={styles.loginButtonText}
-            buttonColor="#ea2a33"
+            buttonColor="#8A9E8E"
           >
-            Entrar
+            ENTRAR
           </Button>
 
           {/* Register Link */}
