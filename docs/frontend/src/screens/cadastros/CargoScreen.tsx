@@ -1,254 +1,167 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, TextInput, FlatList, Text } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, TextInput, FlatList, Text, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../../constants/theme';
-
-interface Cargo {
-  id: string;
-  nome: string;
-  descricao: string;
-  nivel: string;
-  area: string;
-  salarioMinimo: number;
-  cargaHoraria: number;
-  ativo: boolean;
-}
+import { cargoService, Cargo } from '../../services/cargoService';
+import { CargoForm } from '../../components/CargoForm';
 
 export const CargoScreen: React.FC = () => {
+  const [cargos, setCargos] = useState<Cargo[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [formVisible, setFormVisible] = useState(false);
+  const [selectedCargo, setSelectedCargo] = useState<Cargo | null>(null);
+  const [confirmDeleteVisible, setConfirmDeleteVisible] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<Cargo | null>(null);
+  const [successVisible, setSuccessVisible] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
+  const itemsPerPage = 10;
   const currentTheme = isDarkMode ? theme.dark : theme.light;
 
-  // Dados mockados expandidos
-  const [cargos] = useState<Cargo[]>([
-    {
-      id: '1',
-      nome: 'Médico Clínico Geral',
-      descricao: 'Médico especialista em clínica geral',
-      nivel: 'Superior',
-      area: 'Assistencial',
-      salarioMinimo: 15000,
-      cargaHoraria: 40,
-      ativo: true,
-    },
-    {
-      id: '2',
-      nome: 'Enfermeiro',
-      descricao: 'Profissional de enfermagem de nível superior',
-      nivel: 'Superior',
-      area: 'Assistencial',
-      salarioMinimo: 8000,
-      cargaHoraria: 40,
-      ativo: true,
-    },
-    {
-      id: '3',
-      nome: 'Técnico em Enfermagem',
-      descricao: 'Técnico em enfermagem',
-      nivel: 'Técnico',
-      area: 'Assistencial',
-      salarioMinimo: 3500,
-      cargaHoraria: 40,
-      ativo: true,
-    },
-    {
-      id: '4',
-      nome: 'Auxiliar de Enfermagem',
-      descricao: 'Auxiliar de enfermagem',
-      nivel: 'Médio',
-      area: 'Assistencial',
-      salarioMinimo: 2500,
-      cargaHoraria: 40,
-      ativo: true,
-    },
-    {
-      id: '5',
-      nome: 'Farmacêutico',
-      descricao: 'Profissional farmacêutico',
-      nivel: 'Superior',
-      area: 'Assistencial',
-      salarioMinimo: 7000,
-      cargaHoraria: 40,
-      ativo: true,
-    },
-    {
-      id: '6',
-      nome: 'Psicólogo',
-      descricao: 'Profissional de psicologia',
-      nivel: 'Superior',
-      area: 'Assistencial',
-      salarioMinimo: 6000,
-      cargaHoraria: 30,
-      ativo: true,
-    },
-    {
-      id: '7',
-      nome: 'Nutricionista',
-      descricao: 'Profissional de nutrição',
-      nivel: 'Superior',
-      area: 'Assistencial',
-      salarioMinimo: 5500,
-      cargaHoraria: 30,
-      ativo: true,
-    },
-    {
-      id: '8',
-      nome: 'Fisioterapeuta',
-      descricao: 'Profissional de fisioterapia',
-      nivel: 'Superior',
-      area: 'Assistencial',
-      salarioMinimo: 5000,
-      cargaHoraria: 30,
-      ativo: true,
-    },
-    {
-      id: '9',
-      nome: 'Dentista',
-      descricao: 'Cirurgião dentista',
-      nivel: 'Superior',
-      area: 'Assistencial',
-      salarioMinimo: 8000,
-      cargaHoraria: 40,
-      ativo: true,
-    },
-    {
-      id: '10',
-      nome: 'Auxiliar de Saúde Bucal',
-      descricao: 'Auxiliar em saúde bucal',
-      nivel: 'Técnico',
-      area: 'Assistencial',
-      salarioMinimo: 2000,
-      cargaHoraria: 40,
-      ativo: true,
-    },
-    {
-      id: '11',
-      nome: 'Motorista de Ambulância',
-      descricao: 'Condutor de veículos de emergência',
-      nivel: 'Médio',
-      area: 'Operacional',
-      salarioMinimo: 3000,
-      cargaHoraria: 40,
-      ativo: true,
-    },
-    {
-      id: '12',
-      nome: 'Auxiliar Administrativo',
-      descricao: 'Auxiliar para atividades administrativas',
-      nivel: 'Médio',
-      area: 'Administrativa',
-      salarioMinimo: 2200,
-      cargaHoraria: 40,
-      ativo: true,
-    },
-    {
-      id: '13',
-      nome: 'Assistente Social',
-      descricao: 'Profissional de serviço social',
-      nivel: 'Superior',
-      area: 'Assistencial',
-      salarioMinimo: 4500,
-      cargaHoraria: 30,
-      ativo: true,
-    },
-    {
-      id: '14',
-      nome: 'Agente Comunitário de Saúde',
-      descricao: 'Agente de saúde da comunidade',
-      nivel: 'Médio',
-      area: 'Assistencial',
-      salarioMinimo: 2000,
-      cargaHoraria: 40,
-      ativo: true,
-    },
-    {
-      id: '15',
-      nome: 'Coordenador de Unidade',
-      descricao: 'Coordenador de unidade de saúde',
-      nivel: 'Superior',
-      area: 'Gestão',
-      salarioMinimo: 10000,
-      cargaHoraria: 40,
-      ativo: true,
-    },
-  ]);
+  const fetchCargos = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError('');
+      
+      const response = await cargoService.getCargos(1, 1000);
+      
+      if (response.data) {
+        setCargos(response.data);
+      } else {
+        setError('Erro ao carregar cargos');
+      }
+    } catch (err) {
+      console.error('Erro ao buscar cargos:', err);
+      setError('Erro ao carregar cargos');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  const filteredCargos = cargos.filter(cargo =>
-    cargo.nome.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    cargo.nivel.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    cargo.area.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    cargo.descricao.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const searchCargos = useCallback(async (query: string) => {
+    if (!query.trim()) {
+      await fetchCargos();
+      return;
+    }
 
-  const totalPages = Math.ceil(filteredCargos.length / 10);
+    try {
+      setLoading(true);
+      setError('');
+      
+      const response = await cargoService.getCargos(1, 1000, query);
+      
+      if (response.data) {
+        setCargos(response.data);
+      } else {
+        setError('Erro ao buscar cargos');
+      }
+    } catch (err) {
+      console.error('Erro ao buscar cargos:', err);
+      setError('Erro ao buscar cargos');
+    } finally {
+      setLoading(false);
+    }
+  }, [fetchCargos]);
 
-  const handleEdit = (id: string) => {
-    console.log('Editar cargo:', id);
-  };
+  useEffect(() => {
+    fetchCargos();
+  }, [fetchCargos]);
 
-  const handleDelete = (id: string) => {
-    console.log('Excluir cargo:', id);
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      searchCargos(searchQuery);
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery, searchCargos]);
+
+  const totalPages = Math.ceil(cargos.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentCargos = cargos.slice(startIndex, endIndex);
+
+  const handleEdit = (item: Cargo) => {
+    setSelectedCargo(item);
+    setFormVisible(true);
   };
 
   const handleAdd = () => {
-    console.log('Adicionar novo cargo');
+    setSelectedCargo(null);
+    setFormVisible(true);
   };
 
-  // Renderizar item da tabela
+  const handleFormSubmit = async (data: Pick<Cargo, 'name'>) => {
+    try {
+      setError('');
+      
+      if (selectedCargo) {
+        await cargoService.updateCargo(selectedCargo.id, data);
+        setSuccessMessage('Cargo atualizado com sucesso!');
+      } else {
+        await cargoService.createCargo(data);
+        setSuccessMessage('Cargo criado com sucesso!');
+      }
+      
+      setFormVisible(false);
+      setSelectedCargo(null);
+      await fetchCargos();
+      setSuccessVisible(true);
+      
+    } catch (err) {
+      console.error('Erro ao salvar cargo:', err);
+      setError('Erro ao salvar cargo');
+    }
+  };
+
+  const handleDelete = (item: Cargo) => {
+    setItemToDelete(item);
+    setConfirmDeleteVisible(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!itemToDelete) return;
+
+    try {
+      setError('');
+      
+      await cargoService.deleteCargo(itemToDelete.id);
+
+      setConfirmDeleteVisible(false);
+      setItemToDelete(null);
+      setSuccessMessage('Cargo excluído com sucesso!');
+      await fetchCargos();
+      setSuccessVisible(true);
+      
+    } catch (err) {
+      console.error('Erro ao excluir cargo:', err);
+      setError('Erro ao excluir cargo');
+      setConfirmDeleteVisible(false);
+      setItemToDelete(null);
+    }
+  };
+
   const renderCargoItem = ({ item }: { item: Cargo }) => (
     <View style={[styles.tableRow, { borderTopColor: currentTheme.border }]}>
       <View style={styles.nameCell}>
         <Text style={[styles.cellTextPrimary, { color: currentTheme.text }]}>
-          {item.nome}
+          {item.name}
         </Text>
-      </View>
-      <View style={styles.levelCell}>
-        <Text style={[styles.cellTextSecondary, { color: currentTheme.mutedForeground }]}>
-          {item.nivel}
-        </Text>
-      </View>
-      <View style={styles.areaCell}>
-        <Text style={[styles.cellTextSecondary, { color: currentTheme.mutedForeground }]}>
-          {item.area}
-        </Text>
-      </View>
-      <View style={styles.workloadCell}>
-        <Text style={[styles.cellTextSecondary, { color: currentTheme.mutedForeground }]}>
-          {item.cargaHoraria}h
-        </Text>
-      </View>
-      <View style={styles.salaryCell}>
-        <Text style={[styles.cellTextSecondary, { color: currentTheme.mutedForeground }]}>
-          R$ {item.salarioMinimo.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-        </Text>
-      </View>
-      <View style={styles.statusCell}>
-        <View style={[
-          styles.statusBadge, 
-          { backgroundColor: item.ativo ? '#dcfce7' : '#fef2f2' }
-        ]}>
-          <Text style={[
-            styles.statusText, 
-            { color: item.ativo ? '#16a34a' : '#dc2626' }
-          ]}>
-            {item.ativo ? 'Ativo' : 'Inativo'}
-          </Text>
-        </View>
       </View>
       <View style={styles.actionCell}>
-        <TouchableOpacity onPress={() => handleEdit(item.id)} style={styles.editButton}>
+        <TouchableOpacity onPress={() => handleEdit(item)} style={styles.editButton}>
           <Text style={[styles.editButtonText, { color: '#8A9E8E' }]}>Editar</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => handleDelete(item.id)} style={styles.deleteButton}>
+        <TouchableOpacity onPress={() => handleDelete(item)} style={styles.deleteButton}>
           <Text style={styles.deleteButtonText}>Excluir</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 
-  // Renderizar botões de paginação
   const renderPaginationButton = (page: number) => (
     <TouchableOpacity
       key={page}
@@ -281,9 +194,16 @@ export const CargoScreen: React.FC = () => {
             onPress={handleAdd}
           >
             <Ionicons name="add" size={20} color="#ffffff" />
-            <Text style={styles.addButtonText}>Novo Cargo</Text>
+            <Text style={styles.addButtonText}>Adicionar</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Error Message */}
+        {error && (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        )}
 
         {/* Search */}
         <View style={styles.filtersContainer}>
@@ -291,8 +211,8 @@ export const CargoScreen: React.FC = () => {
             <Ionicons name="search" size={16} color={currentTheme.mutedForeground} />
             <TextInput
               style={[styles.searchInput, { color: currentTheme.text }]}
-              placeholder="Buscar por cargo, nível ou área..."
-              placeholderTextColor={currentTheme.mutedForeground}
+              placeholder="Buscar cargos..."
+              placeholderTextColor="#999999"
               value={searchQuery}
               onChangeText={setSearchQuery}
             />
@@ -308,32 +228,7 @@ export const CargoScreen: React.FC = () => {
           <View style={[styles.tableHeader, { backgroundColor: currentTheme.muted }]}>
             <View style={styles.nameCell}>
               <Text style={[styles.headerText, { color: currentTheme.mutedForeground }]}>
-                CARGO
-              </Text>
-            </View>
-            <View style={styles.levelCell}>
-              <Text style={[styles.headerText, { color: currentTheme.mutedForeground }]}>
-                NÍVEL
-              </Text>
-            </View>
-            <View style={styles.areaCell}>
-              <Text style={[styles.headerText, { color: currentTheme.mutedForeground }]}>
-                ÁREA
-              </Text>
-            </View>
-            <View style={styles.workloadCell}>
-              <Text style={[styles.headerText, { color: currentTheme.mutedForeground }]}>
-                CARGA HORÁRIA
-              </Text>
-            </View>
-            <View style={styles.salaryCell}>
-              <Text style={[styles.headerText, { color: currentTheme.mutedForeground }]}>
-                SALÁRIO MÍNIMO
-              </Text>
-            </View>
-            <View style={styles.statusCell}>
-              <Text style={[styles.headerText, { color: currentTheme.mutedForeground }]}>
-                STATUS
+                NOME
               </Text>
             </View>
             <View style={styles.actionCell}>
@@ -344,11 +239,17 @@ export const CargoScreen: React.FC = () => {
           </View>
 
           {/* Table Body */}
-          {filteredCargos.length > 0 ? (
+          {loading ? (
+            <View style={styles.loadingContainer}>
+              <Text style={[styles.loadingText, { color: currentTheme.mutedForeground }]}>
+                Carregando...
+              </Text>
+            </View>
+          ) : currentCargos.length > 0 ? (
             <FlatList
-              data={filteredCargos}
+              data={currentCargos}
               renderItem={renderCargoItem}
-              keyExtractor={(item) => item.id}
+              keyExtractor={(item) => item.id.toString()}
               scrollEnabled={false}
               showsVerticalScrollIndicator={false}
             />
@@ -376,7 +277,10 @@ export const CargoScreen: React.FC = () => {
               />
             </TouchableOpacity>
             
-            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => i + 1).map(renderPaginationButton)}
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              const startPage = Math.max(1, currentPage - 2);
+              return startPage + i;
+            }).filter(page => page <= totalPages).map(renderPaginationButton)}
             
             <TouchableOpacity 
               style={styles.paginationArrow}
@@ -395,10 +299,109 @@ export const CargoScreen: React.FC = () => {
         {/* Info Footer */}
         <View style={styles.infoFooter}>
           <Text style={[styles.infoText, { color: currentTheme.mutedForeground }]}>
-            Total: {filteredCargos.length} cargos
+            Total: {cargos.length} cargos
           </Text>
+          {cargos.length > itemsPerPage && (
+            <Text style={[styles.infoText, { color: currentTheme.mutedForeground }]}>
+              Página {currentPage} de {totalPages}
+            </Text>
+          )}
         </View>
       </ScrollView>
+
+      {/* Form Modal */}
+      <CargoForm
+        visible={formVisible}
+        cargo={selectedCargo}
+        onSave={handleFormSubmit}
+        onClose={() => {
+          setFormVisible(false);
+          setSelectedCargo(null);
+        }}
+      />
+
+      {/* Confirm Delete Modal */}
+      <Modal
+        visible={confirmDeleteVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setConfirmDeleteVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContainer, { backgroundColor: currentTheme.surface }]}>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: currentTheme.text }]}>
+                Confirmar Exclusão
+              </Text>
+            </View>
+            
+            <View style={styles.modalBody}>
+              <Text style={[styles.modalText, { color: currentTheme.text }]}>
+                Tem certeza que deseja excluir o cargo "{itemToDelete?.name}"?
+              </Text>
+              <Text style={[styles.modalSubtext, { color: currentTheme.mutedForeground }]}>
+                Esta ação não pode ser desfeita.
+              </Text>
+            </View>
+            
+            <View style={styles.modalFooter}>
+              <TouchableOpacity
+                style={[styles.cancelButton, { borderColor: currentTheme.border }]}
+                onPress={() => setConfirmDeleteVisible(false)}
+              >
+                <Text style={[styles.cancelButtonText, { color: currentTheme.text }]}>
+                  Cancelar
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={styles.confirmButton}
+                onPress={confirmDelete}
+              >
+                <Text style={styles.confirmButtonText}>
+                  Excluir
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Success Modal */}
+      <Modal
+        visible={successVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setSuccessVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContainer, { backgroundColor: currentTheme.surface }]}>
+            <View style={styles.modalHeader}>
+              <Ionicons name="checkmark-circle" size={48} color="#22c55e" />
+              <Text style={[styles.modalTitle, { color: currentTheme.text }]}>
+                Sucesso!
+              </Text>
+            </View>
+            
+            <View style={styles.modalBody}>
+              <Text style={[styles.modalText, { color: currentTheme.text }]}>
+                {successMessage}
+              </Text>
+            </View>
+            
+            <View style={styles.modalFooter}>
+              <TouchableOpacity
+                style={styles.successButton}
+                onPress={() => setSuccessVisible(false)}
+              >
+                <Text style={styles.successButtonText}>
+                  OK
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -436,6 +439,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
   },
+  errorContainer: {
+    backgroundColor: '#fef2f2',
+    borderColor: '#fecaca',
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+  },
+  errorText: {
+    color: '#dc2626',
+    fontSize: 14,
+  },
   filtersContainer: {
     marginBottom: 16,
   },
@@ -471,31 +486,11 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
   },
   nameCell: {
-    flex: 2.5,
-    justifyContent: 'center',
-  },
-  levelCell: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  areaCell: {
-    flex: 1.2,
-    justifyContent: 'center',
-  },
-  workloadCell: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  salaryCell: {
-    flex: 1.5,
-    justifyContent: 'center',
-  },
-  statusCell: {
-    flex: 1,
+    flex: 4,
     justifyContent: 'center',
   },
   actionCell: {
-    flex: 1.5,
+    flex: 2,
     flexDirection: 'row',
     justifyContent: 'flex-end',
     alignItems: 'center',
@@ -514,16 +509,6 @@ const styles = StyleSheet.create({
   cellTextSecondary: {
     fontSize: 14,
   },
-  statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-    alignSelf: 'flex-start',
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: '500',
-  },
   editButton: {
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -540,6 +525,15 @@ const styles = StyleSheet.create({
     color: '#dc2626',
     fontSize: 14,
     fontWeight: '500',
+  },
+  loadingContainer: {
+    paddingVertical: 40,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 14,
+    textAlign: 'center',
   },
   emptyContainer: {
     paddingVertical: 40,
@@ -581,9 +575,90 @@ const styles = StyleSheet.create({
   infoFooter: {
     paddingVertical: 16,
     alignItems: 'center',
+    gap: 4,
   },
   infoText: {
     fontSize: 14,
     textAlign: 'center',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    width: '90%',
+    maxWidth: 400,
+    borderRadius: 12,
+    padding: 0,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+  },
+  modalHeader: {
+    alignItems: 'center',
+    padding: 24,
+    gap: 12,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  modalBody: {
+    paddingHorizontal: 24,
+    paddingBottom: 24,
+    gap: 8,
+  },
+  modalText: {
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  modalSubtext: {
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  modalFooter: {
+    flexDirection: 'row',
+    padding: 24,
+    gap: 12,
+  },
+  cancelButton: {
+    flex: 1,
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  confirmButton: {
+    flex: 1,
+    backgroundColor: '#dc2626',
+    borderRadius: 8,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  confirmButtonText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  successButton: {
+    flex: 1,
+    backgroundColor: '#22c55e',
+    borderRadius: 8,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  successButtonText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '500',
   },
 });

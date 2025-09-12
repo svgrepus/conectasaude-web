@@ -51,13 +51,12 @@ class DoencaCronicaService {
       const offset = (page - 1) * limit;
 
       // Construir URL com parâmetros de paginação
-      let url = `${this.supabaseUrl}/rest/v1/basic_health_chronic_diseases`;
+      let url = `${this.supabaseUrl}/rest/v1/basic_health_chronic_diseases_active`;
       const params = new URLSearchParams({
         select: '*',
         limit: limit.toString(),
         offset: offset.toString(),
-        order: 'name.asc',
-        deleted_at: 'is.null'
+        order: 'name.asc'
       });
 
       // Adicionar filtro de busca se fornecido
@@ -87,7 +86,7 @@ class DoencaCronicaService {
       console.log('✅ DoencaCronicaService: Dados recebidos:', data);
 
       // Obter contagem total para paginação
-      let countUrl = `${this.supabaseUrl}/rest/v1/basic_health_chronic_diseases?select=count&deleted_at=is.null`;
+      let countUrl = `${this.supabaseUrl}/rest/v1/basic_health_chronic_diseases_active?select=count`;
       if (search && search.trim()) {
         countUrl += `&or=(name.ilike.*${search.trim()}*,description.ilike.*${search.trim()}*)`;
       }
@@ -128,7 +127,7 @@ class DoencaCronicaService {
     try {
       console.log('➕ DoencaCronicaService: Criando doença crônica:', data);
 
-      const response = await fetch(`${this.supabaseUrl}/rest/v1/basic_health_chronic_diseases`, {
+      const response = await fetch(`${this.supabaseUrl}/rest/v1/basic_health_chronic_diseases_active`, {
         method: 'POST',
         headers: { ...this.getHeaders(), 'Prefer': 'return=representation' },
         body: JSON.stringify({
@@ -160,7 +159,7 @@ class DoencaCronicaService {
     try {
       console.log('✏️ DoencaCronicaService: Atualizando doença crônica:', id, data);
 
-      const response = await fetch(`${this.supabaseUrl}/rest/v1/basic_health_chronic_diseases?id=eq.${id}`, {
+      const response = await fetch(`${this.supabaseUrl}/rest/v1/basic_health_chronic_diseases_active?id=eq.${id}`, {
         method: 'PATCH',
         headers: { ...this.getHeaders(), 'Prefer': 'return=representation' },
         body: JSON.stringify({
@@ -190,7 +189,7 @@ class DoencaCronicaService {
     try {
       console.log('🗑️ DoencaCronicaService: Deletando doença crônica:', id);
 
-      const url = `${this.supabaseUrl}/rest/v1/basic_health_chronic_diseases?id=eq.${id}`;
+      const url = `${this.supabaseUrl}/rest/v1/basic_health_chronic_diseases_active?id=eq.${id}`;
       console.log('🌐 DoencaCronicaService: URL PATCH (soft delete):', url);
       
       // Usar headers normais com Authorization para PATCH
