@@ -26,20 +26,23 @@ export const DoencaCronicaScreen: React.FC = () => {
         clearTimeout(timeoutId);
         timeoutId = setTimeout(() => {
           console.log('🔍 Realizando busca com debounce:', searchTerm);
+          console.log('🔍 Resetando página para 1 na busca');
           loadDoencas(1, searchTerm);
         }, 500); // 500ms de delay
       };
     })(),
-    []
+    [] // Manter vazio para evitar dependência circular
   );
 
   // Carregar dados da API
   const loadDoencas = async (page: number = 1, search?: string) => {
     try {
       setLoading(true);
-      console.log('🔍 DoencaCronicaScreen: Carregando doenças crônicas', { page, search });
+      console.log('🔍 DoencaCronicaScreen: Carregando doenças crônicas', { page, search, searchQuery });
 
       const response = await doencaCronicaService.getDoencasCronicas(page, itemsPerPage, search);
+      
+      console.log('📦 DoencaCronicaScreen: Resposta recebida:', response);
       
       setDoencas(response.data);
       setTotalCount(response.count);
@@ -47,7 +50,8 @@ export const DoencaCronicaScreen: React.FC = () => {
 
       console.log('✅ DoencaCronicaScreen: Dados carregados:', {
         total: response.count,
-        loaded: response.data.length
+        loaded: response.data.length,
+        searchTerm: search
       });
 
     } catch (error) {
@@ -72,12 +76,16 @@ export const DoencaCronicaScreen: React.FC = () => {
   // Recarregar quando pesquisa mudar
   // Handler para mudança de busca
   const handleSearchChange = (text: string) => {
+    console.log('🔍 DoencaCronicaScreen: Texto de busca alterado:', text);
     setSearchQuery(text);
+    
     if (text.trim() === '') {
       // Se a busca estiver vazia, carrega imediatamente
+      console.log('🔍 DoencaCronicaScreen: Busca vazia, carregando todos os dados');
       loadDoencas(1);
     } else {
       // Se há texto, usa debounce
+      console.log('🔍 DoencaCronicaScreen: Aplicando debounce para:', text);
       debounceSearch(text);
     }
   };
@@ -231,7 +239,7 @@ export const DoencaCronicaScreen: React.FC = () => {
             onPress={handleAdd}
           >
             <Ionicons name="add" size={20} color="#ffffff" />
-            <Text style={styles.addButtonText}>Nova Doença</Text>
+            <Text style={styles.addButtonText}>Novo</Text>
           </TouchableOpacity>
         </View>
 
@@ -241,8 +249,8 @@ export const DoencaCronicaScreen: React.FC = () => {
             <Ionicons name="search" size={16} color={currentTheme.mutedForeground} />
             <TextInput
               style={[styles.searchInput, { color: currentTheme.text }]}
-              placeholder="Buscar por nome ou descrição..."
-              placeholderTextColor={currentTheme.mutedForeground}
+              placeholder="Digite para buscar doenças..."
+              placeholderTextColor="#999999"
               value={searchQuery}
               onChangeText={handleSearchChange}
             />

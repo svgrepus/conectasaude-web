@@ -88,14 +88,7 @@ export const DoencaCronicaForm: React.FC<DoencaCronicaFormProps> = ({
 
   // Cancelar e fechar
   const handleCancel = () => {
-    Alert.alert(
-      'Confirmar',
-      'Deseja cancelar? As alterações não salvas serão perdidas.',
-      [
-        { text: 'Continuar Editando', style: 'cancel' },
-        { text: 'Cancelar', style: 'destructive', onPress: onClose }
-      ]
-    );
+    onClose();
   };
 
   const isEditing = !!doenca;
@@ -142,7 +135,8 @@ export const DoencaCronicaForm: React.FC<DoencaCronicaFormProps> = ({
               <TextInput
                 value={formData.name}
                 onChangeText={(text) => setFormData(prev => ({ ...prev, name: text }))}
-                placeholder="Ex: Diabetes Mellitus Tipo 2"
+                placeholder="Digite o nome da doença"
+                placeholderTextColor="#999999"
                 mode="outlined"
                 style={styles.textInput}
                 error={!!errors.name}
@@ -160,7 +154,8 @@ export const DoencaCronicaForm: React.FC<DoencaCronicaFormProps> = ({
               <TextInput
                 value={formData.description}
                 onChangeText={(text) => setFormData(prev => ({ ...prev, description: text }))}
-                placeholder="Descrição detalhada da doença crônica..."
+                placeholder="Digite a descrição da doença"
+                placeholderTextColor="#999999"
                 mode="outlined"
                 multiline
                 numberOfLines={4}
@@ -215,7 +210,7 @@ export const DoencaCronicaForm: React.FC<DoencaCronicaFormProps> = ({
             disabled={loading}
             buttonColor="#8A9E8E"
           >
-            {isEditing ? 'Salvar Alterações' : 'Criar Doença'}
+            {isEditing ? 'Salvar Alterações' : 'Criar'}
           </Button>
         </View>
       </View>

@@ -39,7 +39,13 @@ class DoencaCronicaService {
     search?: string
   ): Promise<DoencaCronicaResponse> {
     try {
-      console.log('🔍 DoencaCronicaService: Buscando doenças crônicas', { page, limit, search });
+      console.log('🔍 DoencaCronicaService: Buscando doenças crônicas', { 
+        page, 
+        limit, 
+        search,
+        searchType: typeof search,
+        searchLength: search ? search.length : 0
+      });
 
       // Calcular offset para paginação
       const offset = (page - 1) * limit;
@@ -50,20 +56,21 @@ class DoencaCronicaService {
         select: '*',
         limit: limit.toString(),
         offset: offset.toString(),
-        order: 'name.asc'
+        order: 'name.asc',
+        deleted_at: 'is.null'
       });
 
       // Adicionar filtro de busca se fornecido
       if (search && search.trim()) {
-        params.append('or', `name.ilike.%${search}%,description.ilike.%${search}%`);
+        const trimmedSearch = search.trim();
+        console.log('🔍 DoencaCronicaService: Aplicando filtro de busca:', trimmedSearch);
+        params.append('or', `(name.ilike.*${trimmedSearch}*,description.ilike.*${trimmedSearch}*)`);
       }
-
-      // Adicionar filtro para não mostrar registros deletados
-      params.append('deleted_at', 'is.null');
 
       url += `?${params.toString()}`;
 
       console.log('🌐 DoencaCronicaService: URL da requisição:', url);
+      console.log('🔍 DoencaCronicaService: Termo de busca:', search);
 
       const response = await fetch(url, {
         method: 'GET',
@@ -80,13 +87,17 @@ class DoencaCronicaService {
       console.log('✅ DoencaCronicaService: Dados recebidos:', data);
 
       // Obter contagem total para paginação
-      const countResponse = await fetch(
-        `${this.supabaseUrl}/rest/v1/basic_health_chronic_diseases?select=count&deleted_at=is.null${search ? `&or=name.ilike.%${search}%,description.ilike.%${search}%` : ''}`,
-        {
-          method: 'GET',
-          headers: { ...this.getHeaders(), 'Prefer': 'count=exact' }
-        }
-      );
+      let countUrl = `${this.supabaseUrl}/rest/v1/basic_health_chronic_diseases?select=count&deleted_at=is.null`;
+      if (search && search.trim()) {
+        countUrl += `&or=(name.ilike.*${search.trim()}*,description.ilike.*${search.trim()}*)`;
+      }
+      
+      console.log('🔢 DoencaCronicaService: URL de contagem:', countUrl);
+      
+      const countResponse = await fetch(countUrl, {
+        method: 'GET',
+        headers: { ...this.getHeaders(), 'Prefer': 'count=exact' }
+      });
 
       let totalCount = 0;
       if (countResponse.ok) {
