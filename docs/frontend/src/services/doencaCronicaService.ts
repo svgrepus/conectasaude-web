@@ -190,22 +190,44 @@ class DoencaCronicaService {
     try {
       console.log('🗑️ DoencaCronicaService: Deletando doença crônica:', id);
 
-      // Soft delete - apenas marca como deletado
-      const response = await fetch(`${this.supabaseUrl}/rest/v1/basic_health_chronic_diseases?id=eq.${id}`, {
+      const url = `${this.supabaseUrl}/rest/v1/basic_health_chronic_diseases?id=eq.${id}`;
+      console.log('🌐 DoencaCronicaService: URL PATCH (soft delete):', url);
+      
+      // Usar headers normais com Authorization para PATCH
+      const headers = this.getHeaders();
+      console.log('🔑 DoencaCronicaService: Headers PATCH:', headers);
+
+      // Soft delete - marca como deletado em vez de remover
+      const response = await fetch(url, {
         method: 'PATCH',
-        headers: this.getHeaders(),
+        headers: headers,
         body: JSON.stringify({
           deleted_at: new Date().toISOString()
         })
       });
 
+      console.log('📡 DoencaCronicaService: Response status:', response.status);
+      console.log('📡 DoencaCronicaService: Response ok:', response.ok);
+
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        console.error('❌ DoencaCronicaService: Erro ao deletar:', response.status, errorData);
-        throw new Error(`Erro ao deletar doença crônica: ${response.status}`);
+        let errorData;
+        try {
+          errorData = await response.json();
+          console.error('❌ DoencaCronicaService: Error response data:', errorData);
+        } catch (parseError) {
+          console.error('❌ DoencaCronicaService: Erro ao fazer parse do erro:', parseError);
+          errorData = { message: 'Erro desconhecido na resposta do servidor' };
+        }
+        
+        const errorMessage = errorData?.message || errorData?.error?.message || `HTTP ${response.status}`;
+        throw new Error(`Erro ao deletar doença crônica: ${errorMessage}`);
       }
 
-      console.log('✅ DoencaCronicaService: Doença crônica deletada');
+      // Verificar se a resposta tem conteúdo
+      const responseText = await response.text();
+      console.log('📄 DoencaCronicaService: Response text:', responseText);
+
+      console.log('✅ DoencaCronicaService: Doença crônica marcada como deletada com sucesso');
     } catch (error) {
       console.error('❌ DoencaCronicaService: Erro ao deletar doença crônica:', error);
       throw error;

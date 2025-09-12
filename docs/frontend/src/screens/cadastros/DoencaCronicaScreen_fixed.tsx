@@ -19,10 +19,6 @@ export const DoencaCronicaScreen: React.FC = () => {
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [doencaToDelete, setDoencaToDelete] = useState<DoencaCronica | null>(null);
   
-  // Estado para modal de sucesso
-  const [successModalVisible, setSuccessModalVisible] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
-  
   const itemsPerPage = 10;
 
   const currentTheme = isDarkMode ? theme.dark : theme.light;
@@ -143,17 +139,12 @@ export const DoencaCronicaScreen: React.FC = () => {
   };
 
   const confirmDelete = async () => {
-    if (!doencaToDelete) {
-      console.log('❌ doencaToDelete é null, cancelando exclusão');
-      return;
-    }
+    if (!doencaToDelete) return;
     
     console.log('🚨 USUÁRIO CONFIRMOU EXCLUSÃO!');
-    console.log('🚨 Fechando modal de confirmação...');
     setDeleteModalVisible(false);
     
     try {
-      console.log('🚨 Iniciando processo de exclusão...');
       setLoading(true);
       console.log('🚨 CHAMANDO SERVIÇO DELETE...');
       
@@ -166,21 +157,19 @@ export const DoencaCronicaScreen: React.FC = () => {
       await loadDoencas(currentPage, searchQuery);
       console.log('🚨 TABELA ATUALIZADA!');
       
-      // Mostrar sucesso usando modal personalizado
-      console.log('🚨 Exibindo modal de sucesso...');
-      setSuccessMessage('Item excluído com sucesso.');
-      setSuccessModalVisible(true);
+      // Mostrar sucesso
+      Alert.alert('Sucesso', 'Item excluído com sucesso.');
       
     } catch (error) {
       console.error('❌ Erro ao excluir doença crônica:', error);
       
       // Mostrar erro detalhado
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
-      console.log('🚨 Exibindo modal de erro...');
-      setSuccessMessage(`Erro ao excluir: ${errorMessage}`);
-      setSuccessModalVisible(true);
+      Alert.alert(
+        'Erro ao Excluir', 
+        `Não foi possível excluir o item.\n\nDetalhes: ${errorMessage}`
+      );
     } finally {
-      console.log('🚨 Finalizando exclusão...');
       setLoading(false);
       setDoencaToDelete(null);
     }
@@ -229,7 +218,7 @@ export const DoencaCronicaScreen: React.FC = () => {
           style={styles.editButton}
           onPress={() => handleEdit(item)}
         >
-          <Text style={[styles.editButtonText, { color: '#8A9E8E' }]}>
+          <Text style={[styles.editButtonText, { color: currentTheme.text }]}>
             Editar
           </Text>
         </TouchableOpacity>
@@ -499,33 +488,6 @@ export const DoencaCronicaScreen: React.FC = () => {
           </View>
         </View>
       </Modal>
-
-      {/* Modal de Sucesso */}
-      <Modal
-        visible={successModalVisible}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setSuccessModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Sucesso</Text>
-            
-            <Text style={styles.modalMessage}>
-              {successMessage}
-            </Text>
-            
-            <View style={styles.modalButtons}>
-              <TouchableOpacity 
-                style={[styles.modalButton, styles.successButton]} 
-                onPress={() => setSuccessModalVisible(false)}
-              >
-                <Text style={styles.successButtonText}>OK</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 };
@@ -760,13 +722,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#dc2626',
   },
   deleteModalButtonText: {
-    color: 'white',
-    fontWeight: '500',
-  },
-  successButton: {
-    backgroundColor: '#22c55e',
-  },
-  successButtonText: {
     color: 'white',
     fontWeight: '500',
   },
