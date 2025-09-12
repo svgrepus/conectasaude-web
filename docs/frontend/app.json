@@ -32,7 +32,7 @@
       ]
     },
     "web": {
-      "bundler": "metro"
+      "bundler": "webpack"
     },
     "plugins": [
       [
