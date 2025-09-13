@@ -58,6 +58,12 @@
     "extra": {
       "eas": {
         "projectId": "your-project-id-here"
+      },
+      "EXPO_PUBLIC_SUPABASE_URL": "https://neqkqjpynrinlsodfrkf.supabase.co",
+      "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5lcWtxanB5bnJpbmxzb2RmcmtmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxMTg2MDcsImV4cCI6MjA3MjY5NDYwN30.-xJL2HTvxU0HPWLqtFAT3HQu-cTBPUqu4lzK0k8bCQM",
+      "_supabase_sync": {
+        "updated_at": "2025-09-13T17:43:54.671Z",
+        "source": "supabase.master.config.js"
       }
     }
   }

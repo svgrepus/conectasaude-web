@@ -1,5 +1,9 @@
-const supabaseUrl = 'https://neqkqjpynrinlsodfrkf.supabase.co';
-const apiKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5lcWtxanB5bnJpbmxzb2RmcmtmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxMTg2MDcsImV4cCI6MjA3MjY5NDYwN30.-xJL2HTvxU0HPWLqtFAT3HQu-cTBPUqu4lzK0k8bCQM';
+// 📥 IMPORTAR DA CONFIGURAÇÃO MASTER (ÚNICA FONTE DA VERDADE)
+const { SUPABASE_MASTER_CONFIG, SUPABASE_ENDPOINTS_MASTER } = require('./supabase.master.config.js');
+
+// ✅ Usar configuração centralizada
+const supabaseUrl = SUPABASE_MASTER_CONFIG.URL;
+const apiKey = SUPABASE_MASTER_CONFIG.ANON_KEY;
 
 let accessToken = null;
 

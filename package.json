@@ -12,7 +12,12 @@
     "test:watch": "jest --watch",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "update-all-configs": "node sync-supabase-config.js",
+    "clean-all-configs": "node clean-all-configs.js",
+    "reset-configs": "node clean-all-configs.js && node sync-supabase-config.js",
+    "config:sync": "node sync-supabase-config.js",
+    "config:validate": "node -e \"const {SUPABASE_MASTER_CONFIG} = require('./supabase.master.config.js'); console.log('✅ Config OK:', SUPABASE_MASTER_CONFIG.PROJECT_REF)\""
   },
   "dependencies": {
     "@expo/vector-icons": "^13.0.0",

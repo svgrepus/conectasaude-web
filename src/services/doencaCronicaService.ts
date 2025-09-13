@@ -1,4 +1,5 @@
 import { authService } from './auth';
+import { SUPABASE_ENDPOINTS, getSupabaseHeaders } from '../config/supabase';
 
 export interface DoencaCronica {
   id: number;
@@ -16,21 +17,9 @@ export interface DoencaCronicaResponse {
 }
 
 class DoencaCronicaService {
-  private readonly supabaseUrl = 'https://neqkqjpynrinlsodfrkf.supabase.co';
-  private readonly apiKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5lcWtxanB5bnJpbmxzb2RmcmtmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxMTg2MDcsImV4cCI6MjA3MjY5NDYwN30.-xJL2HTvxU0HPWLqtFAT3HQu-cTBPUqu4lzK0k8bCQM';
-
   private getHeaders(): Record<string, string> {
     const accessToken = authService.getAccessToken();
-    const headers: Record<string, string> = {
-      'apikey': this.apiKey,
-      'Content-Type': 'application/json'
-    };
-
-    if (accessToken) {
-      headers['Authorization'] = `Bearer ${accessToken}`;
-    }
-
-    return headers;
+    return getSupabaseHeaders(accessToken || undefined);
   }
 
   async getDoencasCronicas(
@@ -51,7 +40,7 @@ class DoencaCronicaService {
       const offset = (page - 1) * limit;
 
       // Construir URL com parâmetros de paginação
-      let url = `${this.supabaseUrl}/rest/v1/basic_health_chronic_diseases_active`;
+      let url = `${SUPABASE_ENDPOINTS.rest}/basic_health_chronic_diseases_active`;
       const params = new URLSearchParams({
         select: '*',
         limit: limit.toString(),
@@ -86,7 +75,7 @@ class DoencaCronicaService {
       console.log('✅ DoencaCronicaService: Dados recebidos:', data);
 
       // Obter contagem total para paginação
-      let countUrl = `${this.supabaseUrl}/rest/v1/basic_health_chronic_diseases_active?select=count`;
+      let countUrl = `${SUPABASE_ENDPOINTS.rest}/basic_health_chronic_diseases_active?select=count`;
       if (search && search.trim()) {
         countUrl += `&or=(name.ilike.*${search.trim()}*,description.ilike.*${search.trim()}*)`;
       }
@@ -127,7 +116,7 @@ class DoencaCronicaService {
     try {
       console.log('➕ DoencaCronicaService: Criando doença crônica:', data);
 
-      const response = await fetch(`${this.supabaseUrl}/rest/v1/basic_health_chronic_diseases_active`, {
+      const response = await fetch(`${SUPABASE_ENDPOINTS.rest}/basic_health_chronic_diseases_active`, {
         method: 'POST',
         headers: { ...this.getHeaders(), 'Prefer': 'return=representation' },
         body: JSON.stringify({
@@ -159,7 +148,7 @@ class DoencaCronicaService {
     try {
       console.log('✏️ DoencaCronicaService: Atualizando doença crônica:', id, data);
 
-      const response = await fetch(`${this.supabaseUrl}/rest/v1/basic_health_chronic_diseases_active?id=eq.${id}`, {
+      const response = await fetch(`${SUPABASE_ENDPOINTS.rest}/basic_health_chronic_diseases_active?id=eq.${id}`, {
         method: 'PATCH',
         headers: { ...this.getHeaders(), 'Prefer': 'return=representation' },
         body: JSON.stringify({
@@ -189,7 +178,7 @@ class DoencaCronicaService {
     try {
       console.log('🗑️ DoencaCronicaService: Deletando doença crônica:', id);
 
-      const url = `${this.supabaseUrl}/rest/v1/basic_health_chronic_diseases_active?id=eq.${id}`;
+      const url = `${SUPABASE_ENDPOINTS.rest}/basic_health_chronic_diseases_active?id=eq.${id}`;
       console.log('🌐 DoencaCronicaService: URL PATCH (soft delete):', url);
       
       // Usar headers normais com Authorization para PATCH

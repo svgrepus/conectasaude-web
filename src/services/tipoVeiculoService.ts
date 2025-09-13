@@ -1,4 +1,5 @@
 import { authService } from './auth';
+import { SUPABASE_ENDPOINTS, getSupabaseHeaders } from '../config/supabase';
 
 export interface TipoVeiculo {
   id: number;
@@ -16,21 +17,9 @@ export interface TipoVeiculoResponse {
 }
 
 class TipoVeiculoService {
-  private readonly supabaseUrl = 'https://neqkqjpynrinlsodfrkf.supabase.co';
-  private readonly apiKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5lcWtxanB5bnJpbmxzb2RmcmtmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxMTg2MDcsImV4cCI6MjA3MjY5NDYwN30.-xJL2HTvxU0HPWLqtFAT3HQu-cTBPUqu4lzK0k8bCQM';
-
   private getHeaders(): Record<string, string> {
     const accessToken = authService.getAccessToken();
-    const headers: Record<string, string> = {
-      'apikey': this.apiKey,
-      'Content-Type': 'application/json'
-    };
-
-    if (accessToken) {
-      headers['Authorization'] = `Bearer ${accessToken}`;
-    }
-
-    return headers;
+    return getSupabaseHeaders(accessToken || undefined);
   }
 
   async getTiposVeiculo(
@@ -51,7 +40,7 @@ class TipoVeiculoService {
       const offset = (page - 1) * limit;
 
       // Construir URL com parâmetros de paginação
-      let url = `${this.supabaseUrl}/rest/v1/basic_vehicle_types_active`;
+      let url = `${SUPABASE_ENDPOINTS.rest}/basic_vehicle_types_active`;
       const params = new URLSearchParams({
         select: '*',
         limit: limit.toString(),
@@ -89,7 +78,7 @@ class TipoVeiculoService {
       console.log('📦 TipoVeiculoService: Dados recebidos:', data);
 
       // Contar total de registros (sem paginação)
-      const countUrl = `${this.supabaseUrl}/rest/v1/basic_vehicle_types_active?select=count${search ? `&or=(name.ilike.*${search.trim()}*,description.ilike.*${search.trim()}*)` : ''}`;
+      const countUrl = `${SUPABASE_ENDPOINTS.rest}/basic_vehicle_types_active?select=count${search ? `&or=(name.ilike.*${search.trim()}*,description.ilike.*${search.trim()}*)` : ''}`;
       const countResponse = await fetch(countUrl, {
         method: 'GET',
         headers: { ...headers, 'Prefer': 'count=exact' }
@@ -123,7 +112,7 @@ class TipoVeiculoService {
     try {
       console.log('➕ TipoVeiculoService: Criando tipo de veículo:', data);
 
-      const url = `${this.supabaseUrl}/rest/v1/basic_vehicle_types_active`;
+      const url = `${SUPABASE_ENDPOINTS.rest}/basic_vehicle_types_active`;
       const headers = this.getHeaders();
 
       const response = await fetch(url, {
@@ -154,7 +143,7 @@ class TipoVeiculoService {
     try {
       console.log('✏️ TipoVeiculoService: Atualizando tipo de veículo:', id, data);
 
-      const url = `${this.supabaseUrl}/rest/v1/basic_vehicle_types_active?id=eq.${id}`;
+      const url = `${SUPABASE_ENDPOINTS.rest}/basic_vehicle_types_active?id=eq.${id}`;
       const headers = this.getHeaders();
 
       const response = await fetch(url, {
@@ -185,7 +174,7 @@ class TipoVeiculoService {
     try {
       console.log('🗑️ TipoVeiculoService: Deletando tipo de veículo:', id);
 
-      const url = `${this.supabaseUrl}/rest/v1/basic_vehicle_types_active?id=eq.${id}`;
+      const url = `${SUPABASE_ENDPOINTS.rest}/basic_vehicle_types_active?id=eq.${id}`;
       console.log('🌐 TipoVeiculoService: URL PATCH (soft delete):', url);
       
       const headers = this.getHeaders();
@@ -230,3 +219,4 @@ class TipoVeiculoService {
 }
 
 export const tipoVeiculoService = new TipoVeiculoService();
+

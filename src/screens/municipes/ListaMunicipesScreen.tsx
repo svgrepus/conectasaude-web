@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,103 +8,372 @@ import {
   TouchableOpacity,
   TextInput,
   FlatList,
+  ActivityIndicator,
+  Alert,
+  Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../../constants/theme';
-
-interface Municipe {
-  id: string;
-  nome: string;
-  cpf: string;
-  doencasCronicas: string;
-}
+import { MunicipeService } from '../../services/municipe';
+import { Municipe } from '../../types';
 
 interface ListaMunicipesScreenProps {
   onNavigateToCadastro: () => void;
+  onNavigateToEdit: (municipe: Municipe) => void;
 }
 
 export const ListaMunicipesScreen: React.FC<ListaMunicipesScreenProps> = ({ 
-  onNavigateToCadastro 
+  onNavigateToCadastro,
+  onNavigateToEdit
 }) => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [searchText, setSearchText] = useState('');
-  const [selectedFilter, setSelectedFilter] = useState('Doenças Crônicas');
   const [currentPage, setCurrentPage] = useState(1);
+  const [municipes, setMunicipes] = useState<Municipe[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [totalCount, setTotalCount] = useState(0);
+  
+  // Estados para o modal de confirmação
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [municipeToDelete, setMunicipeToDelete] = useState<Municipe | null>(null);
 
+  const itemsPerPage = 10;
   const currentTheme = isDarkMode ? theme.dark : theme.light;
 
-  // Dados mockados dos munícipes
-  const [municipes] = useState<Municipe[]>([
-    { id: '1', nome: 'Sofia Almeida', cpf: '123.456.789-00', doencasCronicas: 'Diabetes' },
-    { id: '2', nome: 'Lucas Pereira', cpf: '987.654.321-11', doencasCronicas: 'Hipertensão' },
-    { id: '3', nome: 'Isabela Costa', cpf: '456.789.012-22', doencasCronicas: 'Asma' },
-    { id: '4', nome: 'Mateus Oliveira', cpf: '789.012.345-33', doencasCronicas: 'Doença Cardíaca' },
-    { id: '5', nome: 'Giovana Santos', cpf: '012.345.678-44', doencasCronicas: 'Diabetes' },
-    { id: '6', nome: 'Rafael Lima', cpf: '345.678.901-55', doencasCronicas: 'Hipertensão' },
-    { id: '7', nome: 'Beatriz Souza', cpf: '678.901.234-66', doencasCronicas: 'Asma' },
-    { id: '8', nome: 'Guilherme Martins', cpf: '901.234.567-77', doencasCronicas: 'Doença Cardíaca' },
-    { id: '9', nome: 'Larissa Rocha', cpf: '234.567.890-88', doencasCronicas: 'Diabetes' },
-    { id: '10', nome: 'Rodrigo Fernandes', cpf: '567.890.123-99', doencasCronicas: 'Hipertensão' },
-  ]);
+  // Carregar dados da API
+  const loadMunicipes = useCallback(async (page: number = 1, search?: string) => {
+    try {
+      setLoading(true);
+      console.log('🔍 ListaMunicipesScreen: Carregando munícipes', { page, search, searchText });
 
-  const filteredMunicipes = municipes.filter(municipe =>
-    municipe.nome.toLowerCase().includes(searchText.toLowerCase()) ||
-    municipe.cpf.includes(searchText)
+      let response;
+      if (search && search.trim()) {
+        // Se há termo de busca, usar searchMunicipes
+        response = await MunicipeService.searchMunicipes(search.trim());
+        setMunicipes(response.data || []);
+        setCurrentPage(1); // Reset para primeira página na busca
+        setTotalCount(response.data?.length || 0);
+      } else {
+        // Se não há busca, carregar todos paginados
+        response = await MunicipeService.getAllMunicipes(page, itemsPerPage);
+        setMunicipes(response.data || []);
+        setCurrentPage(page);
+        setTotalCount((response as any).count || response.data?.length || 0);
+      }
+      
+      console.log('📦 ListaMunicipesScreen: Resposta recebida:', response);
+      console.log('✅ ListaMunicipesScreen: Estado atualizado', {
+        municipesCount: response.data?.length || 0,
+        totalCount: 'count' in response ? response.count : response.data?.length || 0,
+        currentPage: page
+      });
+    } catch (error) {
+      console.error('❌ Erro ao carregar munícipes:', error);
+      Alert.alert('Erro', 'Não foi possível carregar os dados. Tente novamente.');
+      setMunicipes([]);
+      setTotalCount(0);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Debounce para busca
+  const debounceSearch = useCallback(
+    (() => {
+      let timeoutId: any;
+      return (searchTerm: string) => {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+          console.log('🔍 Realizando busca com debounce:', searchTerm);
+          console.log('🔍 Resetando página para 1 na busca');
+          setCurrentPage(1); // Reset da página antes de buscar
+          loadMunicipes(1, searchTerm);
+        }, 500); // 500ms de delay
+      };
+    })(),
+    [loadMunicipes] // Agora podemos usar a dependência
   );
 
-  const handleEdit = (id: string) => {
-    console.log('Editar munícipe:', id);
-    // Aqui seria implementada a navegação para edição
+  // Effect para carregar dados iniciais
+  useEffect(() => {
+    console.log('🚀 ListaMunicipesScreen: Componente montado, carregando dados iniciais');
+    loadMunicipes(1);
+  }, []);
+
+  // Effect para busca com debounce
+  useEffect(() => {
+    console.log('🔄 Effect busca disparado:', searchText);
+    if (searchText.trim() === '') {
+      console.log('🔍 Busca vazia, carregando todos os dados');
+      loadMunicipes(1);
+    } else {
+      console.log('🔍 Acionando debounce para:', searchText);
+      debounceSearch(searchText);
+    }
+  }, [searchText, debounceSearch]);
+
+  // Função para editar munícipe
+  const handleEdit = async (municipe: Municipe) => {
+    try {
+      console.log('✏️ Carregando dados completos do munícipe:', municipe);
+      setLoading(true);
+      
+      // Buscar dados completos das views
+      const municipeCompleto = await MunicipeService.getMunicipeById(municipe.id);
+      console.log('✅ Dados completos carregados:', municipeCompleto);
+      
+      if (municipeCompleto.data) {
+        onNavigateToEdit(municipeCompleto.data);
+      } else {
+        Alert.alert('Erro', municipeCompleto.error || 'Não foi possível carregar os dados completos do munícipe');
+      }
+    } catch (error) {
+      console.error('❌ Erro ao carregar dados do munícipe:', error);
+      Alert.alert('Erro', 'Não foi possível carregar os dados para edição. Tente novamente.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const renderMunicipeItem = ({ item }: { item: Municipe }) => (
-    <View style={[styles.tableRow, { borderTopColor: currentTheme.border }]}>
-      <View style={styles.tableCell}>
-        <Text style={[styles.cellTextPrimary, { color: currentTheme.text }]}>
-          {item.nome}
-        </Text>
+  // Função para excluir munícipe
+  const handleDelete = async (municipe: Municipe) => {
+    console.log('🚨 HANDLE DELETE CHAMADO!', municipe);
+    console.log('🚨 ID:', municipe.id, 'Nome:', municipe.nome_completo);
+    
+    // Abrir modal de confirmação
+    setMunicipeToDelete(municipe);
+    setDeleteModalVisible(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!municipeToDelete) return;
+    
+    console.log('🚨 USUÁRIO CONFIRMOU EXCLUSÃO!');
+    setDeleteModalVisible(false);
+    
+    try {
+      setLoading(true);
+      console.log('🚨 CHAMANDO SERVIÇO DELETE...');
+      
+      // Executar exclusão no Supabase
+      await MunicipeService.deleteMunicipe(municipeToDelete.id);
+      console.log('🚨 EXCLUSÃO REALIZADA COM SUCESSO!');
+      
+      // Recarregar a lista
+      console.log('🚨 RECARREGANDO LISTA...');
+      await loadMunicipes(currentPage, searchText);
+      console.log('🚨 TABELA ATUALIZADA!');
+      
+      // Mostrar sucesso
+      Alert.alert('Sucesso', 'Munícipe excluído com sucesso.');
+      
+    } catch (error) {
+      console.error('❌ Erro ao excluir munícipe:', error);
+      
+      // Mostrar erro detalhado
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      Alert.alert(
+        'Erro ao Excluir', 
+        `Não foi possível excluir o munícipe.\n\nDetalhes: ${errorMessage}`
+      );
+    } finally {
+      setLoading(false);
+      setMunicipeToDelete(null);
+    }
+  };
+
+  const cancelDelete = () => {
+    console.log('🚫 Exclusão cancelada');
+    setDeleteModalVisible(false);
+    setMunicipeToDelete(null);
+  };
+
+  // Calcular informações de paginação
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage + 1;
+  const endIndex = Math.min(currentPage * itemsPerPage, totalCount);
+
+  // Função para mudar página
+  const handlePageChange = (page: number) => {
+    if (page !== currentPage && page >= 1 && page <= totalPages && !loading) {
+      loadMunicipes(page, searchText);
+    }
+  };
+
+  // Renderizar item da tabela
+  const renderMunicipeItem = ({ item }: { item: Municipe }) => {
+    console.log('🔄 Renderizando item:', item.id, item.nome_completo);
+    
+    // Formatação de data para exibição
+    const formatDate = (dateString: string) => {
+      try {
+        return new Date(dateString).toLocaleDateString('pt-BR');
+      } catch {
+        return 'Data inválida';
+      }
+    };
+
+    return (
+      <View style={[styles.tableRow, { borderTopColor: currentTheme.border }]}>
+        <View style={styles.nameCell}>
+          <Text style={[styles.cellTextPrimary, { color: currentTheme.text }]}>
+            {item.nome_completo}
+          </Text>
+        </View>
+        <View style={styles.cpfCell}>
+          <Text style={[styles.cellTextSecondary, { color: currentTheme.mutedForeground }]}>
+            {item.cpf}
+          </Text>
+        </View>
+        <View style={styles.phoneCell}>
+          <Text style={[styles.cellTextSecondary, { color: currentTheme.mutedForeground }]}>
+            {item.telefone || '-'}
+          </Text>
+        </View>
+        <View style={styles.dateCell}>
+          <Text style={[styles.cellTextSecondary, { color: currentTheme.mutedForeground }]}>
+            {formatDate(item.created_at)}
+          </Text>
+        </View>
+        <View style={styles.actionCell}>
+          <TouchableOpacity 
+            style={styles.editButton}
+            onPress={() => handleEdit(item)}
+          >
+            <Text style={styles.editButtonText}>
+              Editar
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.deleteButton}
+            onPress={() => {
+              console.log('🚨 CLIQUE NO BOTÃO EXCLUIR DETECTADO!');
+              console.log('🚨 Item para excluir:', item.id, item.nome_completo);
+              handleDelete(item);
+            }}
+          >
+            <Text style={styles.deleteButtonText}>
+              Excluir
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
-      <View style={styles.tableCell}>
-        <Text style={[styles.cellTextSecondary, { color: currentTheme.mutedForeground }]}>
-          {item.cpf}
-        </Text>
-      </View>
-      <View style={styles.tableCell}>
-        <Text style={[styles.cellTextSecondary, { color: currentTheme.mutedForeground }]}>
-          {item.doencasCronicas}
-        </Text>
-      </View>
-      <View style={[styles.tableCell, styles.actionCell]}>
-        <TouchableOpacity onPress={() => handleEdit(item.id)}>
-          <Text style={styles.editButton}>Editar</Text>
+    );
+  };
+
+  // Renderizar componente de paginação
+  const renderPagination = () => {
+    if (totalPages <= 1) return null;
+
+    const pageNumbers = [];
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pageNumbers.push(i);
+    }
+
+    return (
+      <View style={styles.paginationContainer}>
+        {/* Botão anterior */}
+        <TouchableOpacity
+          style={[
+            styles.paginationArrow,
+            { 
+              backgroundColor: currentPage > 1 ? currentTheme.muted : 'transparent',
+              opacity: currentPage > 1 ? 1 : 0.5 
+            }
+          ]}
+          onPress={() => handlePageChange(currentPage - 1)}
+          disabled={currentPage <= 1 || loading}
+        >
+          <Ionicons name="chevron-back" size={16} color={currentTheme.text} />
+        </TouchableOpacity>
+
+        {/* Primeira página se não estiver visível */}
+        {startPage > 1 && (
+          <>
+            <TouchableOpacity
+              style={[styles.paginationButton, { backgroundColor: currentTheme.muted }]}
+              onPress={() => handlePageChange(1)}
+              disabled={loading}
+            >
+              <Text style={[styles.paginationText, { color: currentTheme.text }]}>1</Text>
+            </TouchableOpacity>
+            {startPage > 2 && (
+              <Text style={[styles.paginationDots, { color: currentTheme.mutedForeground }]}>...</Text>
+            )}
+          </>
+        )}
+
+        {/* Páginas visíveis */}
+        {pageNumbers.map((pageNum) => (
+          <TouchableOpacity
+            key={pageNum}
+            style={[
+              styles.paginationButton,
+              pageNum === currentPage && styles.paginationButtonActive,
+              { backgroundColor: pageNum === currentPage ? '#8A9E8E' : currentTheme.muted }
+            ]}
+            onPress={() => handlePageChange(pageNum)}
+            disabled={loading}
+          >
+            <Text 
+              style={[
+                styles.paginationText, 
+                { color: pageNum === currentPage ? '#ffffff' : currentTheme.text }
+              ]}
+            >
+              {pageNum}
+            </Text>
+          </TouchableOpacity>
+        ))}
+
+        {/* Última página se não estiver visível */}
+        {endPage < totalPages && (
+          <>
+            {endPage < totalPages - 1 && (
+              <Text style={[styles.paginationDots, { color: currentTheme.mutedForeground }]}>...</Text>
+            )}
+            <TouchableOpacity
+              style={[styles.paginationButton, { backgroundColor: currentTheme.muted }]}
+              onPress={() => handlePageChange(totalPages)}
+              disabled={loading}
+            >
+              <Text style={[styles.paginationText, { color: currentTheme.text }]}>
+                {totalPages}
+              </Text>
+            </TouchableOpacity>
+          </>
+        )}
+
+        {/* Botão próximo */}
+        <TouchableOpacity
+          style={[
+            styles.paginationArrow,
+            { 
+              backgroundColor: currentPage < totalPages ? currentTheme.muted : 'transparent',
+              opacity: currentPage < totalPages ? 1 : 0.5 
+            }
+          ]}
+          onPress={() => handlePageChange(currentPage + 1)}
+          disabled={currentPage >= totalPages || loading}
+        >
+          <Ionicons name="chevron-forward" size={16} color={currentTheme.text} />
         </TouchableOpacity>
       </View>
-    </View>
-  );
-
-  const renderPaginationButton = (page: number) => (
-    <TouchableOpacity
-      key={page}
-      style={[
-        styles.paginationButton,
-        currentPage === page && styles.paginationButtonActive,
-        { backgroundColor: currentPage === page ? '#8A9E8E' : 'transparent' }
-      ]}
-      onPress={() => setCurrentPage(page)}
-    >
-      <Text style={[
-        styles.paginationText,
-        { color: currentPage === page ? '#ffffff' : currentTheme.mutedForeground }
-      ]}>
-        {page}
-      </Text>
-    </TouchableOpacity>
-  );
+    );
+  };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Header */}
+      {/* Header */}
+      <View style={styles.content}>
         <View style={styles.header}>
           <Text style={[styles.title, { color: currentTheme.text }]}>
             Munícipes
@@ -118,87 +387,129 @@ export const ListaMunicipesScreen: React.FC<ListaMunicipesScreenProps> = ({
           </TouchableOpacity>
         </View>
 
-        {/* Filters */}
+        {/* Filtros */}
         <View style={styles.filtersContainer}>
-          <View style={[styles.searchContainer, { backgroundColor: currentTheme.surface }]}>
+          <View style={[styles.searchContainer, { backgroundColor: currentTheme.card }]}>
             <Ionicons name="search" size={16} color={currentTheme.mutedForeground} />
             <TextInput
               style={[styles.searchInput, { color: currentTheme.text }]}
-              placeholder="Buscar por nome ou CPF"
-              placeholderTextColor={currentTheme.mutedForeground}
+              placeholder="Buscar por nome, CPF ou cartão SUS..."
+              placeholderTextColor="#999999"
               value={searchText}
               onChangeText={setSearchText}
             />
           </View>
+        </View>
 
-          <View style={[styles.filterContainer, { backgroundColor: currentTheme.surface }]}>
-            <Text style={[styles.filterText, { color: currentTheme.text }]}>
-              {selectedFilter}
+        {/* Loading */}
+        {loading && municipes.length === 0 && (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#8A9E8E" />
+            <Text style={[styles.loadingText, { color: currentTheme.text }]}>
+              Carregando munícipes...
             </Text>
-            <Ionicons name="chevron-down" size={16} color={currentTheme.mutedForeground} />
+          </View>
+        )}
+
+        {/* Tabela */}
+        {!loading || municipes.length > 0 ? (
+          <View style={[styles.tableContainer, { 
+            backgroundColor: currentTheme.card, 
+            borderColor: currentTheme.border 
+          }]}>
+            {/* Table Header */}
+            <View style={[styles.tableHeader, { backgroundColor: currentTheme.muted }]}>
+              <View style={styles.nameCell}>
+                <Text style={[styles.headerText, { color: currentTheme.mutedForeground }]}>
+                  NOME
+                </Text>
+              </View>
+              <View style={styles.cpfCell}>
+                <Text style={[styles.headerText, { color: currentTheme.mutedForeground }]}>
+                  CPF
+                </Text>
+              </View>
+              <View style={styles.phoneCell}>
+                <Text style={[styles.headerText, { color: currentTheme.mutedForeground }]}>
+                  TELEFONE
+                </Text>
+              </View>
+              <View style={styles.dateCell}>
+                <Text style={[styles.headerText, { color: currentTheme.mutedForeground }]}>
+                  CADASTRADO EM
+                </Text>
+              </View>
+              <View style={styles.actionCell}>
+                <Text style={[styles.headerText, { color: currentTheme.mutedForeground }]}>
+                  AÇÕES
+                </Text>
+              </View>
+            </View>
+
+            {/* Lista de itens */}
+            {municipes.length === 0 ? (
+              <View style={styles.emptyContainer}>
+                <Text style={[styles.emptyText, { color: currentTheme.mutedForeground }]}>
+                  {searchText ? 'Nenhum resultado encontrado para a busca.' : 'Nenhum munícipe cadastrado ainda.'}
+                </Text>
+              </View>
+            ) : (
+              <FlatList
+                data={municipes}
+                keyExtractor={(item: Municipe) => item.id.toString()}
+                renderItem={renderMunicipeItem}
+                showsVerticalScrollIndicator={false}
+              />
+            )}
+          </View>
+        ) : null}
+
+        {/* Paginação */}
+        {renderPagination()}
+
+        {/* Informações do rodapé */}
+        {totalCount > 0 && (
+          <View style={styles.infoFooter}>
+            <Text style={[styles.infoText, { color: currentTheme.mutedForeground }]}>
+              Mostrando {startIndex} a {endIndex} de {totalCount} registros
+            </Text>
+          </View>
+        )}
+      </View>
+
+      {/* Modal de Confirmação de Exclusão */}
+      <Modal
+        visible={deleteModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={cancelDelete}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Confirmar Exclusão</Text>
+            
+            <Text style={styles.modalMessage}>
+              Deseja realmente deletar o munícipe "{municipeToDelete?.nome_completo}"?
+            </Text>
+            
+            <View style={styles.modalButtons}>
+              <TouchableOpacity 
+                style={[styles.modalButton, styles.cancelButton]} 
+                onPress={cancelDelete}
+              >
+                <Text style={styles.cancelButtonText}>Cancelar</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[styles.modalButton, styles.deleteModalButton]} 
+                onPress={confirmDelete}
+              >
+                <Text style={styles.deleteModalButtonText}>Deletar</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
-
-        {/* Table */}
-        <View style={[styles.tableContainer, { 
-          backgroundColor: currentTheme.surface, 
-          borderColor: currentTheme.border 
-        }]}>
-          {/* Table Header */}
-          <View style={[styles.tableHeader, { backgroundColor: currentTheme.muted }]}>
-            <View style={styles.tableCell}>
-              <Text style={[styles.headerText, { color: currentTheme.mutedForeground }]}>
-                NOME
-              </Text>
-            </View>
-            <View style={styles.tableCell}>
-              <Text style={[styles.headerText, { color: currentTheme.mutedForeground }]}>
-                CPF
-              </Text>
-            </View>
-            <View style={styles.tableCell}>
-              <Text style={[styles.headerText, { color: currentTheme.mutedForeground }]}>
-                DOENÇAS CRÔNICAS
-              </Text>
-            </View>
-            <View style={[styles.tableCell, styles.actionCell]}>
-              <Text style={[styles.headerText, { color: currentTheme.mutedForeground }]}>
-                AÇÕES
-              </Text>
-            </View>
-          </View>
-
-          {/* Table Body */}
-          <FlatList
-            data={filteredMunicipes}
-            renderItem={renderMunicipeItem}
-            keyExtractor={(item) => item.id}
-            scrollEnabled={false}
-            showsVerticalScrollIndicator={false}
-          />
-        </View>
-
-        {/* Pagination */}
-        <View style={styles.paginationContainer}>
-          <TouchableOpacity style={styles.paginationArrow}>
-            <Ionicons name="chevron-back" size={20} color={currentTheme.mutedForeground} />
-          </TouchableOpacity>
-          
-          {renderPaginationButton(1)}
-          {renderPaginationButton(2)}
-          {renderPaginationButton(3)}
-          
-          <Text style={[styles.paginationDots, { color: currentTheme.mutedForeground }]}>
-            ...
-          </Text>
-          
-          {renderPaginationButton(10)}
-          
-          <TouchableOpacity style={styles.paginationArrow}>
-            <Ionicons name="chevron-forward" size={20} color={currentTheme.mutedForeground} />
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -206,6 +517,17 @@ export const ListaMunicipesScreen: React.FC<ListaMunicipesScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    textAlign: 'center',
   },
   content: {
     flex: 1,
@@ -237,12 +559,9 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   filtersContainer: {
-    flexDirection: 'row',
-    gap: 16,
     marginBottom: 16,
   },
   searchContainer: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: 8,
@@ -256,21 +575,6 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 14,
     minHeight: 20,
-  },
-  filterContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    gap: 8,
-    minWidth: 140,
-  },
-  filterText: {
-    fontSize: 14,
-    fontWeight: '500',
   },
   tableContainer: {
     borderRadius: 12,
@@ -288,13 +592,30 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     borderTopWidth: 1,
   },
-  tableCell: {
-    flex: 1,
+  nameCell: {
+    flex: 2,
+    justifyContent: 'center',
+  },
+  cpfCell: {
+    flex: 1.5,
+    justifyContent: 'center',
+    paddingRight: 8,
+  },
+  phoneCell: {
+    flex: 1.5,
+    justifyContent: 'center',
+    paddingRight: 8,
+  },
+  dateCell: {
+    flex: 1.5,
     justifyContent: 'center',
   },
   actionCell: {
-    alignItems: 'flex-end',
-    flex: 0.5,
+    flex: 1.5,
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    gap: 8,
   },
   headerText: {
     fontSize: 12,
@@ -310,9 +631,31 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   editButton: {
-    color: '#8A9E8E', // Verde institucional da Prefeitura de Jambeiro
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  editButtonText: {
+    color: '#8A9E8E', // Verde institucional da Prefeitura de Jambeiro - mesma cor dos outros cadastros
     fontSize: 14,
     fontWeight: '500',
+  },
+  deleteButton: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  deleteButtonText: {
+    color: '#dc2626',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  emptyContainer: {
+    paddingVertical: 40,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: 14,
+    textAlign: 'center',
   },
   paginationContainer: {
     flexDirection: 'row',
@@ -345,5 +688,69 @@ const styles = StyleSheet.create({
   paginationDots: {
     fontSize: 14,
     paddingHorizontal: 8,
+  },
+  infoFooter: {
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  infoText: {
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  // Estilos do Modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 24,
+    margin: 20,
+    maxWidth: 400,
+    width: '90%',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 16,
+    color: '#333',
+  },
+  modalMessage: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 24,
+    color: '#666',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  cancelButton: {
+    backgroundColor: '#f3f4f6',
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+  },
+  cancelButtonText: {
+    color: '#374151',
+    fontWeight: '500',
+  },
+  deleteModalButton: {
+    backgroundColor: '#dc2626',
+  },
+  deleteModalButtonText: {
+    color: 'white',
+    fontWeight: '500',
   },
 });

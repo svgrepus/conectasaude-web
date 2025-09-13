@@ -11,12 +11,14 @@ export interface User {
 
 export interface Municipe {
   id: string;
-  nome: string;
+  nome_completo: string;
   cpf: string;
   data_nascimento: string;
   sexo: 'M' | 'F' | 'O';
   telefone?: string;
   email?: string;
+  
+  // Campos de endereço (municipes_enderecos_active)
   endereco?: string;
   numero_endereco?: string;
   complemento_endereco?: string;
@@ -24,8 +26,20 @@ export interface Municipe {
   cep?: string;
   cidade?: string;
   estado?: string;
-  foto_url?: string;
+  
+  // Campos de saúde (municipes_saude_active)
   cartao_sus?: string;
+  usoMedicamentoContinuo?: string;
+  quaisMedicamentos?: string;
+  deficiencia?: string;
+  necessitaAcompanhante?: string;
+  doencasCronicas?: string;
+  nome_mae?: string;
+  rg?: string;
+  estado_civil?: string;
+  
+  // Campos do sistema
+  foto_url?: string;
   responsavel_id?: string;
   created_at: string;
   updated_at: string;

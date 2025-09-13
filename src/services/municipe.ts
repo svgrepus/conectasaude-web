@@ -1,2 +1,2 @@
-// Development version of MunicipeService - replace with real implementation later
-export { MunicipeService } from './municipe-dev';
+// Real API version for production - connects to Supabase
+export { MunicipeService } from './municipe-real';

@@ -1,4 +1,5 @@
 import { authService } from './auth';
+import { SUPABASE_ENDPOINTS, getSupabaseHeaders } from '../config/supabase';
 
 export interface Cargo {
   id: number;
@@ -15,21 +16,9 @@ export interface CargoResponse {
 }
 
 class CargoService {
-  private readonly supabaseUrl = 'https://neqkqjpynrinlsodfrkf.supabase.co';
-  private readonly apiKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5lcWtxanB5bnJpbmxzb2RmcmtmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxMTg2MDcsImV4cCI6MjA3MjY5NDYwN30.-xJL2HTvxU0HPWLqtFAT3HQu-cTBPUqu4lzK0k8bCQM';
-
   private getHeaders(): Record<string, string> {
     const accessToken = authService.getAccessToken();
-    const headers: Record<string, string> = {
-      'apikey': this.apiKey,
-      'Content-Type': 'application/json'
-    };
-
-    if (accessToken) {
-      headers['Authorization'] = `Bearer ${accessToken}`;
-    }
-
-    return headers;
+    return getSupabaseHeaders(accessToken || undefined);
   }
 
   async getCargos(
@@ -50,7 +39,7 @@ class CargoService {
       const offset = (page - 1) * limit;
 
       // Construir URL com parâmetros de paginação
-      let url = `${this.supabaseUrl}/rest/v1/basic_roles_active`;
+      let url = `${SUPABASE_ENDPOINTS.rest}/basic_roles_active`;
       const params = new URLSearchParams({
         select: '*',
         limit: limit.toString(),
@@ -84,7 +73,7 @@ class CargoService {
 
       // Para contagem total, precisamos fazer uma segunda requisição
       const countResponse = await fetch(
-        `${this.supabaseUrl}/rest/v1/basic_roles_active?select=*${search ? `&name=ilike.*${search.trim()}*` : ''}`,
+        `${SUPABASE_ENDPOINTS.rest}/basic_roles_active?select=*${search ? `&name=ilike.*${search.trim()}*` : ''}`,
         {
           method: 'GET',
           headers: { ...this.getHeaders(), 'Prefer': 'count=exact' }
@@ -116,7 +105,7 @@ class CargoService {
     try {
       console.log('📝 CargoService: Criando cargo:', data);
 
-      const response = await fetch(`${this.supabaseUrl}/rest/v1/basic_roles_active`, {
+      const response = await fetch(`${SUPABASE_ENDPOINTS.rest}/basic_roles_active`, {
         method: 'POST',
         headers: { ...this.getHeaders(), 'Prefer': 'return=representation' },
         body: JSON.stringify(data)
@@ -141,7 +130,7 @@ class CargoService {
     try {
       console.log('📝 CargoService: Atualizando cargo:', { id, data });
 
-      const response = await fetch(`${this.supabaseUrl}/rest/v1/basic_roles_active?id=eq.${id}`, {
+      const response = await fetch(`${SUPABASE_ENDPOINTS.rest}/basic_roles_active?id=eq.${id}`, {
         method: 'PATCH',
         headers: { ...this.getHeaders(), 'Prefer': 'return=representation' },
         body: JSON.stringify(data)
@@ -166,7 +155,7 @@ class CargoService {
     try {
       console.log('🗑️ CargoService: Fazendo soft delete do cargo:', id);
 
-      const response = await fetch(`${this.supabaseUrl}/rest/v1/basic_roles_active?id=eq.${id}`, {
+      const response = await fetch(`${SUPABASE_ENDPOINTS.rest}/basic_roles_active?id=eq.${id}`, {
         method: 'PATCH',
         headers: { ...this.getHeaders(), 'Prefer': 'return=representation' },
         body: JSON.stringify({ deleted_at: new Date().toISOString() })
@@ -197,7 +186,7 @@ class CargoService {
       }
 
       const trimmedSearch = searchTerm.trim();
-      const url = `${this.supabaseUrl}/rest/v1/basic_roles_active?name=ilike.*${trimmedSearch}*&order=name.asc`;
+      const url = `${SUPABASE_ENDPOINTS.rest}/basic_roles_active?name=ilike.*${trimmedSearch}*&order=name.asc`;
 
       console.log('📡 CargoService: URL de busca:', url);
 

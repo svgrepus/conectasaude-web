@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../../constants/theme';
+import { Municipe } from '../../types';
 
 interface CadastroMunicipeForm {
   nomeCompleto: string;
@@ -41,14 +42,23 @@ interface CadastroMunicipeForm {
 
 interface CadastroMunicipeScreenProps {
   onBack?: () => void;
+  municipeToEdit?: Municipe;
 }
 
-export const CadastroMunicipeScreen: React.FC<CadastroMunicipeScreenProps> = ({ onBack }) => {
+export const CadastroMunicipeScreen: React.FC<CadastroMunicipeScreenProps> = ({ 
+  onBack, 
+  municipeToEdit 
+}) => {
+  console.log('🔧 CadastroMunicipeScreen: Props recebidas', { onBack: !!onBack, municipeToEdit: !!municipeToEdit });
+  
   const [activeTab, setActiveTab] = useState<'pessoais' | 'saude'>('pessoais');
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [showMedicamentoModal, setShowMedicamentoModal] = useState(false);
   const [showDeficienciaModal, setShowDeficienciaModal] = useState(false);
   const [showAcompanhanteModal, setShowAcompanhanteModal] = useState(false);
+  
+  const isEditMode = !!municipeToEdit;
+
   const [form, setForm] = useState<CadastroMunicipeForm>({
     nomeCompleto: '',
     cpf: '',
@@ -73,6 +83,47 @@ export const CadastroMunicipeScreen: React.FC<CadastroMunicipeScreenProps> = ({ 
     necessitaAcompanhante: '',
     doencasCronicas: '',
   });
+
+  // Effect para carregar dados do munícipe quando estiver editando
+  useEffect(() => {
+    if (municipeToEdit) {
+      console.log('🔄 Carregando dados do munícipe para edição:', municipeToEdit);
+      
+      // Função para formatar data para o formato do input
+      const formatDateForInput = (dateString: string) => {
+        try {
+          const date = new Date(dateString);
+          return date.toISOString().split('T')[0]; // YYYY-MM-DD
+        } catch {
+          return '';
+        }
+      };
+
+      setForm({
+        nomeCompleto: municipeToEdit.nome_completo || '',
+        cpf: municipeToEdit.cpf || '',
+        rg: municipeToEdit.rg || '',
+        dataNascimento: formatDateForInput(municipeToEdit.data_nascimento),
+        estadoCivil: municipeToEdit.estado_civil || '',
+        sexo: municipeToEdit.sexo || '',
+        email: municipeToEdit.email || '',
+        telefone: municipeToEdit.telefone || '',
+        nomeMae: municipeToEdit.nome_mae || '',
+        cep: municipeToEdit.cep || '',
+        rua: municipeToEdit.endereco || '',
+        numero: municipeToEdit.numero_endereco || '',
+        bairro: municipeToEdit.bairro || '',
+        cidade: municipeToEdit.cidade || '',
+        estado: municipeToEdit.estado || '',
+        numeroSus: municipeToEdit.cartao_sus || '',
+        usoMedicamentoContinuo: municipeToEdit.usoMedicamentoContinuo || '',
+        quaisMedicamentos: municipeToEdit.quaisMedicamentos || '',
+        deficiencia: municipeToEdit.deficiencia || '',
+        necessitaAcompanhante: municipeToEdit.necessitaAcompanhante || '',
+        doencasCronicas: municipeToEdit.doencasCronicas || '',
+      });
+    }
+  }, [municipeToEdit]);
 
   const currentTheme = isDarkMode ? theme.dark : theme.light;
 
@@ -135,50 +186,30 @@ export const CadastroMunicipeScreen: React.FC<CadastroMunicipeScreenProps> = ({ 
   };
 
   const handleCancelar = () => {
-    if (onBack) {
-      Alert.alert(
-        'Cancelar',
-        'Tem certeza que deseja cancelar? Todos os dados serão perdidos.',
-        [
-          { text: 'Não', style: 'cancel' },
-          { text: 'Sim', onPress: onBack }
-        ]
-      );
-    } else {
-      Alert.alert(
-        'Cancelar',
-        'Tem certeza que deseja cancelar? Todos os dados serão perdidos.',
-        [
-          { text: 'Não', style: 'cancel' },
-          { text: 'Sim', onPress: () => {
-            setForm({
-              nomeCompleto: '',
-              cpf: '',
-              rg: '',
-              dataNascimento: '',
-              estadoCivil: '',
-              sexo: '',
-              email: '',
-              telefone: '',
-              nomeMae: '',
-              cep: '',
-              rua: '',
-              numero: '',
-              bairro: '',
-              cidade: '',
-              estado: '',
-              // Dados de Saúde
-              numeroSus: '',
-              usoMedicamentoContinuo: '',
-              quaisMedicamentos: '',
-              deficiencia: '',
-              necessitaAcompanhante: '',
-              doencasCronicas: '',
-            });
-          }}
-        ]
-      );
-    }
+    console.log('🔧 handleCancelar: Função chamada');
+    console.log('🔧 onBack disponível?', !!onBack);
+    console.log('🔧 tipo de onBack:', typeof onBack);
+    
+    Alert.alert(
+      'Cancelar',
+      'Tem certeza que deseja cancelar? Todos os dados serão perdidos.',
+      [
+        { text: 'Não', style: 'cancel' },
+        { text: 'Sim', onPress: () => {
+          console.log('🔙 Cancelando e voltando à tela anterior');
+          console.log('🔙 Tentando chamar onBack...');
+          
+          if (onBack) {
+            console.log('✅ onBack existe, chamando...');
+            onBack();
+            console.log('✅ onBack foi chamado');
+          } else {
+            console.log('⚠️ onBack não está definido');
+            console.log('⚠️ Props disponíveis:', Object.keys({ onBack, municipeToEdit }));
+          }
+        }}
+      ]
+    );
   };
 
   return (
@@ -187,7 +218,7 @@ export const CadastroMunicipeScreen: React.FC<CadastroMunicipeScreenProps> = ({ 
         {/* Header */}
         <View style={styles.header}>
           <Text style={[styles.title, { color: currentTheme.text }]}>
-            Cadastro de Munícipe
+            {isEditMode ? 'Editar Munícipe' : 'Cadastro de Munícipe'}
           </Text>
         </View>
 

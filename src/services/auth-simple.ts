@@ -1,12 +1,11 @@
 import { User } from '../types';
+import { SUPABASE_CONFIG, SUPABASE_ENDPOINTS } from '../config/supabase';
 
 // Direct Supabase API authentication service
 class AuthService {
   private currentUser: User | null = null;
   private accessToken: string | null = null;
   private listeners: Array<(user: User | null) => void> = [];
-  private readonly supabaseUrl = 'https://neqkqjpynrinlsodfrkf.supabase.co';
-  private readonly apiKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5lcWtxanB5bnJpbmxzb2RmcmtmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxMTg2MDcsImV4cCI6MjA3MjY5NDYwN30.-xJL2HTvxU0HPWLqtFAT3HQu-cTBPUqu4lzK0k8bCQM';
 
   constructor() {
     // Recuperar token da sessão ao inicializar
@@ -60,11 +59,11 @@ class AuthService {
     
     try {
       // Fazer a requisição exata que funciona no Postman
-      const response = await fetch(`${this.supabaseUrl}/auth/v1/token?grant_type=password`, {
+      const response = await fetch(`${SUPABASE_ENDPOINTS.auth}/token?grant_type=password`, {
         method: 'POST',
         headers: {
-          'apikey': this.apiKey,
-          'Authorization': `Bearer ${this.apiKey}`,
+          'apikey': SUPABASE_CONFIG.anonKey,
+          'Authorization': `Bearer ${SUPABASE_CONFIG.anonKey}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
@@ -124,11 +123,11 @@ class AuthService {
       console.log('🔐 AuthService: Tentativa de registro para:', email);
 
       // Fazer registro via API do Supabase
-      const response = await fetch(`${this.supabaseUrl}/auth/v1/signup`, {
+      const response = await fetch(`${SUPABASE_ENDPOINTS.auth}/signup`, {
         method: 'POST',
         headers: {
-          'apikey': this.apiKey,
-          'Authorization': `Bearer ${this.apiKey}`,
+          'apikey': SUPABASE_CONFIG.anonKey,
+          'Authorization': `Bearer ${SUPABASE_CONFIG.anonKey}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
@@ -179,10 +178,10 @@ class AuthService {
     try {
       // Fazer logout via API do Supabase se temos token
       if (this.accessToken) {
-        const response = await fetch(`${this.supabaseUrl}/auth/v1/logout`, {
+        const response = await fetch(`${SUPABASE_ENDPOINTS.auth}/logout`, {
           method: 'POST',
           headers: {
-            'apikey': this.apiKey,
+            'apikey': SUPABASE_CONFIG.anonKey,
             'Authorization': `Bearer ${this.accessToken}`,
             'Content-Type': 'application/json'
           }
