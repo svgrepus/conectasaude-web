@@ -18,25 +18,55 @@ export interface Municipe {
   telefone?: string;
   email?: string;
   
-  // Campos de endereço (municipes_enderecos_active)
+  // Campos básicos adicionais
+  nome_mae?: string;
+  rg?: string;
+  estado_civil?: string;
+  
+  // Campos de endereço (da view vw_municipes_completo)
   endereco?: string;
+  logradouro?: string; // campo alternativo da view
   numero_endereco?: string;
+  numero?: string; // campo alternativo da view
   complemento_endereco?: string;
+  complemento?: string; // campo alternativo da view
   bairro?: string;
   cep?: string;
   cidade?: string;
   estado?: string;
+  uf?: string; // campo alternativo para estado
+  endereco_id?: string;
+  zona_rural?: boolean;
+  ref_zona_rural?: string;
+  tipo_endereco?: string;
+  endereco_created_at?: string;
+  endereco_updated_at?: string;
   
-  // Campos de saúde (municipes_saude_active)
+  // Campos de saúde (da view vw_municipes_completo)
   cartao_sus?: string;
   usoMedicamentoContinuo?: string;
+  uso_medicamento_continuo?: string; // campo alternativo
+  uso_continuo_medicamentos?: string; // campo alternativo da view
+  usa_medicamentos_continuos?: string; // campo alternativo da view
   quaisMedicamentos?: string;
+  quais_medicamentos?: string; // campo alternativo
   deficiencia?: string;
+  tem_deficiencia_fisica?: string; // campo alternativo da view
+  possui_deficiencia?: string; // campo alternativo da view
   necessitaAcompanhante?: string;
+  necessita_acompanhante?: string; // campo alternativo
+  precisa_acompanhante?: string; // campo alternativo da view
   doencasCronicas?: string;
-  nome_mae?: string;
-  rg?: string;
-  estado_civil?: string;
+  doencas_cronicas?: string; // campo alternativo
+  doenca_cronica?: string; // campo alternativo da view
+  tipo_doenca?: string; // campo alternativo da view
+  observacoes_medicas?: string; // campo da view
+  saude_id?: string;
+  saude_created_at?: string;
+  saude_updated_at?: string;
+  
+  // Campos calculados da view
+  idade?: number;
   
   // Campos do sistema
   foto_url?: string;

@@ -32,7 +32,7 @@ class MunicipeService {
       const offset = (page - 1) * limit;
 
       // Construir URL com parâmetros de paginação
-      let url = `${SUPABASE_ENDPOINTS.rest}/municipes_active`;
+      let url = `${SUPABASE_ENDPOINTS.rest}/vw_municipes_completo`;
       const params = new URLSearchParams({
         select: '*',
         limit: limit.toString(),
@@ -68,7 +68,7 @@ class MunicipeService {
       console.log('✅ MunicipeService: Dados recebidos:', data);
 
       // Obter contagem total para paginação
-      let countUrl = `${SUPABASE_ENDPOINTS.rest}/municipes_active?select=count`;
+      let countUrl = `${SUPABASE_ENDPOINTS.rest}/vw_municipes_completo?select=count`;
       if (search && search.trim()) {
         countUrl += `&or=(nome_completo.ilike.*${search.trim()}*,cpf.ilike.*${search.trim()}*,cartao_sus.ilike.*${search.trim()}*)`;
       }
@@ -109,59 +109,23 @@ class MunicipeService {
     try {
       console.log('🔍 MunicipeService: Buscando munícipe por ID:', id);
 
-      // Buscar dados básicos
-      const basicUrl = `${SUPABASE_ENDPOINTS.rest}/municipes_active?id=eq.${id}&select=*`;
-      const basicResponse = await fetch(basicUrl, {
+      // Agora usa a view completa que já tem todos os dados de endereço e saúde
+      const url = `${SUPABASE_ENDPOINTS.rest}/vw_municipes_completo?id=eq.${id}&select=*`;
+      const response = await fetch(url, {
         method: 'GET',
         headers: this.getHeaders()
       });
 
-      if (!basicResponse.ok) {
-        throw new Error(`Erro ao buscar dados básicos: ${basicResponse.status}`);
+      if (!response.ok) {
+        throw new Error(`Erro ao buscar munícipe: ${response.status}`);
       }
 
-      const basicData = await basicResponse.json();
-      if (!basicData || basicData.length === 0) {
+      const data = await response.json();
+      if (!data || data.length === 0) {
         throw new Error('Munícipe não encontrado');
       }
 
-      // Buscar dados de endereço
-      const enderecoUrl = `${SUPABASE_ENDPOINTS.rest}/municipes_enderecos_active?municipe_id=eq.${id}&select=*`;
-      const enderecoResponse = await fetch(enderecoUrl, {
-        method: 'GET',
-        headers: this.getHeaders()
-      });
-
-      let enderecoData = {};
-      if (enderecoResponse.ok) {
-        const endereco = await enderecoResponse.json();
-        if (endereco && endereco.length > 0) {
-          enderecoData = endereco[0];
-        }
-      }
-
-      // Buscar dados de saúde
-      const saudeUrl = `${SUPABASE_ENDPOINTS.rest}/municipes_saude_active?municipe_id=eq.${id}&select=*`;
-      const saudeResponse = await fetch(saudeUrl, {
-        method: 'GET',
-        headers: this.getHeaders()
-      });
-
-      let saudeData = {};
-      if (saudeResponse.ok) {
-        const saude = await saudeResponse.json();
-        if (saude && saude.length > 0) {
-          saudeData = saude[0];
-        }
-      }
-
-      // Combinar todos os dados
-      const municipe = {
-        ...basicData[0],
-        ...enderecoData,
-        ...saudeData
-      };
-
+      const municipe = data[0];
       console.log('✅ MunicipeService: Munícipe completo encontrado:', municipe);
       return municipe;
     } catch (error) {
@@ -174,7 +138,7 @@ class MunicipeService {
     try {
       console.log('➕ MunicipeService: Criando munícipe:', data);
 
-      const response = await fetch(`${SUPABASE_ENDPOINTS.rest}/municipes_active`, {
+      const response = await fetch(`${SUPABASE_ENDPOINTS.rest}/municipes`, {
         method: 'POST',
         headers: { ...this.getHeaders(), 'Prefer': 'return=representation' },
         body: JSON.stringify({
@@ -205,7 +169,7 @@ class MunicipeService {
     try {
       console.log('✏️ MunicipeService: Atualizando munícipe:', id, data);
 
-      const response = await fetch(`${SUPABASE_ENDPOINTS.rest}/municipes_active?id=eq.${id}`, {
+      const response = await fetch(`${SUPABASE_ENDPOINTS.rest}/municipes?id=eq.${id}`, {
         method: 'PATCH',
         headers: { ...this.getHeaders(), 'Prefer': 'return=representation' },
         body: JSON.stringify({
@@ -234,7 +198,7 @@ class MunicipeService {
     try {
       console.log('🗑️ MunicipeService: Deletando munícipe:', id);
 
-      const url = `${SUPABASE_ENDPOINTS.rest}/municipes_active?id=eq.${id}`;
+      const url = `${SUPABASE_ENDPOINTS.rest}/municipes?id=eq.${id}`;
       console.log('🌐 MunicipeService: URL PATCH (soft delete):', url);
       
       const headers = this.getHeaders();

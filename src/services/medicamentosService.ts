@@ -201,6 +201,44 @@ class MedicamentosService {
       throw error;
     }
   }
+
+  // 💊 Buscar medicamentos ativos para seleção no formulário de munícipe
+  async searchMedicamentosAtivos(query: string): Promise<{ id: string; dcb_dci: string }[]> {
+    try {
+      const { data, error } = await supabase
+        .from('medicamentos_active') // ✅ CORREÇÃO: usar medicamentos_active
+        .select('id, dcb_dci')
+        .eq('status', 'ATIVO')
+        .is('deleted_at', null) // ✅ CORREÇÃO: filtrar deleted_at=null
+        .ilike('dcb_dci', `%${query}%`)
+        .order('dcb_dci', { ascending: true })
+        .limit(10); // Limitar a 10 resultados para performance
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Erro ao buscar medicamentos ativos:', error);
+      throw error;
+    }
+  }
+
+  // 💊 Buscar todos os medicamentos ativos (para carregar inicialmente)
+  async getMedicamentosAtivos(): Promise<{ id: string; dcb_dci: string }[]> {
+    try {
+      const { data, error } = await supabase
+        .from('medicamentos_active') // ✅ CORREÇÃO: usar medicamentos_active
+        .select('id, dcb_dci')
+        .eq('status', 'ATIVO')
+        .is('deleted_at', null) // ✅ CORREÇÃO: filtrar deleted_at=null
+        .order('dcb_dci', { ascending: true });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Erro ao buscar medicamentos ativos:', error);
+      throw error;
+    }
+  }
 }
 
 export const medicamentosService = new MedicamentosService();

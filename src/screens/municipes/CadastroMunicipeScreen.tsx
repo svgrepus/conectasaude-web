@@ -14,6 +14,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../../constants/theme';
 import { Municipe } from '../../types';
+import ChipTags from '../../components/ChipTags';
+import MedicamentoSearch from '../../components/MedicamentoSearch';
 
 interface CadastroMunicipeForm {
   nomeCompleto: string;
@@ -34,7 +36,7 @@ interface CadastroMunicipeForm {
   // Dados de Saúde
   numeroSus: string;
   usoMedicamentoContinuo: string;
-  quaisMedicamentos: string;
+  quaisMedicamentos: string[]; // Mudança: agora é array de strings
   deficiencia: string;
   necessitaAcompanhante: string;
   doencasCronicas: string;
@@ -56,6 +58,8 @@ export const CadastroMunicipeScreen: React.FC<CadastroMunicipeScreenProps> = ({
   const [showMedicamentoModal, setShowMedicamentoModal] = useState(false);
   const [showDeficienciaModal, setShowDeficienciaModal] = useState(false);
   const [showAcompanhanteModal, setShowAcompanhanteModal] = useState(false);
+  const [showEstadoCivilModal, setShowEstadoCivilModal] = useState(false);
+  const [showSexoModal, setShowSexoModal] = useState(false);
   
   const isEditMode = !!municipeToEdit;
 
@@ -78,7 +82,7 @@ export const CadastroMunicipeScreen: React.FC<CadastroMunicipeScreenProps> = ({
     // Dados de Saúde
     numeroSus: '',
     usoMedicamentoContinuo: '',
-    quaisMedicamentos: '',
+    quaisMedicamentos: [], // Mudança: agora é array vazio
     deficiencia: '',
     necessitaAcompanhante: '',
     doencasCronicas: '',
@@ -99,6 +103,33 @@ export const CadastroMunicipeScreen: React.FC<CadastroMunicipeScreenProps> = ({
         }
       };
 
+      // Função para converter string de medicamentos em array
+      const parseMedicamentos = (medicamentosString: string): string[] => {
+        if (!medicamentosString || medicamentosString.trim() === '') return [];
+        
+        // Se for um JSON array, tentar fazer parse
+        if (medicamentosString.startsWith('[') && medicamentosString.endsWith(']')) {
+          try {
+            return JSON.parse(medicamentosString);
+          } catch {
+            // Se falhar, tratar como string separada por vírgulas
+            return medicamentosString.slice(1, -1).split(',').map(med => med.trim()).filter(med => med);
+          }
+        }
+        
+        // Tratar como string separada por vírgulas
+        return medicamentosString.split(',').map(med => med.trim()).filter(med => med);
+      };
+
+      // Função para converter boolean para Sim/Não
+      const convertBooleanToSimNao = (value: any): string => {
+        if (value === true || value === 'true' || value === 1 || value === '1') return 'Sim';
+        if (value === false || value === 'false' || value === 0 || value === '0') return 'Não';
+        if (typeof value === 'string' && value.toLowerCase().includes('sim')) return 'Sim';
+        if (typeof value === 'string' && value.toLowerCase().includes('não')) return 'Não';
+        return value || '';
+      };
+
       setForm({
         nomeCompleto: municipeToEdit.nome_completo || '',
         cpf: municipeToEdit.cpf || '',
@@ -109,18 +140,33 @@ export const CadastroMunicipeScreen: React.FC<CadastroMunicipeScreenProps> = ({
         email: municipeToEdit.email || '',
         telefone: municipeToEdit.telefone || '',
         nomeMae: municipeToEdit.nome_mae || '',
+        // Campos de endereço da view vw_municipes_completo
         cep: municipeToEdit.cep || '',
-        rua: municipeToEdit.endereco || '',
-        numero: municipeToEdit.numero_endereco || '',
+        rua: municipeToEdit.endereco || municipeToEdit.logradouro || '',
+        numero: municipeToEdit.numero_endereco || municipeToEdit.numero || '',
         bairro: municipeToEdit.bairro || '',
         cidade: municipeToEdit.cidade || '',
-        estado: municipeToEdit.estado || '',
+        estado: municipeToEdit.estado || municipeToEdit.uf || '', // Adicionando fallback para uf
+        // Campos de saúde da view vw_municipes_completo
         numeroSus: municipeToEdit.cartao_sus || '',
-        usoMedicamentoContinuo: municipeToEdit.usoMedicamentoContinuo || '',
-        quaisMedicamentos: municipeToEdit.quaisMedicamentos || '',
-        deficiencia: municipeToEdit.deficiencia || '',
-        necessitaAcompanhante: municipeToEdit.necessitaAcompanhante || '',
-        doencasCronicas: municipeToEdit.doencasCronicas || '',
+        usoMedicamentoContinuo: convertBooleanToSimNao(
+          municipeToEdit.uso_continuo_medicamentos || 
+          municipeToEdit.uso_medicamento_continuo || 
+          municipeToEdit.usa_medicamentos_continuos ||
+          municipeToEdit.usoMedicamentoContinuo
+        ),
+        quaisMedicamentos: parseMedicamentos(municipeToEdit.quaisMedicamentos || municipeToEdit.quais_medicamentos || ''), // Convertendo para array
+        deficiencia: municipeToEdit.deficiencia || municipeToEdit.tem_deficiencia_fisica || municipeToEdit.possui_deficiencia || '',
+        necessitaAcompanhante: municipeToEdit.necessitaAcompanhante || municipeToEdit.necessita_acompanhante || municipeToEdit.precisa_acompanhante || '',
+        doencasCronicas: municipeToEdit.doencasCronicas || municipeToEdit.doencas_cronicas || municipeToEdit.doenca_cronica || municipeToEdit.tipo_doenca || '',
+      });
+      
+      // Debug: verificar dados carregados
+      console.log('🔍 Dados do munícipe carregados:', {
+        estado: municipeToEdit.estado,
+        uf: municipeToEdit.uf,
+        estadoCivil: municipeToEdit.estado_civil,
+        sexo: municipeToEdit.sexo
       });
     }
   }, [municipeToEdit]);
@@ -131,9 +177,24 @@ export const CadastroMunicipeScreen: React.FC<CadastroMunicipeScreenProps> = ({
   const medicamentoOptions = ['Sim', 'Não'];
   const deficienciaOptions = ['Nenhuma', 'Física', 'Visual', 'Auditiva', 'Intelectual', 'Múltipla'];
   const acompanhanteOptions = ['Sim', 'Não'];
+  const estadoCivilOptions = ['SOLTEIRO', 'CASADO', 'DIVORCIADO', 'VIÚVO', 'UNIÃO ESTÁVEL', 'SEPARADO'];
+  const sexoOptions = ['Feminino', 'Masculino'];
 
-  const updateForm = (field: keyof CadastroMunicipeForm, value: string) => {
+  const updateForm = (field: keyof CadastroMunicipeForm, value: string | string[]) => {
     setForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  // 💊 Funções para gerenciar medicamentos
+  const adicionarMedicamento = (medicamento: string) => {
+    const medicamentosAtuais = form.quaisMedicamentos;
+    if (!medicamentosAtuais.includes(medicamento)) {
+      updateForm('quaisMedicamentos', [...medicamentosAtuais, medicamento]);
+    }
+  };
+
+  const removerMedicamento = (medicamento: string) => {
+    const medicamentosAtuais = form.quaisMedicamentos;
+    updateForm('quaisMedicamentos', medicamentosAtuais.filter(med => med !== medicamento));
   };
 
   const handleSelectOption = (field: keyof CadastroMunicipeForm, value: string) => {
@@ -141,12 +202,15 @@ export const CadastroMunicipeScreen: React.FC<CadastroMunicipeScreenProps> = ({
     
     // Limpar campo de medicamentos se mudar para "Não"
     if (field === 'usoMedicamentoContinuo' && value === 'Não') {
-      updateForm('quaisMedicamentos', '');
+      updateForm('quaisMedicamentos', []); // Agora limpa com array vazio
     }
     
+    // Fechar todos os modais
     setShowMedicamentoModal(false);
     setShowDeficienciaModal(false);
     setShowAcompanhanteModal(false);
+    setShowEstadoCivilModal(false);
+    setShowSexoModal(false);
   };
 
   const buscarCEP = async () => {
@@ -175,8 +239,8 @@ export const CadastroMunicipeScreen: React.FC<CadastroMunicipeScreenProps> = ({
     }
 
     // Validação condicional para medicamentos
-    if (form.usoMedicamentoContinuo === 'Sim' && !form.quaisMedicamentos.trim()) {
-      Alert.alert('Erro', 'Por favor, informe quais medicamentos são utilizados');
+    if (form.usoMedicamentoContinuo === 'Sim' && form.quaisMedicamentos.length === 0) {
+      Alert.alert('Erro', 'Por favor, selecione pelo menos um medicamento');
       return;
     }
 
@@ -339,17 +403,21 @@ export const CadastroMunicipeScreen: React.FC<CadastroMunicipeScreenProps> = ({
 
               <View style={styles.halfWidth}>
                 <Text style={[styles.label, { color: currentTheme.text }]}>Estado Civil</Text>
-                <TextInput
-                  style={[styles.input, { 
+                <TouchableOpacity
+                  style={[styles.selectContainer, { 
                     backgroundColor: currentTheme.surface, 
-                    borderColor: currentTheme.border,
-                    color: currentTheme.text 
+                    borderColor: currentTheme.border 
                   }]}
-                  placeholder="Selecione"
-                  placeholderTextColor={currentTheme.mutedForeground}
-                  value={form.estadoCivil}
-                  onChangeText={(value) => updateForm('estadoCivil', value)}
-                />
+                  onPress={() => setShowEstadoCivilModal(true)}
+                >
+                  <Text style={[
+                    styles.selectText, 
+                    { color: form.estadoCivil ? currentTheme.text : currentTheme.mutedForeground }
+                  ]}>
+                    {form.estadoCivil || 'Selecione o estado civil'}
+                  </Text>
+                  <Ionicons name="chevron-down" size={16} color={currentTheme.mutedForeground} />
+                </TouchableOpacity>
               </View>
             </View>
 
@@ -357,17 +425,21 @@ export const CadastroMunicipeScreen: React.FC<CadastroMunicipeScreenProps> = ({
             <View style={styles.row}>
               <View style={styles.halfWidth}>
                 <Text style={[styles.label, { color: currentTheme.text }]}>Sexo</Text>
-                <TextInput
-                  style={[styles.input, { 
+                <TouchableOpacity
+                  style={[styles.selectContainer, { 
                     backgroundColor: currentTheme.surface, 
-                    borderColor: currentTheme.border,
-                    color: currentTheme.text 
+                    borderColor: currentTheme.border 
                   }]}
-                  placeholder="Selecione"
-                  placeholderTextColor={currentTheme.mutedForeground}
-                  value={form.sexo}
-                  onChangeText={(value) => updateForm('sexo', value)}
-                />
+                  onPress={() => setShowSexoModal(true)}
+                >
+                  <Text style={[
+                    styles.selectText, 
+                    { color: form.sexo ? currentTheme.text : currentTheme.mutedForeground }
+                  ]}>
+                    {form.sexo || 'Selecione o sexo'}
+                  </Text>
+                  <Ionicons name="chevron-down" size={16} color={currentTheme.mutedForeground} />
+                </TouchableOpacity>
               </View>
 
               <View style={styles.halfWidth}>
@@ -622,26 +694,30 @@ export const CadastroMunicipeScreen: React.FC<CadastroMunicipeScreenProps> = ({
               </View>
             </View>
 
-            {/* Campo condicional: Quais medicamentos */}
+            {/* Campo condicional: Quais medicamentos - NOVA IMPLEMENTAÇÃO COM CHIP-TAGS */}
             {form.usoMedicamentoContinuo === 'Sim' && (
               <View style={styles.fullWidth}>
                 <Text style={[styles.label, { color: currentTheme.text }]}>
                   Quais medicamentos? <Text style={styles.required}>*</Text>
                 </Text>
-                <TextInput
-                  style={[styles.textArea, { 
-                    backgroundColor: currentTheme.surface, 
-                    borderColor: currentTheme.border,
-                    color: currentTheme.text 
-                  }]}
-                  placeholder="Informe os medicamentos utilizados"
-                  placeholderTextColor={currentTheme.mutedForeground}
-                  value={form.quaisMedicamentos}
-                  onChangeText={(value) => updateForm('quaisMedicamentos', value)}
-                  multiline
-                  numberOfLines={3}
-                  textAlignVertical="top"
-                />
+                
+                {/* Campo de busca de medicamentos */}
+                <View style={styles.medicamentoSearchContainer}>
+                  <MedicamentoSearch
+                    onSelectMedicamento={adicionarMedicamento}
+                    selectedMedicamentos={form.quaisMedicamentos}
+                    placeholder="Buscar e selecionar medicamento..."
+                  />
+                </View>
+
+                {/* Tags dos medicamentos selecionados */}
+                <View style={styles.medicamentoTagsContainer}>
+                  <ChipTags
+                    tags={form.quaisMedicamentos}
+                    onRemove={removerMedicamento}
+                    editable={true}
+                  />
+                </View>
               </View>
             )}
 
@@ -770,6 +846,68 @@ export const CadastroMunicipeScreen: React.FC<CadastroMunicipeScreenProps> = ({
                   key={option}
                   style={styles.modalOption}
                   onPress={() => handleSelectOption('necessitaAcompanhante', option)}
+                >
+                  <Text style={[styles.modalOptionText, { color: currentTheme.text }]}>
+                    {option}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </TouchableOpacity>
+        </Modal>
+
+        {/* Modal Estado Civil */}
+        <Modal
+          visible={showEstadoCivilModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowEstadoCivilModal(false)}
+        >
+          <TouchableOpacity 
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={() => setShowEstadoCivilModal(false)}
+          >
+            <View style={[styles.modalContent, { backgroundColor: currentTheme.surface }]}>
+              <Text style={[styles.modalTitle, { color: currentTheme.text }]}>
+                Estado Civil
+              </Text>
+              {estadoCivilOptions.map((option) => (
+                <TouchableOpacity
+                  key={option}
+                  style={styles.modalOption}
+                  onPress={() => handleSelectOption('estadoCivil', option)}
+                >
+                  <Text style={[styles.modalOptionText, { color: currentTheme.text }]}>
+                    {option}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </TouchableOpacity>
+        </Modal>
+
+        {/* Modal Sexo */}
+        <Modal
+          visible={showSexoModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowSexoModal(false)}
+        >
+          <TouchableOpacity 
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={() => setShowSexoModal(false)}
+          >
+            <View style={[styles.modalContent, { backgroundColor: currentTheme.surface }]}>
+              <Text style={[styles.modalTitle, { color: currentTheme.text }]}>
+                Sexo
+              </Text>
+              {sexoOptions.map((option) => (
+                <TouchableOpacity
+                  key={option}
+                  style={styles.modalOption}
+                  onPress={() => handleSelectOption('sexo', option)}
                 >
                   <Text style={[styles.modalOptionText, { color: currentTheme.text }]}>
                     {option}
@@ -1032,5 +1170,19 @@ const styles = StyleSheet.create({
   required: {
     color: '#8A9E8E', // Verde institucional da Prefeitura de Jambeiro
     fontWeight: '600',
+  },
+  // 💊 Estilos para os novos componentes de medicamentos
+  medicamentoSearchContainer: {
+    marginBottom: 12,
+    zIndex: 1000, // Para o dropdown ficar por cima
+  },
+  medicamentoTagsContainer: {
+    marginTop: 8,
+    padding: 8,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E9ECEF',
+    minHeight: 60,
   },
 });

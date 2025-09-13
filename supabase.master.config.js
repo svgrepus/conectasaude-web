@@ -15,7 +15,7 @@
 // 🔑 CONFIGURAÇÃO MASTER - ALTERE APENAS AQUI!
 const SUPABASE_MASTER_CONFIG = {
   // 🌐 URL do projeto Supabase
-  URL: 'https://neqkqjpynrinlsodfrkf.supabase.com',
+  URL: 'https://neqkqjpynrinlsodfrkf.supabase.co',
   
   // 🔐 Chave anônima do Supabase
   ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5lcWtxanB5bnJpbmxzb2RmcmtmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxMTg2MDcsImV4cCI6MjA3MjY5NDYwN30.-xJL2HTvxU0HPWLqtFAT3HQu-cTBPUqu4lzK0k8bCQM',

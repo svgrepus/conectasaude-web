@@ -12,7 +12,7 @@ export class MunicipeService {
   static async getAllMunicipes(page = 1, limit = 10): Promise<PaginatedResponse<Municipe>> {
     try {
       const offset = (page - 1) * limit;
-      const url = `${SUPABASE_ENDPOINTS.rest}/municipes_active?select=*&limit=${limit}&offset=${offset}&order=nome_completo.asc`;
+      const url = `${SUPABASE_ENDPOINTS.rest}/vw_municipes_completo?select=*&limit=${limit}&offset=${offset}&order=nome_completo.asc`;
       
       console.log('🔍 Buscando munícipes na API:', url);
       
@@ -28,7 +28,7 @@ export class MunicipeService {
       const data = await response.json();
       
       // Buscar contagem total
-      const countResponse = await fetch(`${SUPABASE_ENDPOINTS.rest}/municipes_active?select=count`, {
+      const countResponse = await fetch(`${SUPABASE_ENDPOINTS.rest}/vw_municipes_completo?select=count`, {
         method: 'GET',
         headers: {
           ...getHeaders(),
@@ -70,8 +70,8 @@ export class MunicipeService {
     try {
       console.log('🔍 Buscando munícipe por ID:', id);
       
-      // Buscar dados do munícipe principal
-      const municipeUrl = `${SUPABASE_ENDPOINTS.rest}/municipes_active?select=*&id=eq.${id}`;
+      // Usar a view completa que já tem todos os dados de endereço e saúde
+      const municipeUrl = `${SUPABASE_ENDPOINTS.rest}/vw_municipes_completo?select=*&id=eq.${id}`;
       const municipeResponse = await fetch(municipeUrl, {
         method: 'GET',
         headers: getHeaders(),
@@ -87,44 +87,7 @@ export class MunicipeService {
         return { data: null, error: 'Munícipe não encontrado' };
       }
 
-      let finalData = municipeData[0];
-
-      // Buscar dados de endereço da view municipes_enderecos_active
-      try {
-        const enderecoUrl = `${SUPABASE_ENDPOINTS.rest}/municipes_enderecos_active?select=*&id=eq.${id}`;
-        const enderecoResponse = await fetch(enderecoUrl, {
-          method: 'GET',
-          headers: getHeaders(),
-        });
-
-        if (enderecoResponse.ok) {
-          const enderecoData = await enderecoResponse.json();
-          if (enderecoData && enderecoData.length > 0) {
-            finalData = { ...finalData, ...enderecoData[0] };
-          }
-        }
-      } catch (error) {
-        console.warn('⚠️ Erro ao buscar dados de endereço:', error);
-      }
-
-      // Buscar dados de saúde da view municipes_saude_active
-      try {
-        const saudeUrl = `${SUPABASE_ENDPOINTS.rest}/municipes_saude_active?select=*&id=eq.${id}`;
-        const saudeResponse = await fetch(saudeUrl, {
-          method: 'GET',
-          headers: getHeaders(),
-        });
-
-        if (saudeResponse.ok) {
-          const saudeData = await saudeResponse.json();
-          if (saudeData && saudeData.length > 0) {
-            finalData = { ...finalData, ...saudeData[0] };
-          }
-        }
-      } catch (error) {
-        console.warn('⚠️ Erro ao buscar dados de saúde:', error);
-      }
-
+      const finalData = municipeData[0];
       console.log('✅ Dados completos do munícipe:', finalData);
 
       return { data: finalData };
@@ -139,7 +102,7 @@ export class MunicipeService {
       console.log('🔍 Buscando munícipes com query:', query);
       
       // Buscar por nome_completo ou CPF
-      const url = `${SUPABASE_ENDPOINTS.rest}/municipes_active?select=*&or=(nome_completo.ilike.*${query}*,cpf.like.*${query}*)&order=nome_completo.asc`;
+      const url = `${SUPABASE_ENDPOINTS.rest}/vw_municipes_completo?select=*&or=(nome_completo.ilike.*${query}*,cpf.like.*${query}*)&order=nome_completo.asc`;
       
       const response = await fetch(url, {
         method: 'GET',
