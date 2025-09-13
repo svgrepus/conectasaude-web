@@ -10,12 +10,14 @@ import {
   Alert,
   Platform,
   Modal,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../../constants/theme';
 import { Municipe } from '../../types';
 import ChipTags from '../../components/ChipTags';
 import MedicamentoSearch from '../../components/MedicamentoSearch';
+import DoencaCronicaSearch from '../../components/DoencaCronicaSearch';
 
 interface CadastroMunicipeForm {
   nomeCompleto: string;
@@ -36,10 +38,10 @@ interface CadastroMunicipeForm {
   // Dados de Saúde
   numeroSus: string;
   usoMedicamentoContinuo: string;
-  quaisMedicamentos: string[]; // Mudança: agora é array de strings
+  quaisMedicamentos: string[]; // Array de strings para medicamentos
   deficiencia: string;
   necessitaAcompanhante: string;
-  doencasCronicas: string;
+  doencasCronicas: string[]; // Mudança: agora é array de strings para doenças crônicas
 }
 
 interface CadastroMunicipeScreenProps {
@@ -47,10 +49,10 @@ interface CadastroMunicipeScreenProps {
   municipeToEdit?: Municipe;
 }
 
-export const CadastroMunicipeScreen: React.FC<CadastroMunicipeScreenProps> = ({ 
-  onBack, 
-  municipeToEdit 
-}) => {
+export const CadastroMunicipeScreen = ({
+  onBack,
+  municipeToEdit
+}: CadastroMunicipeScreenProps) => {
   console.log('🔧 CadastroMunicipeScreen: Props recebidas', { onBack: !!onBack, municipeToEdit: !!municipeToEdit });
   
   const [activeTab, setActiveTab] = useState<'pessoais' | 'saude'>('pessoais');
@@ -60,6 +62,7 @@ export const CadastroMunicipeScreen: React.FC<CadastroMunicipeScreenProps> = ({
   const [showAcompanhanteModal, setShowAcompanhanteModal] = useState(false);
   const [showEstadoCivilModal, setShowEstadoCivilModal] = useState(false);
   const [showSexoModal, setShowSexoModal] = useState(false);
+  const [loadingCEP, setLoadingCEP] = useState(false);
   
   const isEditMode = !!municipeToEdit;
 
@@ -82,10 +85,10 @@ export const CadastroMunicipeScreen: React.FC<CadastroMunicipeScreenProps> = ({
     // Dados de Saúde
     numeroSus: '',
     usoMedicamentoContinuo: '',
-    quaisMedicamentos: [], // Mudança: agora é array vazio
+    quaisMedicamentos: [], // Array vazio para medicamentos
     deficiencia: '',
     necessitaAcompanhante: '',
-    doencasCronicas: '',
+    doencasCronicas: [], // Mudança: agora é array vazio para doenças crônicas
   });
 
   // Effect para carregar dados do munícipe quando estiver editando
@@ -119,6 +122,24 @@ export const CadastroMunicipeScreen: React.FC<CadastroMunicipeScreenProps> = ({
         
         // Tratar como string separada por vírgulas
         return medicamentosString.split(',').map(med => med.trim()).filter(med => med);
+      };
+
+      // Função para converter string de doenças crônicas em array
+      const parseDoencasCronicas = (doencasString: string): string[] => {
+        if (!doencasString || doencasString.trim() === '') return [];
+        
+        // Se for um JSON array, tentar fazer parse
+        if (doencasString.startsWith('[') && doencasString.endsWith(']')) {
+          try {
+            return JSON.parse(doencasString);
+          } catch {
+            // Se falhar, tratar como string separada por vírgulas
+            return doencasString.slice(1, -1).split(',').map(doenca => doenca.trim()).filter(doenca => doenca);
+          }
+        }
+        
+        // Tratar como string separada por vírgulas
+        return doencasString.split(',').map(doenca => doenca.trim()).filter(doenca => doenca);
       };
 
       // Função para converter boolean para Sim/Não
@@ -158,7 +179,7 @@ export const CadastroMunicipeScreen: React.FC<CadastroMunicipeScreenProps> = ({
         quaisMedicamentos: parseMedicamentos(municipeToEdit.quaisMedicamentos || municipeToEdit.quais_medicamentos || ''), // Convertendo para array
         deficiencia: municipeToEdit.deficiencia || municipeToEdit.tem_deficiencia_fisica || municipeToEdit.possui_deficiencia || '',
         necessitaAcompanhante: municipeToEdit.necessitaAcompanhante || municipeToEdit.necessita_acompanhante || municipeToEdit.precisa_acompanhante || '',
-        doencasCronicas: municipeToEdit.doencasCronicas || municipeToEdit.doencas_cronicas || municipeToEdit.doenca_cronica || municipeToEdit.tipo_doenca || '',
+        doencasCronicas: parseDoencasCronicas(municipeToEdit.doencasCronicas || municipeToEdit.doencas_cronicas || municipeToEdit.doenca_cronica || municipeToEdit.tipo_doenca || ''), // Convertendo para array
       });
       
       // Debug: verificar dados carregados
@@ -181,7 +202,7 @@ export const CadastroMunicipeScreen: React.FC<CadastroMunicipeScreenProps> = ({
   const sexoOptions = ['Feminino', 'Masculino'];
 
   const updateForm = (field: keyof CadastroMunicipeForm, value: string | string[]) => {
-    setForm(prev => ({ ...prev, [field]: value }));
+    setForm((prev: CadastroMunicipeForm) => ({ ...prev, [field]: value }));
   };
 
   // 💊 Funções para gerenciar medicamentos
@@ -194,7 +215,20 @@ export const CadastroMunicipeScreen: React.FC<CadastroMunicipeScreenProps> = ({
 
   const removerMedicamento = (medicamento: string) => {
     const medicamentosAtuais = form.quaisMedicamentos;
-    updateForm('quaisMedicamentos', medicamentosAtuais.filter(med => med !== medicamento));
+    updateForm('quaisMedicamentos', medicamentosAtuais.filter((med: string) => med !== medicamento));
+  };
+
+  // 🩺 Funções para gerenciar doenças crônicas
+  const adicionarDoencaCronica = (doenca: string) => {
+    const doencasAtuais = form.doencasCronicas;
+    if (!doencasAtuais.includes(doenca)) {
+      updateForm('doencasCronicas', [...doencasAtuais, doenca]);
+    }
+  };
+
+  const removerDoencaCronica = (doenca: string) => {
+    const doencasAtuais = form.doencasCronicas;
+    updateForm('doencasCronicas', doencasAtuais.filter((d: string) => d !== doenca));
   };
 
   const handleSelectOption = (field: keyof CadastroMunicipeForm, value: string) => {
@@ -213,21 +247,64 @@ export const CadastroMunicipeScreen: React.FC<CadastroMunicipeScreenProps> = ({
     setShowSexoModal(false);
   };
 
+  // 📍 Função para aplicar máscara de CEP
+  const aplicarMascaraCEP = (valor: string): string => {
+    // Remove tudo que não é número
+    const somenteNumeros = valor.replace(/\D/g, '');
+    
+    // Aplica a máscara 00000-000
+    if (somenteNumeros.length <= 5) {
+      return somenteNumeros;
+    } else {
+      return `${somenteNumeros.slice(0, 5)}-${somenteNumeros.slice(5, 8)}`;
+    }
+  };
+
+  // 📍 Função para atualizar CEP com máscara
+  const handleCEPChange = (valor: string) => {
+    const cepComMascara = aplicarMascaraCEP(valor);
+    updateForm('cep', cepComMascara);
+  };
+
   const buscarCEP = async () => {
-    if (form.cep.length === 8) {
+    const cepSomenteNumeros = form.cep.replace(/\D/g, '');
+    
+    if (cepSomenteNumeros.length === 8) {
+      setLoadingCEP(true);
       try {
-        const response = await fetch(`https://viacep.com.br/ws/${form.cep}/json/`);
+        console.log('🔍 Buscando CEP:', cepSomenteNumeros);
+        const response = await fetch(`https://viacep.com.br/ws/${cepSomenteNumeros}/json/`);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP Error: ${response.status}`);
+        }
+        
         const data = await response.json();
         
-        if (!data.erro) {
-          updateForm('rua', data.logradouro);
-          updateForm('bairro', data.bairro);
-          updateForm('cidade', data.localidade);
-          updateForm('estado', data.uf);
+        if (data.erro) {
+          console.warn('⚠️ CEP não encontrado:', cepSomenteNumeros);
+          alert('CEP não encontrado. Verifique o CEP digitado.');
+          return;
         }
+        
+        console.log('✅ CEP encontrado:', data);
+        
+        // Preencher automaticamente os campos de endereço
+        updateForm('rua', data.logradouro || '');
+        updateForm('bairro', data.bairro || '');
+        updateForm('cidade', data.localidade || '');
+        updateForm('estado', data.uf || '');
+        
+        console.log('📝 Campos preenchidos automaticamente');
+        
       } catch (error) {
-        console.error('Erro ao buscar CEP:', error);
+        console.error('❌ Erro ao buscar CEP:', error);
+        alert('Erro ao buscar CEP. Verifique sua conexão e tente novamente.');
+      } finally {
+        setLoadingCEP(false);
       }
+    } else {
+      alert('Digite um CEP válido com 8 dígitos.');
     }
   };
 
@@ -346,7 +423,7 @@ export const CadastroMunicipeScreen: React.FC<CadastroMunicipeScreenProps> = ({
                 placeholder="Digite o nome completo"
                 placeholderTextColor={currentTheme.mutedForeground}
                 value={form.nomeCompleto}
-                onChangeText={(value) => updateForm('nomeCompleto', value)}
+                onChangeText={(value: string) => updateForm('nomeCompleto', value)}
               />
             </View>
 
@@ -363,7 +440,7 @@ export const CadastroMunicipeScreen: React.FC<CadastroMunicipeScreenProps> = ({
                   placeholder="000.000.000-00"
                   placeholderTextColor={currentTheme.mutedForeground}
                   value={form.cpf}
-                  onChangeText={(value) => updateForm('cpf', value)}
+                  onChangeText={(value: string) => updateForm('cpf', value)}
                   keyboardType="numeric"
                 />
               </View>
@@ -379,7 +456,7 @@ export const CadastroMunicipeScreen: React.FC<CadastroMunicipeScreenProps> = ({
                   placeholder="Digite o RG"
                   placeholderTextColor={currentTheme.mutedForeground}
                   value={form.rg}
-                  onChangeText={(value) => updateForm('rg', value)}
+                  onChangeText={(value: string) => updateForm('rg', value)}
                 />
               </View>
             </View>
@@ -397,7 +474,7 @@ export const CadastroMunicipeScreen: React.FC<CadastroMunicipeScreenProps> = ({
                   placeholder="DD/MM/AAAA"
                   placeholderTextColor={currentTheme.mutedForeground}
                   value={form.dataNascimento}
-                  onChangeText={(value) => updateForm('dataNascimento', value)}
+                  onChangeText={(value: string) => updateForm('dataNascimento', value)}
                 />
               </View>
 
@@ -453,7 +530,7 @@ export const CadastroMunicipeScreen: React.FC<CadastroMunicipeScreenProps> = ({
                   placeholder="email@exemplo.com"
                   placeholderTextColor={currentTheme.mutedForeground}
                   value={form.email}
-                  onChangeText={(value) => updateForm('email', value)}
+                  onChangeText={(value: string) => updateForm('email', value)}
                   keyboardType="email-address"
                 />
               </View>
@@ -471,7 +548,7 @@ export const CadastroMunicipeScreen: React.FC<CadastroMunicipeScreenProps> = ({
                 placeholder="(XX) XXXXX-XXXX"
                 placeholderTextColor={currentTheme.mutedForeground}
                 value={form.telefone}
-                onChangeText={(value) => updateForm('telefone', value)}
+                onChangeText={(value: string) => updateForm('telefone', value)}
                 keyboardType="phone-pad"
               />
             </View>
@@ -488,7 +565,7 @@ export const CadastroMunicipeScreen: React.FC<CadastroMunicipeScreenProps> = ({
                 placeholder="Digite o nome da mãe"
                 placeholderTextColor={currentTheme.mutedForeground}
                 value={form.nomeMae}
-                onChangeText={(value) => updateForm('nomeMae', value)}
+                onChangeText={(value: string) => updateForm('nomeMae', value)}
               />
             </View>
 
@@ -510,12 +587,20 @@ export const CadastroMunicipeScreen: React.FC<CadastroMunicipeScreenProps> = ({
                   placeholder="00000-000"
                   placeholderTextColor={currentTheme.mutedForeground}
                   value={form.cep}
-                  onChangeText={(value) => updateForm('cep', value)}
+                  onChangeText={handleCEPChange}
                   keyboardType="numeric"
-                  maxLength={8}
+                  maxLength={9}
                 />
-                <TouchableOpacity style={styles.buscarButton} onPress={buscarCEP}>
-                  <Text style={styles.buscarButtonText}>Buscar</Text>
+                <TouchableOpacity 
+                  style={[styles.buscarButton, loadingCEP && styles.buscarButtonDisabled]} 
+                  onPress={buscarCEP}
+                  disabled={loadingCEP}
+                >
+                  {loadingCEP ? (
+                    <ActivityIndicator size="small" color="#FFF" />
+                  ) : (
+                    <Text style={styles.buscarButtonText}>Buscar</Text>
+                  )}
                 </TouchableOpacity>
               </View>
             </View>
@@ -533,7 +618,7 @@ export const CadastroMunicipeScreen: React.FC<CadastroMunicipeScreenProps> = ({
                   placeholder="Nome da rua"
                   placeholderTextColor={currentTheme.mutedForeground}
                   value={form.rua}
-                  onChangeText={(value) => updateForm('rua', value)}
+                  onChangeText={(value: string) => updateForm('rua', value)}
                 />
               </View>
 
@@ -548,7 +633,7 @@ export const CadastroMunicipeScreen: React.FC<CadastroMunicipeScreenProps> = ({
                   placeholder="Ex: 123"
                   placeholderTextColor={currentTheme.mutedForeground}
                   value={form.numero}
-                  onChangeText={(value) => updateForm('numero', value)}
+                  onChangeText={(value: string) => updateForm('numero', value)}
                 />
               </View>
             </View>
@@ -566,7 +651,7 @@ export const CadastroMunicipeScreen: React.FC<CadastroMunicipeScreenProps> = ({
                   placeholder="Nome do bairro"
                   placeholderTextColor={currentTheme.mutedForeground}
                   value={form.bairro}
-                  onChangeText={(value) => updateForm('bairro', value)}
+                  onChangeText={(value: string) => updateForm('bairro', value)}
                 />
               </View>
 
@@ -581,7 +666,7 @@ export const CadastroMunicipeScreen: React.FC<CadastroMunicipeScreenProps> = ({
                   placeholder="Nome da cidade"
                   placeholderTextColor={currentTheme.mutedForeground}
                   value={form.cidade}
-                  onChangeText={(value) => updateForm('cidade', value)}
+                  onChangeText={(value: string) => updateForm('cidade', value)}
                 />
               </View>
 
@@ -596,7 +681,7 @@ export const CadastroMunicipeScreen: React.FC<CadastroMunicipeScreenProps> = ({
                   placeholder="UF"
                   placeholderTextColor={currentTheme.mutedForeground}
                   value={form.estado}
-                  onChangeText={(value) => updateForm('estado', value)}
+                  onChangeText={(value: string) => updateForm('estado', value)}
                   maxLength={2}
                 />
               </View>
@@ -646,7 +731,7 @@ export const CadastroMunicipeScreen: React.FC<CadastroMunicipeScreenProps> = ({
                 placeholder="Digite o número do SUS"
                 placeholderTextColor={currentTheme.mutedForeground}
                 value={form.numeroSus}
-                onChangeText={(value) => updateForm('numeroSus', value)}
+                onChangeText={(value: string) => updateForm('numeroSus', value)}
                 keyboardType="numeric"
               />
             </View>
@@ -741,23 +826,27 @@ export const CadastroMunicipeScreen: React.FC<CadastroMunicipeScreenProps> = ({
               </TouchableOpacity>
             </View>
 
-            {/* Doenças crônicas */}
+            {/* Doenças crônicas - NOVA IMPLEMENTAÇÃO COM CHIP-TAGS */}
             <View style={styles.fullWidth}>
               <Text style={[styles.label, { color: currentTheme.text }]}>Doenças crônicas</Text>
-              <TextInput
-                style={[styles.textArea, { 
-                  backgroundColor: currentTheme.surface, 
-                  borderColor: currentTheme.border,
-                  color: currentTheme.text 
-                }]}
-                placeholder="Liste as doenças crônicas, se houver"
-                placeholderTextColor={currentTheme.mutedForeground}
-                value={form.doencasCronicas}
-                onChangeText={(value) => updateForm('doencasCronicas', value)}
-                multiline
-                numberOfLines={4}
-                textAlignVertical="top"
-              />
+              
+              {/* Campo de busca de doenças crônicas */}
+              <View style={styles.doencaSearchContainer}>
+                <DoencaCronicaSearch
+                  onSelectDoenca={adicionarDoencaCronica}
+                  selectedDoencas={form.doencasCronicas}
+                  placeholder="Buscar e selecionar doença crônica..."
+                />
+              </View>
+
+              {/* Tags das doenças crônicas selecionadas */}
+              <View style={styles.doencaTagsContainer}>
+                <ChipTags
+                  tags={form.doencasCronicas}
+                  onRemove={removerDoencaCronica}
+                  editable={true}
+                />
+              </View>
             </View>
           </View>
         )}
@@ -1031,6 +1120,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  buscarButtonDisabled: {
+    backgroundColor: '#E5E7EB',
+    opacity: 0.6,
+  },
   buscarButtonText: {
     color: '#374151',
     fontSize: 14,
@@ -1180,6 +1273,20 @@ const styles = StyleSheet.create({
     marginTop: 8,
     padding: 8,
     backgroundColor: '#F8F9FA',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E9ECEF',
+    minHeight: 60,
+  },
+  // 🩺 Estilos para os novos componentes de doenças crônicas
+  doencaSearchContainer: {
+    marginBottom: 12,
+    zIndex: 999, // Menor que medicamento para evitar conflito
+  },
+  doencaTagsContainer: {
+    marginTop: 8,
+    padding: 8,
+    backgroundColor: '#F8F9FA', // Mesmo estilo dos medicamentos
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#E9ECEF',
