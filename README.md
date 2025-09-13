@@ -1,420 +1,241 @@
-# 🏥 ConectaSaúde
+# ConectaSaúde - Frontend React Native
 
-**Sistema Completo de Gestão para Secretaria Municipal de Saúde**
+Sistema de gestão municipal de saúde com frontend React Native para plataformas web e mobile.
 
-[![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)](https://postgresql.org)
-[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://typescriptlang.org)
-[![Node.js](https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org)
+## 🚀 Tecnologias
 
----
+- **React Native** com TypeScript
+- **Expo** para desenvolvimento multiplataforma
+- **Supabase** para backend e autenticação
+- **React Navigation v6** para navegação
+- **React Native Paper** para componentes UI
+- **TanStack Query** para gerenciamento de estado do servidor
+- **React Hook Form** para formulários
 
-## 📋 Sobre o Projeto
+## 📋 Pré-requisitos
 
-O **ConectaSaúde** é um sistema backend completo desenvolvido especificamente para Secretarias Municipais de Saúde no Brasil. Construído sobre a plataforma Supabase (PostgreSQL + PostgREST + Edge Functions), oferece uma solução robusta, escalável e segura para gestão integral dos recursos de saúde municipal.
+- Node.js 18+
+- npm ou yarn
+- Expo CLI (`npm install -g @expo/cli`)
+- Android Studio (para desenvolvimento Android)
+- Xcode (para desenvolvimento iOS - apenas macOS)
 
-### 🎯 Objetivo
+## 🔧 Instalação
 
-Modernizar e digitalizar a gestão de saúde municipal, proporcionando:
-- **Controle eficiente** de medicamentos e estoque
-- **Gestão completa** de transporte sanitário
-- **Cadastro unificado** de munícipes
-- **Relatórios gerenciais** em tempo real
-- **Segurança robusta** com controle de acesso
-- **Conformidade** com padrões brasileiros
-
----
-
-## ✨ Funcionalidades Principais
-
-### 💊 **Gestão de Medicamentos**
-- Cadastro completo com classificação ABC
-- Controle de estoque com alertas automáticos
-- Rastreamento de lotes e validades
-- Movimentações de entrada, saída e transferência
-- Relatórios de consumo e necessidades
-
-### 🚑 **Transporte Sanitário**
-- Cadastro de veículos com documentação
-- Gestão de motoristas e habilitações
-- Controle de manutenções e custos
-- Agendamento de transporte
-- Relatórios operacionais
-
-### 👥 **Gestão de Munícipes**
-- Cadastro completo com validação CPF
-- Upload seguro de fotos
-- Histórico de atendimentos
-- Integração com CEP automático
-- Controle de privacidade (LGPD)
-
-### 📊 **Relatórios e Analytics**
-- Dashboard executivo em tempo real
-- Relatórios customizáveis
-- Exportação em múltiplos formatos
-- Indicadores de performance (KPIs)
-- Alertas automáticos
-
-### 🔒 **Segurança e Controle**
-- Autenticação robusta (Supabase Auth)
-- Controle de acesso por perfis (RLS)
-- Auditoria completa de operações
-- Backup automático
-- Logs detalhados
-
----
-
-## 🏗️ Arquitetura
-
-```mermaid
-graph TB
-    A[Frontend/Mobile] --> B[Supabase PostgREST]
-    B --> C[PostgreSQL 15+]
-    A --> D[Edge Functions]
-    D --> C
-    A --> E[Supabase Storage]
-    A --> F[Supabase Auth]
-    F --> C
-    
-    subgraph "Backend Core"
-        C --> G[Row Level Security]
-        C --> H[Triggers & Functions]
-        C --> I[Views & RPCs]
-    end
-    
-    subgraph "Edge Functions"
-        D --> J[Upload de Fotos]
-        D --> K[Export de Relatórios]
-    end
-```
-
-### 🧱 **Componentes**
-
-| Componente | Tecnologia | Descrição |
-|------------|------------|-----------|
-| **Database** | PostgreSQL 15+ | Banco principal com extensões brasileiras |
-| **API REST** | PostgREST | API automática com base no schema |
-| **Functions** | TypeScript | Serverless functions para lógica complexa |
-| **Auth** | Supabase Auth | Sistema completo de autenticação |
-| **Storage** | Supabase Storage | Upload seguro de arquivos |
-| **Security** | Row Level Security | Controle fino de acesso |
-
----
-
-## 🚀 Instalação Rápida
-
-### Pré-requisitos
-
-- Node.js 18+ 
-- npm 8+ ou yarn
-- Conta no [Supabase](https://supabase.com)
-- PostgreSQL 15+ (opcional para desenvolvimento local)
-
-### 1. **Clone e Configure**
-
+1. **Instalar dependências:**
 ```bash
-# Clone o repositório
-git clone https://github.com/seu-usuario/conectasaude.git
-cd conectasaude
-
-# Instale dependências
 npm install
-
-# Configure ambiente
-cp .env.example .env
-# Edite o arquivo .env com suas credenciais
 ```
 
-### 2. **Configure o Supabase**
+2. **Configurar variáveis de ambiente:**
+```bash
+cp .env.example .env.local
+```
+
+Edite o arquivo `.env.local` com suas configurações do Supabase:
+```env
+EXPO_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
+```
+
+3. **Iniciar o servidor de desenvolvimento:**
+```bash
+npm start
+```
+
+## 📱 Executando em diferentes plataformas
+
+### Web
+```bash
+npm run web
+```
+
+### Android
+```bash
+npm run android
+```
+
+### iOS
+```bash
+npm run ios
+```
+
+## 🏗️ Estrutura do Projeto
+
+```
+src/
+├── components/          # Componentes reutilizáveis
+│   ├── common/         # Componentes básicos (Button, Input, etc.)
+│   ├── forms/          # Componentes de formulário
+│   └── ui/             # Componentes de interface específicos
+├── screens/            # Telas da aplicação
+│   ├── auth/          # Telas de autenticação
+│   ├── consultas/     # Telas de consultas
+│   ├── exames/        # Telas de exames
+│   ├── medicamentos/  # Telas de medicamentos
+│   └── profile/       # Telas de perfil
+├── navigation/         # Configuração de navegação
+├── services/          # Serviços de API (Supabase)
+├── hooks/             # Hooks customizados
+├── types/             # Definições de tipos TypeScript
+├── utils/             # Funções utilitárias
+└── constants/         # Constantes e configurações
+```
+
+## 🔐 Autenticação
+
+O sistema utiliza autenticação baseada em Supabase com três tipos de usuário:
+
+- **Munícipe**: Cidadão comum
+- **Funcionário**: Profissional de saúde
+- **Admin**: Administrador do sistema
+
+## 🎨 Temas
+
+O aplicativo suporta temas claro e escuro, seguindo as preferências do sistema operacional.
+
+## 📊 Funcionalidades Principais
+
+### Para Munícipes
+- Cadastro e login
+- Agendamento de consultas
+- Visualização de exames
+- Receitas médicas
+- Histórico médico
+
+### Para Funcionários
+- Gestão de consultas
+- Solicitação de exames
+- Prescrição de medicamentos
+- Cadastro de pacientes
+
+### Para Administradores
+- Gestão completa de usuários
+- Relatórios e dashboards
+- Configuração do sistema
+- Gestão de estoque de medicamentos
+
+## 🧪 Testes
 
 ```bash
-# Instale CLI do Supabase
-npm install -g supabase@latest
+# Executar testes unitários
+npm test
 
-# Faça login
-supabase login
+# Executar testes com watch mode
+npm run test:watch
 
-# Inicialize projeto
-supabase init
-
-# Configure projeto remoto
-supabase link --project-ref SEU-PROJECT-ID
+# Verificar cobertura de testes
+npm run test:coverage
 ```
 
-### 3. **Execute Migrações**
+## 📦 Build e Deploy
+
+### Build para produção
+```bash
+# Web
+npm run build:web
+
+# Android APK
+expo build:android
+
+# iOS
+expo build:ios
+```
+
+### Deploy
+O projeto está configurado para deploy via Expo Application Services (EAS).
 
 ```bash
-# Execute todas as migrações
-npm run db:migrate
+# Configurar EAS
+npm install -g eas-cli
+eas login
+eas build:configure
 
-# Deploy das Edge Functions
-npm run functions:deploy
-
-# Configure storage
-npm run storage:setup
+# Build para produção
+eas build --platform all
 ```
 
-### 4. **Verifique Instalação**
+## 🔧 Configuração do Supabase
 
-```bash
-# Teste saúde do sistema
-npm run health
+### 1. Criar projeto no Supabase
+1. Acesse https://supabase.com
+2. Crie um novo projeto
+3. Configure as tabelas usando os scripts SQL em `../sql/migrations/`
 
-# Valide migrações
-npm run validate
-```
+### 2. Configurar RLS (Row Level Security)
+As políticas de segurança estão definidas nos arquivos de migração.
 
----
+### 3. Configurar Storage
+Para upload de fotos, configure o bucket 'fotos' no Supabase Storage.
 
-## 📚 Documentação Completa
+## 🛠️ Scripts Disponíveis
 
-| Documento | Descrição |
-|-----------|-----------|
-| [📖 Manual do Usuário](docs/MANUAL_USUARIO.md) | Guia completo para usuários finais |
-| [🔧 Guia de Deploy](docs/DEPLOY.md) | Instruções de instalação e deploy |
-| [🔌 Documentação da API](docs/API.md) | Endpoints e exemplos de uso |
-| [🏗️ Arquitetura](docs/ARQUITETURA.md) | Detalhes técnicos e decisões |
-| [🔒 Segurança](docs/SEGURANCA.md) | Políticas e boas práticas |
-| [📊 Relatórios](docs/RELATORIOS.md) | Guia de relatórios disponíveis |
-
----
-
-## 🗂️ Estrutura do Projeto
-
-```
-conectasaude/
-├── 📁 sql/migrations/          # Migrações do banco de dados
-│   ├── 001_init.sql           # Schema inicial e validações
-│   ├── 002_rls.sql            # Políticas de segurança
-│   ├── 003_triggers.sql       # Triggers e automações
-│   ├── 004_rpcs.sql           # Funções remotas
-│   ├── 005_views.sql          # Views e relatórios
-│   └── 006_seeds.sql          # Dados iniciais
-├── 📁 functions/               # Edge Functions (TypeScript)
-│   ├── upload_municipe_foto/  # Upload de fotos
-│   └── relatorios_export/     # Exportação de relatórios
-├── 📁 docs/                   # Documentação completa
-├── 📁 tests/                  # Testes e validações
-├── 📁 scripts/                # Scripts de automação
-├── 📁 monitoring/             # Configurações de monitoramento
-├── 🐳 docker-compose.yml      # Ambiente de desenvolvimento
-├── 🔧 package.json            # Dependências e scripts
-└── 📋 README.md               # Este arquivo
-```
-
----
-
-## 🎮 Scripts Disponíveis
-
-### **Desenvolvimento**
-```bash
-npm run dev              # Inicia ambiente de desenvolvimento
-npm run build            # Build da aplicação
-npm run test             # Executa testes
-npm run lint             # Análise de código
-```
-
-### **Banco de Dados**
-```bash
-npm run db:migrate       # Executa todas as migrações
-npm run db:reset         # Reset completo do banco
-npm run db:backup        # Backup do banco
-npm run db:seed          # Popula dados iniciais
-```
-
-### **Edge Functions**
-```bash
-npm run functions:deploy # Deploy de todas as functions
-npm run functions:serve  # Serve functions localmente
-npm run functions:logs   # Visualiza logs das functions
-```
-
-### **Utilitários**
-```bash
-npm run setup            # Setup completo do projeto
-npm run health           # Verifica saúde do sistema
-npm run security:audit   # Auditoria de segurança
-npm run docs:generate    # Gera documentação
-```
-
----
-
-## 🔒 Segurança
-
-O ConectaSaúde implementa as melhores práticas de segurança:
-
-- **🔐 Autenticação JWT** com refresh tokens
-- **🛡️ Row Level Security (RLS)** em todas as tabelas
-- **👥 Controle de acesso** por perfis (Admin/Operador/Consulta)
-- **📝 Auditoria completa** de todas as operações
-- **🔒 HTTPS obrigatório** em produção
-- **🇧🇷 Validações brasileiras** (CPF, CEP, etc.)
-- **📋 Conformidade LGPD** para dados pessoais
-
-### Perfis de Usuário
-
-| Perfil | Permissões | Uso Típico |
-|--------|------------|------------|
-| **Admin** | Acesso total, configurações | Gestor de TI, Secretário |
-| **Operador** | CRUD completo, relatórios | Funcionários operacionais |
-| **Consulta** | Apenas leitura | Auditores, consultores |
-
----
-
-## 📊 Relatórios Disponíveis
-
-### **Dashboards**
-- 📈 **Executivo**: KPIs principais e métricas
-- 💊 **Medicamentos**: Estoque, consumo, alertas
-- 🚑 **Transporte**: Utilização, custos, manutenções
-- 👥 **Munícipes**: Demografia, atendimentos
-
-### **Relatórios Operacionais**
-- 📋 Inventário de medicamentos
-- 🚨 Alertas de estoque mínimo
-- 📦 Movimentações de estoque
-- 🚛 Relatório de transportes
-- 💰 Análise de custos
-- 📅 Agenda de manutenções
-
-### **Exportações**
-- 📄 **CSV** para análise em planilhas
-- 📊 **JSON** para integração com sistemas
-- 📋 **PDF** para impressão e arquivo
-
----
-
-## 🚀 Deploy em Produção
-
-### **Supabase Cloud (Recomendado)**
-```bash
-# Configure projeto
-supabase link --project-ref SEU-PROJECT-ID
-
-# Deploy completo
-npm run deploy:production
-```
-
-### **Docker**
-```bash
-# Build da imagem
-docker build -t conectasaude:latest .
-
-# Execução com Docker Compose
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
-```
-
-### **Ambiente Hybrid**
-- Database: Supabase Cloud
-- Functions: Vercel/Netlify
-- Frontend: Qualquer provedor
-
----
+- `npm start` - Inicia o servidor Expo
+- `npm run android` - Executa no Android
+- `npm run ios` - Executa no iOS
+- `npm run web` - Executa na web
+- `npm run build:web` - Build para web
+- `npm test` - Executa testes
+- `npm run lint` - Verifica código com ESLint
+- `npm run lint:fix` - Corrige problemas do ESLint
+- `npm run type-check` - Verifica tipos TypeScript
 
 ## 🤝 Contribuição
 
-Contribuições são sempre bem-vindas! Por favor:
-
-1. **Fork** o projeto
-2. **Crie** uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. **Commit** suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. **Push** para a branch (`git push origin feature/AmazingFeature`)
-5. **Abra** um Pull Request
-
-### **Padrões de Código**
-- Use **snake_case** para SQL (tabelas, colunas, funções)
-- Use **camelCase** para TypeScript/JavaScript
-- **Documente** todas as funções públicas
-- **Teste** antes de commitar
-- **Siga** os padrões ESLint/Prettier
-
----
-
-## 📞 Suporte
-
-### **Documentação**
-- [📖 Wiki Completa](https://github.com/seu-usuario/conectasaude/wiki)
-- [❓ FAQ](docs/FAQ.md)
-- [🔧 Troubleshooting](docs/TROUBLESHOOTING.md)
-
-### **Comunidade**
-- [💬 Discussions](https://github.com/seu-usuario/conectasaude/discussions)
-- [🐛 Issues](https://github.com/seu-usuario/conectasaude/issues)
-- [📧 Email](mailto:suporte@conectasaude.local)
-
-### **Comercial**
-Para licenças comerciais, suporte premium e customizações:
-- 📧 **Email**: comercial@conectasaude.local
-- 📱 **WhatsApp**: +55 11 9999-9999
-- 🌐 **Site**: https://conectasaude.com.br
-
----
+1. Fork o projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
+3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
+4. Push para a branch (`git push origin feature/AmazingFeature`)
+5. Abra um Pull Request
 
 ## 📄 Licença
 
-Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para detalhes.
+Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
 
-```
-MIT License
+## 📞 Suporte
 
-Copyright (c) 2025 ConectaSaúde Team
+Para suporte, entre em contato:
+- Email: suporte@conectasaude.gov.br
+- Documentação: [Link para documentação completa]
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+## 🔄 Atualizações
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+Para manter o projeto atualizado:
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+```bash
+# Atualizar dependências
+npm update
+
+# Verificar dependências desatualizadas
+npm outdated
+
+# Atualizar Expo SDK
+expo install --fix
 ```
 
----
+## 🐛 Troubleshooting
 
-## 🏆 Reconhecimentos
+### Problemas Comuns
 
-- **Supabase Team** pela excelente plataforma
-- **PostgreSQL Community** pelo banco robusto
-- **Comunidade Open Source** pelas bibliotecas utilizadas
-- **Secretarias Municipais** que inspiraram este projeto
+1. **Erro de instalação de dependências**
+   ```bash
+   rm -rf node_modules
+   npm install
+   ```
 
----
+2. **Problemas com cache do Expo**
+   ```bash
+   expo start --clear
+   ```
 
-## 📈 Roadmap
+3. **Problemas com TypeScript**
+   ```bash
+   npm run type-check
+   ```
 
-### **v1.1 - Q2 2025**
-- [ ] Interface web administrativa
-- [ ] App mobile para motoristas
-- [ ] Integração com sistemas de pagamento
-- [ ] Relatórios avançados com BI
+### Logs e Debug
 
-### **v1.2 - Q3 2025**
-- [ ] Integração com SUS
-- [ ] Módulo de telemedicina
-- [ ] API para terceiros
-- [ ] Machine Learning para previsões
-
-### **v2.0 - Q4 2025**
-- [ ] Multi-tenancy completa
-- [ ] Federação de dados
-- [ ] Blockchain para auditoria
-- [ ] IoT para sensores de estoque
-
----
-
-<div align="center">
-
-**🏥 ConectaSaúde - Inovando a Saúde Municipal Brasileira**
-
-Made with ❤️ in Brazil 🇧🇷
-
-</div>
+Para habilitar logs detalhados:
+```bash
+DEBUG=expo:* npm start
+```
