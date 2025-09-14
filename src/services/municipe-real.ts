@@ -172,11 +172,14 @@ export class MunicipeService {
 
   static async deleteMunicipe(id: string): Promise<ApiResponse<boolean>> {
     try {
-      const url = `${SUPABASE_ENDPOINTS.rest}/municipes?id=eq.${id}`;
+      const url = `${SUPABASE_ENDPOINTS.rest}/municipes_active?id=eq.${id}`;
       
       const response = await fetch(url, {
-        method: 'DELETE',
+        method: 'PATCH',
         headers: getHeaders(),
+        body: JSON.stringify({
+          deleted_at: 'now()'
+        })
       });
 
       if (!response.ok) {

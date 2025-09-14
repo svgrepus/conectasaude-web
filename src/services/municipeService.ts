@@ -198,18 +198,18 @@ class MunicipeService {
     try {
       console.log('🗑️ MunicipeService: Deletando munícipe:', id);
 
-      const url = `${SUPABASE_ENDPOINTS.rest}/municipes?id=eq.${id}`;
+      const url = `${SUPABASE_ENDPOINTS.rest}/municipes_active?id=eq.${id}`;
       console.log('🌐 MunicipeService: URL PATCH (soft delete):', url);
       
       const headers = this.getHeaders();
       console.log('🔑 MunicipeService: Headers PATCH:', headers);
 
-      // Soft delete - marca como deletado em vez de remover
+      // Soft delete - marca como deletado usando endpoint municipes_active
       const response = await fetch(url, {
         method: 'PATCH',
         headers: headers,
         body: JSON.stringify({
-          deleted_at: new Date().toISOString()
+          deleted_at: 'now()'
         })
       });
 
