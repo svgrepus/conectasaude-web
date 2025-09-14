@@ -15,12 +15,12 @@ interface ChipTagsProps {
   editable?: boolean;
 }
 
-export const ChipTags: React.FC<ChipTagsProps> = ({
+export const ChipTags = ({
   tags,
   onRemove,
   maxWidth,
   editable = true,
-}) => {
+}: ChipTagsProps) => {
   if (tags.length === 0) {
     return (
       <View style={styles.emptyContainer}>
@@ -30,7 +30,7 @@ export const ChipTags: React.FC<ChipTagsProps> = ({
   }
 
   return (
-    <View style={[styles.container, maxWidth && { maxWidth }]}>
+    <View style={[styles.container, maxWidth ? { maxWidth } : null]}>
       <ScrollView
         horizontal={false}
         showsVerticalScrollIndicator={false}

@@ -22,11 +22,11 @@ interface MedicamentoOption {
   dcb_dci: string;
 }
 
-export const MedicamentoSearch: React.FC<MedicamentoSearchProps> = ({
+export const MedicamentoSearch = ({
   onSelectMedicamento,
   selectedMedicamentos,
   placeholder = "Pesquisar medicamento...",
-}) => {
+}: MedicamentoSearchProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<MedicamentoOption[]>([]);
   const [showResults, setShowResults] = useState(false);

@@ -15,6 +15,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../../constants/theme';
 import { Municipe } from '../../types';
+import { authService } from '../../services/auth';
+import { getSupabaseHeaders, SUPABASE_ENDPOINTS } from '../../config/supabase';
 import ChipTags from '../../components/ChipTags';
 import MedicamentoSearch from '../../components/MedicamentoSearch';
 import DoencaCronicaSearch from '../../components/DoencaCronicaSearch';
@@ -308,7 +310,151 @@ export const CadastroMunicipeScreen = ({
     }
   };
 
-  const handleSalvar = () => {
+  // 💾 Função para criar novo munícipe
+  const criarMunicipe = async () => {
+    try {
+      console.log('🆕 Criando novo munícipe...');
+      console.log('📋 Dados do formulário:', form);
+      
+      // Obter access_token do auth-simple
+      const accessToken = authService.getAccessToken();
+      
+      if (!accessToken) {
+        throw new Error('Token de acesso não encontrado. Usuário não autenticado.');
+      }
+      
+      const parametros = {
+        p_bairro: form.bairro || '', 
+        p_cartao_sus: form.numeroSus || '', 
+        p_cep: form.cep.replace(/\D/g, '') || '', // Remove máscara do CEP
+        p_cidade: form.cidade || '', 
+        p_complemento: '', // Campo não presente no form atual
+        p_cpf: form.cpf.replace(/\D/g, '') || '', // Remove máscara do CPF
+        p_data_nascimento: form.dataNascimento || '', 
+        p_doenca_cronica: form.doencasCronicas.join(', ') || '', // Array para string
+        p_email: form.email || '', 
+        p_estado_civil: form.estadoCivil || '', 
+        p_foto_url: '', // Campo não presente no form atual
+        p_logradouro: form.rua || '', 
+        p_necessita_acompanhante: form.necessitaAcompanhante === 'Sim', 
+        p_nome_completo: form.nomeCompleto || '', 
+        p_nome_mae: form.nomeMae || '', 
+        p_numero: form.numero || '', 
+        p_observacoes: '', // Campo não presente no form atual
+        p_observacoes_medicas: '', // Campo não presente no form atual
+        p_quais_medicamentos: form.quaisMedicamentos.join(', ') || '', // Array para string
+        p_ref_zona_rural: false, 
+        p_rg: form.rg || '', 
+        p_sexo: form.sexo || '', 
+        p_telefone: form.telefone || '', 
+        p_tem_deficiencia_fisica: form.deficiencia !== 'Nenhuma', 
+        p_tipo_doenca: '', 
+        p_uf: form.estado || '', 
+        p_uso_continuo_medicamentos: form.usoMedicamentoContinuo === 'Sim', 
+        p_zona_rural: false
+      };
+      
+      console.log('📤 Parâmetros para RPC:', parametros);
+      console.log('🔑 Access Token:', accessToken.substring(0, 20) + '...');
+
+      // Fazer chamada direta à API usando fetch com access_token correto
+      const response = await fetch(`${SUPABASE_ENDPOINTS.rest}/rpc/rpc_criar_municipe_completo`, {
+        method: 'POST',
+        headers: getSupabaseHeaders(accessToken),
+        body: JSON.stringify(parametros)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(`HTTP Error ${response.status}: ${errorData}`);
+      }
+
+      const data = await response.json();
+
+      console.log('✅ Munícipe criado com sucesso:', data);
+      return data;
+      
+    } catch (error) {
+      console.error('💥 Erro na criação do munícipe:', error);
+      throw error;
+    }
+  };
+
+  // 🔄 Função para atualizar munícipe existente
+  const atualizarMunicipe = async () => {
+    try {
+      console.log('🔄 Atualizando munícipe existente...');
+      console.log('📋 Dados do formulário:', form);
+      
+      if (!municipeToEdit?.id) {
+        throw new Error('ID do munícipe não encontrado para atualização');
+      }
+
+      // Obter access_token do auth-simple
+      const accessToken = authService.getAccessToken();
+      
+      if (!accessToken) {
+        throw new Error('Token de acesso não encontrado. Usuário não autenticado.');
+      }
+
+      const parametros = {
+        p_bairro: form.bairro || '', 
+        p_cartao_sus: form.numeroSus || '', 
+        p_cep: form.cep.replace(/\D/g, '') || '', // Remove máscara do CEP
+        p_cidade: form.cidade || '', 
+        p_complemento: '', // Campo não presente no form atual
+        p_data_nascimento: form.dataNascimento || '', 
+        p_doenca_cronica: form.doencasCronicas.join(', ') || '', // Array para string
+        p_email: form.email || '', 
+        p_estado_civil: form.estadoCivil || '', 
+        p_foto_url: '', // Campo não presente no form atual
+        p_logradouro: form.rua || '', 
+        p_municipe_id: municipeToEdit.id, // ID para atualização
+        p_necessita_acompanhante: form.necessitaAcompanhante === 'Sim', 
+        p_nome_completo: form.nomeCompleto || '', 
+        p_nome_mae: form.nomeMae || '', 
+        p_numero: form.numero || '', 
+        p_observacoes: '', // Campo não presente no form atual
+        p_observacoes_medicas: '', // Campo não presente no form atual
+        p_quais_medicamentos: form.quaisMedicamentos.join(', ') || '', // Array para string
+        p_ref_zona_rural: false, 
+        p_rg: form.rg || '', 
+        p_sexo: form.sexo || '', 
+        p_telefone: form.telefone || '', 
+        p_tem_deficiencia_fisica: form.deficiencia !== 'Nenhuma', 
+        p_tipo_doenca: '', 
+        p_uf: form.estado || '', 
+        p_uso_continuo_medicamentos: form.usoMedicamentoContinuo === 'Sim', 
+        p_zona_rural: false
+      };
+      
+      console.log('📤 Parâmetros para RPC de atualização:', parametros);
+      console.log('🔑 Access Token:', accessToken.substring(0, 20) + '...');
+
+      // Fazer chamada direta à API usando fetch com access_token correto
+      const response = await fetch(`${SUPABASE_ENDPOINTS.rest}/rpc/rpc_atualizar_municipe_completo`, {
+        method: 'POST',
+        headers: getSupabaseHeaders(accessToken),
+        body: JSON.stringify(parametros)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(`HTTP Error ${response.status}: ${errorData}`);
+      }
+
+      const data = await response.json();
+
+      console.log('✅ Munícipe atualizado com sucesso:', data);
+      return data;
+      
+    } catch (error) {
+      console.error('💥 Erro na atualização do munícipe:', error);
+      throw error;
+    }
+  };
+
+  const handleSalvar = async () => {
     // Validação básica
     if (!form.nomeCompleto || !form.cpf || !form.email) {
       Alert.alert('Erro', 'Por favor, preencha os campos obrigatórios dos dados pessoais');
@@ -321,9 +467,35 @@ export const CadastroMunicipeScreen = ({
       return;
     }
 
-    Alert.alert('Sucesso', 'Munícipe cadastrado com sucesso!', [
-      { text: 'OK', onPress: onBack }
-    ]);
+    try {
+      console.log('💾 Iniciando processo de salvamento...');
+      console.log('🔧 Modo:', isEditMode ? 'Edição' : 'Criação');
+      
+      if (isEditMode) {
+        // Modo edição - atualizar munícipe existente
+        await atualizarMunicipe();
+      } else {
+        // Modo criação - criar novo munícipe
+        await criarMunicipe();
+      }
+      
+      // Retornar à tela anterior após sucesso
+      if (onBack) {
+        onBack();
+      }
+      
+      // Exibir mensagem de sucesso (igual à tela de doenças crônicas)
+      Alert.alert('Sucesso', isEditMode ? 'Munícipe atualizado com sucesso!' : 'Munícipe cadastrado com sucesso!');
+      
+    } catch (error) {
+      console.error('❌ Erro ao salvar munícipe:', error);
+      
+      const mensagemErro = isEditMode
+        ? 'Erro ao atualizar munícipe. Tente novamente.'
+        : 'Erro ao cadastrar munícipe. Tente novamente.';
+        
+      Alert.alert('Erro', mensagemErro);
+    }
   };
 
   const handleCancelar = () => {

@@ -108,6 +108,7 @@ class AuthService {
 
       // Salvar na sessão
       this.saveToSession(user, data.access_token);
+     
       this.notifyListeners();
       return user;
 

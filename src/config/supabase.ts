@@ -51,8 +51,7 @@ export const SUPABASE_CONFIG = {
 export const getSupabaseHeaders = (accessToken?: string): Record<string, string> => {
   const headers: Record<string, string> = {
     'apikey': SUPABASE_CONFIG.anonKey,
-    'Content-Type': 'application/json',
-    'Prefer': 'return=representation'
+    'Content-Type': 'application/json'
   };
 
   if (accessToken) {
