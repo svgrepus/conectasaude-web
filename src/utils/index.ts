@@ -35,24 +35,44 @@ export const validateCPF = (cpf: string): boolean => {
   return true;
 };
 
-// Format CPF (add dots and dash)
+// Format CPF (add dots and dash) - LIMITED TO 11 DIGITS
 export const formatCPF = (cpf: string): string => {
+  // Remove all non-digit characters
   const cleanCPF = cpf.replace(/[^\d]/g, '');
-  if (cleanCPF.length <= 11) {
-    return cleanCPF.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+  
+  // Limit to maximum 11 digits
+  const limitedCPF = cleanCPF.substring(0, 11);
+  
+  // Apply mask based on length
+  if (limitedCPF.length <= 3) {
+    return limitedCPF;
+  } else if (limitedCPF.length <= 6) {
+    return limitedCPF.replace(/(\d{3})(\d{0,3})/, '$1.$2');
+  } else if (limitedCPF.length <= 9) {
+    return limitedCPF.replace(/(\d{3})(\d{3})(\d{0,3})/, '$1.$2.$3');
+  } else {
+    return limitedCPF.replace(/(\d{3})(\d{3})(\d{3})(\d{0,2})/, '$1.$2.$3-$4');
   }
-  return cpf;
 };
 
-// Format phone number (Brazilian format)
+// Format phone number (Brazilian format) - LIMITED TO 11 DIGITS
 export const formatPhone = (phone: string): string => {
+  // Remove all non-digit characters
   const cleanPhone = phone.replace(/[^\d]/g, '');
-  if (cleanPhone.length === 10) {
-    return cleanPhone.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
-  } else if (cleanPhone.length === 11) {
-    return cleanPhone.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+  
+  // Limit to maximum 11 digits
+  const limitedPhone = cleanPhone.substring(0, 11);
+  
+  // Apply mask based on length
+  if (limitedPhone.length <= 2) {
+    return limitedPhone;
+  } else if (limitedPhone.length <= 6) {
+    return limitedPhone.replace(/(\d{2})(\d{0,4})/, '($1) $2');
+  } else if (limitedPhone.length <= 10) {
+    return limitedPhone.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
+  } else {
+    return limitedPhone.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
   }
-  return phone;
 };
 
 // Format CEP (Brazilian postal code)
@@ -62,6 +82,46 @@ export const formatCEP = (cep: string): string => {
     return cleanCEP.replace(/(\d{5})(\d{3})/, '$1-$2');
   }
   return cep;
+};
+
+// Format RG (Brazilian ID document) - LIMITED TO 9 DIGITS
+export const formatRG = (rg: string): string => {
+  // Remove all non-digit characters
+  const cleanRG = rg.replace(/[^\d]/g, '');
+  
+  // Limit to maximum 9 digits
+  const limitedRG = cleanRG.substring(0, 9);
+  
+  // Apply mask based on length
+  if (limitedRG.length <= 2) {
+    return limitedRG;
+  } else if (limitedRG.length <= 5) {
+    return limitedRG.replace(/(\d{2})(\d{0,3})/, '$1.$2');
+  } else if (limitedRG.length <= 8) {
+    return limitedRG.replace(/(\d{2})(\d{3})(\d{0,3})/, '$1.$2.$3');
+  } else {
+    return limitedRG.replace(/(\d{2})(\d{3})(\d{3})(\d{0,1})/, '$1.$2.$3-$4');
+  }
+};
+
+// Format SUS Number (Brazilian health system number) - LIMITED TO 15 DIGITS
+export const formatSUS = (sus: string): string => {
+  // Remove all non-digit characters
+  const cleanSUS = sus.replace(/[^\d]/g, '');
+  
+  // Limit to maximum 15 digits
+  const limitedSUS = cleanSUS.substring(0, 15);
+  
+  // Apply mask based on length
+  if (limitedSUS.length <= 3) {
+    return limitedSUS;
+  } else if (limitedSUS.length <= 7) {
+    return limitedSUS.replace(/(\d{3})(\d{0,4})/, '$1 $2');
+  } else if (limitedSUS.length <= 11) {
+    return limitedSUS.replace(/(\d{3})(\d{4})(\d{0,4})/, '$1 $2 $3');
+  } else {
+    return limitedSUS.replace(/(\d{3})(\d{4})(\d{4})(\d{0,4})/, '$1 $2 $3 $4');
+  }
 };
 
 // Email validation
@@ -78,6 +138,18 @@ export const validatePhone = (phone: string): boolean => {
 // CEP validation
 export const validateCEP = (cep: string): boolean => {
   return VALIDATION_PATTERNS.CEP.test(cep);
+};
+
+// RG validation
+export const validateRG = (rg: string): boolean => {
+  const cleanRG = rg.replace(/[^\d]/g, '');
+  return cleanRG.length >= 7 && cleanRG.length <= 9;
+};
+
+// SUS validation
+export const validateSUS = (sus: string): boolean => {
+  const cleanSUS = sus.replace(/[^\d]/g, '');
+  return cleanSUS.length === 15;
 };
 
 // Date formatting utilities

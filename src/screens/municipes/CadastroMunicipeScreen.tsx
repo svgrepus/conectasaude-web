@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+
 import {
   View,
   Text,
@@ -20,6 +21,22 @@ import { getSupabaseHeaders, SUPABASE_ENDPOINTS } from '../../config/supabase';
 import ChipTags from '../../components/ChipTags';
 import MedicamentoSearch from '../../components/MedicamentoSearch';
 import DoencaCronicaSearch from '../../components/DoencaCronicaSearch';
+import DatePicker from '../../components/DatePicker';
+import PhotoUpload from '../../components/PhotoUpload';
+import { ComboPicker } from '../../components/ComboPicker';
+import { 
+  formatCPF, 
+  formatRG, 
+  formatPhone, 
+  formatCEP, 
+  formatSUS, 
+  validateEmail, 
+  validateCPF, 
+  validateRG, 
+  validatePhone, 
+  validateSUS,
+  formatDate 
+} from '../../utils';
 
 interface CadastroMunicipeForm {
   nomeCompleto: string;
@@ -44,6 +61,7 @@ interface CadastroMunicipeForm {
   deficiencia: string;
   necessitaAcompanhante: string;
   doencasCronicas: string[]; // Mudança: agora é array de strings para doenças crônicas
+  foto: string; // URL da foto
 }
 
 interface CadastroMunicipeScreenProps {
@@ -91,6 +109,7 @@ export const CadastroMunicipeScreen = ({
     deficiencia: '',
     necessitaAcompanhante: '',
     doencasCronicas: [], // Mudança: agora é array vazio para doenças crônicas
+    foto: '', // URL da foto
   });
 
   // Effect para carregar dados do munícipe quando estiver editando
@@ -200,11 +219,44 @@ export const CadastroMunicipeScreen = ({
   const medicamentoOptions = ['Sim', 'Não'];
   const deficienciaOptions = ['Nenhuma', 'Física', 'Visual', 'Auditiva', 'Intelectual', 'Múltipla'];
   const acompanhanteOptions = ['Sim', 'Não'];
-  const estadoCivilOptions = ['SOLTEIRO', 'CASADO', 'DIVORCIADO', 'VIÚVO', 'UNIÃO ESTÁVEL', 'SEPARADO'];
+  const estadoCivilOptions = ['SOLTEIRO', 'CASADO', 'DIVORCIADO', 'VIUVO', 'UNIÃO ESTÁVEL', 'SEPARADO'];
   const sexoOptions = ['Feminino', 'Masculino'];
 
   const updateForm = (field: keyof CadastroMunicipeForm, value: string | string[]) => {
     setForm((prev: CadastroMunicipeForm) => ({ ...prev, [field]: value }));
+  };
+
+  // 🎭 Funções para aplicar máscaras
+  const updateCPF = (value: string) => {
+    const formatted = formatCPF(value);
+    updateForm('cpf', formatted);
+  };
+
+  const updateRG = (value: string) => {
+    const formatted = formatRG(value);
+    updateForm('rg', formatted);
+  };
+
+  const updatePhone = (value: string) => {
+    const formatted = formatPhone(value);
+    updateForm('telefone', formatted);
+  };
+
+  const updateSUS = (value: string) => {
+    const formatted = formatSUS(value);
+    updateForm('numeroSus', formatted);
+  };
+
+  // 🎯 Função para conversão de sexo para banco
+  const convertSexoToDatabase = (sexo: string): string => {
+    if (sexo === 'Masculino') return 'M';
+    if (sexo === 'Feminino') return 'F';
+    return sexo; // Se já estiver em formato M/F
+  };
+
+  // 🎯 Função para conversão de acompanhante para banco
+  const convertAcompanhanteToDatabase = (acompanhante: string): boolean => {
+    return acompanhante === 'Sim';
   };
 
   // 💊 Funções para gerenciar medicamentos
@@ -325,7 +377,7 @@ export const CadastroMunicipeScreen = ({
       
       const parametros = {
         p_bairro: form.bairro || '', 
-        p_cartao_sus: form.numeroSus || '', 
+        p_cartao_sus: form.numeroSus.replace(/\s/g, '') || '', // Remove espaços do SUS
         p_cep: form.cep.replace(/\D/g, '') || '', // Remove máscara do CEP
         p_cidade: form.cidade || '', 
         p_complemento: '', // Campo não presente no form atual
@@ -336,7 +388,7 @@ export const CadastroMunicipeScreen = ({
         p_estado_civil: form.estadoCivil || '', 
         p_foto_url: '', // Campo não presente no form atual
         p_logradouro: form.rua || '', 
-        p_necessita_acompanhante: form.necessitaAcompanhante === 'Sim', 
+        p_necessita_acompanhante: convertAcompanhanteToDatabase(form.necessitaAcompanhante), // Converte para true/false
         p_nome_completo: form.nomeCompleto || '', 
         p_nome_mae: form.nomeMae || '', 
         p_numero: form.numero || '', 
@@ -345,7 +397,7 @@ export const CadastroMunicipeScreen = ({
         p_quais_medicamentos: form.quaisMedicamentos.join(', ') || '', // Array para string
         p_ref_zona_rural: false, 
         p_rg: form.rg || '', 
-        p_sexo: form.sexo || '', 
+        p_sexo: convertSexoToDatabase(form.sexo), // Converte para M/F
         p_telefone: form.telefone || '', 
         p_tem_deficiencia_fisica: form.deficiencia !== 'Nenhuma', 
         p_tipo_doenca: '', 
@@ -399,7 +451,7 @@ export const CadastroMunicipeScreen = ({
 
       const parametros = {
         p_bairro: form.bairro || '', 
-        p_cartao_sus: form.numeroSus || '', 
+        p_cartao_sus: form.numeroSus.replace(/\s/g, '') || '', // Remove espaços do SUS
         p_cep: form.cep.replace(/\D/g, '') || '', // Remove máscara do CEP
         p_cidade: form.cidade || '', 
         p_complemento: '', // Campo não presente no form atual
@@ -410,7 +462,7 @@ export const CadastroMunicipeScreen = ({
         p_foto_url: '', // Campo não presente no form atual
         p_logradouro: form.rua || '', 
         p_municipe_id: municipeToEdit.id, // ID para atualização
-        p_necessita_acompanhante: form.necessitaAcompanhante === 'Sim', 
+        p_necessita_acompanhante: convertAcompanhanteToDatabase(form.necessitaAcompanhante), // Converte para true/false
         p_nome_completo: form.nomeCompleto || '', 
         p_nome_mae: form.nomeMae || '', 
         p_numero: form.numero || '', 
@@ -419,7 +471,7 @@ export const CadastroMunicipeScreen = ({
         p_quais_medicamentos: form.quaisMedicamentos.join(', ') || '', // Array para string
         p_ref_zona_rural: false, 
         p_rg: form.rg || '', 
-        p_sexo: form.sexo || '', 
+        p_sexo: convertSexoToDatabase(form.sexo), // Converte para M/F
         p_telefone: form.telefone || '', 
         p_tem_deficiencia_fisica: form.deficiencia !== 'Nenhuma', 
         p_tipo_doenca: '', 
@@ -455,17 +507,75 @@ export const CadastroMunicipeScreen = ({
   };
 
   const handleSalvar = async () => {
-    // Validação básica
+    console.log('💾 handleSalvar: Função chamada');
+    console.log('💾 Form atual:', form);
+    
+    // Validações básicas
+    console.log('🔍 Verificando campos obrigatórios...');
+    console.log('🔍 nomeCompleto:', form.nomeCompleto);
+    console.log('🔍 cpf:', form.cpf);
+    console.log('🔍 email:', form.email);
+    
     if (!form.nomeCompleto || !form.cpf || !form.email) {
-      Alert.alert('Erro', 'Por favor, preencha os campos obrigatórios dos dados pessoais');
+      console.log('❌ Campos obrigatórios faltando');
+      Alert.alert('Erro', 'Por favor, preencha os campos obrigatórios: Nome Completo, CPF e E-mail');
       return;
     }
 
+    console.log('✅ Campos obrigatórios OK');
+
+    // Validação de CPF
+    console.log('🔍 Validando CPF...');
+    if (!validateCPF(form.cpf)) {
+      console.log('❌ CPF inválido');
+      Alert.alert('Erro', 'CPF inválido. Verifique os dados informados.');
+      return;
+    }
+
+    console.log('✅ CPF válido');
+
+    // Validação de e-mail
+    console.log('🔍 Validando e-mail...');
+    if (!validateEmail(form.email)) {
+      console.log('❌ E-mail inválido');
+      Alert.alert('Erro', 'E-mail inválido. Verifique o formato do e-mail.');
+      return;
+    }
+
+    console.log('✅ E-mail válido');
+
+    // Validação de telefone (se preenchido)
+    console.log('🔍 Validando telefone...');
+    if (form.telefone && !validatePhone(form.telefone)) {
+      console.log('❌ Telefone inválido');
+      Alert.alert('Erro', 'Telefone inválido. Verifique o formato do telefone.');
+      return;
+    }
+
+    console.log('✅ Telefone OK');
+
+    // Validação do número do SUS (se preenchido)
+    console.log('🔍 Validando SUS...');
+    if (form.numeroSus && !validateSUS(form.numeroSus)) {
+      console.log('❌ SUS inválido');
+      Alert.alert('Erro', 'Número do SUS inválido. Deve conter 15 dígitos.');
+      return;
+    }
+
+    console.log('✅ SUS OK');
+
     // Validação condicional para medicamentos
+    console.log('🔍 Validando medicamentos...');
+    console.log('🔍 usoMedicamentoContinuo:', form.usoMedicamentoContinuo);
+    console.log('🔍 quaisMedicamentos:', form.quaisMedicamentos);
+    
     if (form.usoMedicamentoContinuo === 'Sim' && form.quaisMedicamentos.length === 0) {
+      console.log('❌ Medicamentos faltando');
       Alert.alert('Erro', 'Por favor, selecione pelo menos um medicamento');
       return;
     }
+
+    console.log('✅ Medicamentos OK');
 
     try {
       console.log('💾 Iniciando processo de salvamento...');
@@ -501,28 +611,14 @@ export const CadastroMunicipeScreen = ({
   const handleCancelar = () => {
     console.log('🔧 handleCancelar: Função chamada');
     console.log('🔧 onBack disponível?', !!onBack);
-    console.log('🔧 tipo de onBack:', typeof onBack);
     
-    Alert.alert(
-      'Cancelar',
-      'Tem certeza que deseja cancelar? Todos os dados serão perdidos.',
-      [
-        { text: 'Não', style: 'cancel' },
-        { text: 'Sim', onPress: () => {
-          console.log('🔙 Cancelando e voltando à tela anterior');
-          console.log('🔙 Tentando chamar onBack...');
-          
-          if (onBack) {
-            console.log('✅ onBack existe, chamando...');
-            onBack();
-            console.log('✅ onBack foi chamado');
-          } else {
-            console.log('⚠️ onBack não está definido');
-            console.log('⚠️ Props disponíveis:', Object.keys({ onBack, municipeToEdit }));
-          }
-        }}
-      ]
-    );
+    // Tentar ir direto sem Alert para testar
+    if (onBack) {
+      console.log('✅ Chamando onBack diretamente...');
+      onBack();
+    } else {
+      console.log('⚠️ onBack não está definido');
+    }
   };
 
   return (
@@ -583,70 +679,121 @@ export const CadastroMunicipeScreen = ({
         {/* Form */}
         {activeTab === 'pessoais' && (
           <View style={styles.formContainer}>
-            {/* Nome Completo */}
-            <View style={styles.fullWidth}>
-              <Text style={[styles.label, { color: currentTheme.text }]}>Nome Completo</Text>
-              <TextInput
-                style={[styles.input, { 
-                  backgroundColor: currentTheme.surface, 
-                  borderColor: currentTheme.border,
-                  color: currentTheme.text 
-                }]}
-                placeholder="Digite o nome completo"
-                placeholderTextColor={currentTheme.mutedForeground}
-                value={form.nomeCompleto}
-                onChangeText={(value: string) => updateForm('nomeCompleto', value)}
-              />
-            </View>
-
-            {/* CPF e RG */}
-            <View style={styles.row}>
-              <View style={styles.halfWidth}>
-                <Text style={[styles.label, { color: currentTheme.text }]}>CPF</Text>
-                <TextInput
-                  style={[styles.input, { 
-                    backgroundColor: currentTheme.surface, 
-                    borderColor: currentTheme.border,
-                    color: currentTheme.text 
-                  }]}
-                  placeholder="000.000.000-00"
-                  placeholderTextColor={currentTheme.mutedForeground}
-                  value={form.cpf}
-                  onChangeText={(value: string) => updateForm('cpf', value)}
-                  keyboardType="numeric"
+            {/* Layout com foto à esquerda e campos à direita */}
+            <View style={styles.photoAndBasicInfo}>
+              {/* Foto do Munícipe à esquerda */}
+              <View style={styles.photoSection}>
+                <PhotoUpload
+                  currentPhoto={form.foto}
+                  onPhotoSelected={(uri: string) => updateForm('foto', uri)}
+                  label="Foto do Munícipe"
                 />
               </View>
+              
+              {/* Informações básicas à direita */}
+              <View style={styles.basicInfoSection}>
+                {/* Nome Completo */}
+                <View style={styles.fullWidth}>
+                  <Text style={[styles.label, { color: currentTheme.text }]}>Nome Completo</Text>
+                  <TextInput
+                    style={[styles.input, { 
+                      backgroundColor: currentTheme.surface, 
+                      borderColor: currentTheme.border,
+                      color: currentTheme.text 
+                    }]}
+                    placeholder="Digite o nome completo"
+                    placeholderTextColor={currentTheme.mutedForeground}
+                    value={form.nomeCompleto}
+                    onChangeText={(value: string) => updateForm('nomeCompleto', value)}
+                  />
+                </View>
 
-              <View style={styles.halfWidth}>
-                <Text style={[styles.label, { color: currentTheme.text }]}>RG</Text>
-                <TextInput
-                  style={[styles.input, { 
-                    backgroundColor: currentTheme.surface, 
-                    borderColor: currentTheme.border,
-                    color: currentTheme.text 
-                  }]}
-                  placeholder="Digite o RG"
-                  placeholderTextColor={currentTheme.mutedForeground}
-                  value={form.rg}
-                  onChangeText={(value: string) => updateForm('rg', value)}
-                />
+                {/* CPF e RG na mesma linha */}
+                <View style={styles.row}>
+                  <View style={styles.halfWidth}>
+                    <Text style={[styles.label, { color: currentTheme.text }]}>CPF</Text>
+                    <TextInput
+                      style={[styles.input, { 
+                        backgroundColor: currentTheme.surface, 
+                        borderColor: currentTheme.border,
+                        color: currentTheme.text 
+                      }]}
+                      placeholder="000.000.000-00"
+                      placeholderTextColor={currentTheme.mutedForeground}
+                      value={form.cpf}
+                      onChangeText={(value: string) => updateCPF(value)}
+                      keyboardType="numeric"
+                      maxLength={14} // 11 dígitos + 3 caracteres de máscara
+                    />
+                  </View>
+
+                  <View style={styles.halfWidth}>
+                    <Text style={[styles.label, { color: currentTheme.text }]}>RG</Text>
+                    <TextInput
+                      style={[styles.input, { 
+                        backgroundColor: currentTheme.surface, 
+                        borderColor: currentTheme.border,
+                        color: currentTheme.text 
+                      }]}
+                      placeholder="00.000.000-0"
+                      placeholderTextColor={currentTheme.mutedForeground}
+                      value={form.rg}
+                      onChangeText={(value: string) => updateRG(value)}
+                      maxLength={12} // 9 dígitos + 3 caracteres de máscara
+                    />
+                  </View>
+                </View>
               </View>
             </View>
-
-            {/* Data de Nascimento e Estado Civil */}
+            
+            {/* Resto dos campos */}
+            {/* Data de Nascimento e Sexo */}
             <View style={styles.row}>
               <View style={styles.halfWidth}>
                 <Text style={[styles.label, { color: currentTheme.text }]}>Data de Nascimento</Text>
+                <DatePicker
+                  value={form.dataNascimento}
+                  onDateChange={(date: string) => updateForm('dataNascimento', date)}
+                  placeholder="Selecione a data"
+                />
+              </View>
+
+              <View style={styles.halfWidth}>
+                <Text style={[styles.label, { color: currentTheme.text }]}>Sexo</Text>
+                <TouchableOpacity
+                  style={[styles.selectContainer, { 
+                    backgroundColor: currentTheme.surface, 
+                    borderColor: currentTheme.border 
+                  }]}
+                  onPress={() => setShowSexoModal(true)}
+                >
+                  <Text style={[
+                    styles.selectText, 
+                    { color: form.sexo ? currentTheme.text : currentTheme.mutedForeground }
+                  ]}>
+                    {form.sexo || 'Selecione o sexo'}
+                  </Text>
+                  <Ionicons name="chevron-down" size={16} color={currentTheme.mutedForeground} />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* E-mail e Estado Civil */}
+            <View style={styles.row}>
+              <View style={styles.halfWidth}>
+                <Text style={[styles.label, { color: currentTheme.text }]}>E-mail</Text>
                 <TextInput
                   style={[styles.input, { 
                     backgroundColor: currentTheme.surface, 
                     borderColor: currentTheme.border,
                     color: currentTheme.text 
                   }]}
-                  placeholder="DD/MM/AAAA"
+                  placeholder="exemplo@email.com"
                   placeholderTextColor={currentTheme.mutedForeground}
-                  value={form.dataNascimento}
-                  onChangeText={(value: string) => updateForm('dataNascimento', value)}
+                  value={form.email}
+                  onChangeText={(value: string) => updateForm('email', value)}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
                 />
               </View>
 
@@ -670,44 +817,6 @@ export const CadastroMunicipeScreen = ({
               </View>
             </View>
 
-            {/* Sexo e E-mail */}
-            <View style={styles.row}>
-              <View style={styles.halfWidth}>
-                <Text style={[styles.label, { color: currentTheme.text }]}>Sexo</Text>
-                <TouchableOpacity
-                  style={[styles.selectContainer, { 
-                    backgroundColor: currentTheme.surface, 
-                    borderColor: currentTheme.border 
-                  }]}
-                  onPress={() => setShowSexoModal(true)}
-                >
-                  <Text style={[
-                    styles.selectText, 
-                    { color: form.sexo ? currentTheme.text : currentTheme.mutedForeground }
-                  ]}>
-                    {form.sexo || 'Selecione o sexo'}
-                  </Text>
-                  <Ionicons name="chevron-down" size={16} color={currentTheme.mutedForeground} />
-                </TouchableOpacity>
-              </View>
-
-              <View style={styles.halfWidth}>
-                <Text style={[styles.label, { color: currentTheme.text }]}>E-mail</Text>
-                <TextInput
-                  style={[styles.input, { 
-                    backgroundColor: currentTheme.surface, 
-                    borderColor: currentTheme.border,
-                    color: currentTheme.text 
-                  }]}
-                  placeholder="email@exemplo.com"
-                  placeholderTextColor={currentTheme.mutedForeground}
-                  value={form.email}
-                  onChangeText={(value: string) => updateForm('email', value)}
-                  keyboardType="email-address"
-                />
-              </View>
-            </View>
-
             {/* Telefone */}
             <View style={styles.halfWidth}>
               <Text style={[styles.label, { color: currentTheme.text }]}>Telefone</Text>
@@ -720,8 +829,9 @@ export const CadastroMunicipeScreen = ({
                 placeholder="(XX) XXXXX-XXXX"
                 placeholderTextColor={currentTheme.mutedForeground}
                 value={form.telefone}
-                onChangeText={(value: string) => updateForm('telefone', value)}
+                onChangeText={(value: string) => updatePhone(value)}
                 keyboardType="phone-pad"
+                maxLength={15} // 11 dígitos + 4 caracteres de máscara
               />
             </View>
 
@@ -858,34 +968,6 @@ export const CadastroMunicipeScreen = ({
                 />
               </View>
             </View>
-
-            {/* Upload de Foto */}
-            <View style={[styles.sectionHeader, { borderBottomColor: currentTheme.border }]}>
-              <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>Foto</Text>
-            </View>
-
-            <View style={[styles.uploadArea, { 
-              backgroundColor: currentTheme.surface, 
-              borderColor: currentTheme.border 
-            }]}>
-              <Ionicons name="cloud-upload" size={60} color={currentTheme.mutedForeground} />
-              <Text style={[styles.uploadTitle, { color: currentTheme.text }]}>Upload de Foto</Text>
-              <Text style={[styles.uploadSubtitle, { color: currentTheme.mutedForeground }]}>
-                Clique ou arraste para adicionar uma foto do munícipe
-              </Text>
-              
-              <View style={styles.uploadButtons}>
-                <TouchableOpacity style={styles.uploadButton}>
-                  <Ionicons name="camera" size={16} color="#6b7280" />
-                  <Text style={styles.uploadButtonText}>Capturar</Text>
-                </TouchableOpacity>
-                
-                <TouchableOpacity style={styles.uploadButton}>
-                  <Ionicons name="document" size={16} color="#6b7280" />
-                  <Text style={styles.uploadButtonText}>Escolher Arquivo</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
           </View>
         )}
 
@@ -900,11 +982,12 @@ export const CadastroMunicipeScreen = ({
                   borderColor: currentTheme.border,
                   color: currentTheme.text 
                 }]}
-                placeholder="Digite o número do SUS"
+                placeholder="000 0000 0000 0000"
                 placeholderTextColor={currentTheme.mutedForeground}
                 value={form.numeroSus}
-                onChangeText={(value: string) => updateForm('numeroSus', value)}
+                onChangeText={(value: string) => updateSUS(value)}
                 keyboardType="numeric"
+                maxLength={18} // 15 dígitos + 3 espaços
               />
             </View>
 
@@ -1301,42 +1384,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
   },
-  uploadArea: {
-    borderWidth: 2,
-    borderStyle: 'dashed',
-    borderRadius: 12,
-    paddingVertical: 48,
-    paddingHorizontal: 24,
-    alignItems: 'center',
-    gap: 12,
-  },
-  uploadTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  uploadSubtitle: {
-    fontSize: 14,
-    textAlign: 'center',
-  },
-  uploadButtons: {
-    flexDirection: 'row',
-    gap: 16,
-    marginTop: 8,
-  },
-  uploadButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f1f5f9',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 8,
-    gap: 8,
-  },
-  uploadButtonText: {
-    color: '#374151',
-    fontSize: 14,
-    fontWeight: '500',
-  },
   comingSoon: {
     fontSize: 16,
     textAlign: 'center',
@@ -1463,5 +1510,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E9ECEF',
     minHeight: 60,
+  },
+  photoAndBasicInfo: {
+    flexDirection: 'row',
+    gap: 20,
+    marginBottom: 20,
+  },
+  photoSection: {
+    flex: 1,
+    maxWidth: 200,
+  },
+  basicInfoSection: {
+    flex: 2,
+    gap: 16,
   },
 });
