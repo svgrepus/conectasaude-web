@@ -1,10 +1,11 @@
-import React from 'react';
+import * as React from 'react';
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -82,6 +83,48 @@ export const DatePicker = ({
     onDateChange(formattedText);
   };
 
+  const handleCalendarPress = () => {
+    if (Platform.OS === 'web') {
+      // Criar input de data temporário para web
+      const input = document.createElement('input');
+      input.type = 'date';
+      input.style.position = 'absolute';
+      input.style.visibility = 'hidden';
+      
+      // Definir valor atual
+      const isoValue = getISOValue();
+      if (isoValue) {
+        input.value = isoValue;
+      }
+      
+      // Adicionar ao DOM temporariamente
+      document.body.appendChild(input);
+      
+      // Adicionar listener para mudança
+      input.addEventListener('change', (event) => {
+        const target = event.target as HTMLInputElement;
+        if (target.value) {
+          onDateChange(target.value); // Salvar no formato ISO
+        }
+        document.body.removeChild(input);
+      });
+      
+      // Abrir o picker
+      input.click();
+    }
+  };
+
+  const getISOValue = () => {
+    if (!value) return '';
+    if (value.includes('-')) return value; // Já está em formato ISO
+    
+    // Converter DD/MM/YYYY para YYYY-MM-DD
+    if (value.length === 10) {
+      return convertToISOFormat(value);
+    }
+    return '';
+  };
+
   return (
     <View style={styles.container}>
       {label && <Text style={styles.label}>{label}</Text>}
@@ -95,7 +138,10 @@ export const DatePicker = ({
           keyboardType="numeric"
           maxLength={10} // DD/MM/AAAA = 10 caracteres
         />
-        <TouchableOpacity style={styles.iconButton}>
+        <TouchableOpacity 
+          style={styles.iconButton}
+          onPress={handleCalendarPress}
+        >
           <Ionicons name="calendar-outline" size={20} color="#666" />
         </TouchableOpacity>
       </View>

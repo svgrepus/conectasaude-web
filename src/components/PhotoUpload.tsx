@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import {
   View,
   Text,
@@ -38,48 +38,130 @@ export const PhotoUpload = ({
     return true;
   };
 
-  const pickImage = async () => {
-    const hasPermission = await requestPermissions();
-    if (!hasPermission) return;
+  const pickImageWeb = () => {
+    console.log('🌐 Iniciando seleção de imagem WEB...');
+    
+    try {
+      // Criar input de arquivo
+      const fileInput = document.createElement('input');
+      fileInput.type = 'file';
+      fileInput.accept = 'image/jpeg,image/jpg,image/png,image/gif,image/webp';
+      fileInput.style.position = 'absolute';
+      fileInput.style.visibility = 'hidden';
+      fileInput.style.top = '-9999px';
+      fileInput.style.left = '-9999px';
+      
+      // Event listener para quando um arquivo for selecionado
+      const handleFileChange = (event: Event) => {
+        const target = event.target as HTMLInputElement;
+        const file = target.files?.[0];
+        
+        console.log('📁 Arquivo selecionado:', file ? file.name : 'nenhum');
+        
+        if (file) {
+          console.log('✅ Detalhes do arquivo:', {
+            name: file.name,
+            type: file.type,
+            size: file.size
+          });
+          
+          // Verificar se é uma imagem válida
+          if (!file.type.startsWith('image/')) {
+            Alert.alert('Erro', 'Por favor, selecione apenas arquivos de imagem.');
+            cleanup();
+            return;
+          }
+          
+          // Converter para base64
+          const reader = new FileReader();
+          
+          reader.onload = (e) => {
+            const result = e.target?.result as string;
+            console.log('✅ Imagem convertida para base64, tamanho:', result.length);
+            
+            // Chamar callback com a imagem
+            onPhotoSelected(result, {
+              uri: result,
+              name: file.name,
+              type: file.type,
+              size: file.size,
+              file: file
+            });
+            
+            cleanup();
+          };
+          
+          reader.onerror = (error) => {
+            console.error('❌ Erro ao ler arquivo:', error);
+            Alert.alert('Erro', 'Não foi possível processar a imagem selecionada.');
+            cleanup();
+          };
+          
+          reader.readAsDataURL(file);
+        } else {
+          console.log('ℹ️ Nenhum arquivo selecionado ou seleção cancelada');
+          cleanup();
+        }
+      };
+      
+      // Função para limpar o input
+      const cleanup = () => {
+        try {
+          fileInput.removeEventListener('change', handleFileChange);
+          if (fileInput.parentNode) {
+            fileInput.parentNode.removeChild(fileInput);
+          }
+        } catch (error) {
+          console.warn('⚠️ Erro ao limpar input:', error);
+        }
+      };
+      
+      // Adicionar event listener
+      fileInput.addEventListener('change', handleFileChange);
+      
+      // Adicionar ao DOM e simular clique
+      document.body.appendChild(fileInput);
+      
+      // Dar um pequeno delay antes de clicar
+      setTimeout(() => {
+        fileInput.click();
+      }, 100);
+      
+    } catch (error) {
+      console.error('❌ Erro ao criar input de arquivo:', error);
+      Alert.alert('Erro', 'Não foi possível abrir o seletor de arquivos.');
+    }
+  };
 
-    console.log('🖼️ Iniciando seleção de imagem...');
+  const pickImage = async () => {
+    console.log('🖼️ pickImage chamada - Platform.OS:', Platform.OS);
 
     try {
       if (Platform.OS === 'web') {
-        console.log('🌐 Modo web - usando DocumentPicker');
-        // Para web, usar DocumentPicker
-        const result = await DocumentPicker.getDocumentAsync({
-          type: 'image/*',
-          copyToCacheDirectory: true,
-          multiple: false,
-        });
+        console.log('🌐 Executando pickImageWeb...');
+        pickImageWeb();
+        return;
+      }
+      
+      // Para mobile
+      console.log('📱 Modo mobile - solicitando permissões...');
+      const hasPermission = await requestPermissions();
+      if (!hasPermission) return;
 
-        console.log('🔄 Resultado DocumentPicker:', result);
+      console.log('📱 Modo mobile - usando ImagePicker');
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1], // Foto quadrada
+        quality: 0.8,
+      });
 
-        if (!result.canceled && result.assets && result.assets[0]) {
-          const asset = result.assets[0];
-          console.log('✅ Imagem selecionada:', asset.name, asset.uri);
-          onPhotoSelected(asset.uri, asset);
-        } else {
-          console.log('❌ Seleção cancelada ou sem resultados');
-        }
-      } else {
-        console.log('📱 Modo mobile - usando ImagePicker');
-        // Para mobile, usar ImagePicker
-        const result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
-          allowsEditing: true,
-          aspect: [1, 1], // Foto quadrada
-          quality: 0.8,
-        });
-
-        if (!result.canceled && result.assets && result.assets[0]) {
-          const asset = result.assets[0];
-          onPhotoSelected(asset.uri, asset);
-        }
+      if (!result.canceled && result.assets && result.assets[0]) {
+        const asset = result.assets[0];
+        onPhotoSelected(asset.uri, asset);
       }
     } catch (error) {
-      console.error('Erro ao selecionar imagem:', error);
+      console.error('❌ Erro ao selecionar imagem:', error);
       Alert.alert('Erro', 'Não foi possível selecionar a imagem.');
     }
   };
@@ -111,37 +193,34 @@ export const PhotoUpload = ({
   };
 
   const showOptions = () => {
-    const options = Platform.OS === 'web' 
-      ? [
-          {
-            text: 'Selecionar do Computador',
-            onPress: pickImage,
-          },
-          {
-            text: 'Cancelar',
-            style: 'cancel' as const,
-          },
-        ]
-      : [
-          {
-            text: 'Galeria',
-            onPress: pickImage,
-          },
-          {
-            text: 'Câmera',
-            onPress: takePhoto,
-          },
-          {
-            text: 'Cancelar',
-            style: 'cancel' as const,
-          },
-        ];
+    console.log('🎯 showOptions chamada - Platform.OS:', Platform.OS);
+    
+    // Para web, vamos chamar pickImage diretamente
+    if (Platform.OS === 'web') {
+      console.log('🌐 Web detectado - chamando pickImage diretamente');
+      pickImage();
+      return;
+    }
+    
+    // Para mobile, usar Alert normalmente
+    const options = [
+      {
+        text: 'Galeria',
+        onPress: pickImage,
+      },
+      {
+        text: 'Câmera',
+        onPress: takePhoto,
+      },
+      {
+        text: 'Cancelar',
+        style: 'cancel' as const,
+      },
+    ];
 
     Alert.alert(
       'Selecionar Foto',
-      Platform.OS === 'web' 
-        ? 'Selecione uma imagem do seu computador:'
-        : 'Escolha como deseja adicionar a foto:',
+      'Escolha como deseja adicionar a foto:',
       options
     );
   };

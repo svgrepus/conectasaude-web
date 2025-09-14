@@ -61,6 +61,7 @@ interface CadastroMunicipeForm {
   deficiencia: string;
   necessitaAcompanhante: string;
   doencasCronicas: string[]; // Mudança: agora é array de strings para doenças crônicas
+  observacoesMedicas: string; // Campo para observações médicas
   foto: string; // URL da foto
 }
 
@@ -109,6 +110,7 @@ export const CadastroMunicipeScreen = ({
     deficiencia: '',
     necessitaAcompanhante: '',
     doencasCronicas: [], // Mudança: agora é array vazio para doenças crônicas
+    observacoesMedicas: '', // Campo para observações médicas
     foto: '', // URL da foto
   });
 
@@ -177,8 +179,8 @@ export const CadastroMunicipeScreen = ({
         cpf: municipeToEdit.cpf || '',
         rg: municipeToEdit.rg || '',
         dataNascimento: formatDateForInput(municipeToEdit.data_nascimento),
-        estadoCivil: municipeToEdit.estado_civil || '',
-        sexo: municipeToEdit.sexo || '',
+        estadoCivil: convertEstadoCivilFromDatabase(municipeToEdit.estado_civil || ''),
+        sexo: convertSexoFromDatabase(municipeToEdit.sexo || ''), // Converte M/F para Masculino/Feminino
         email: municipeToEdit.email || '',
         telefone: municipeToEdit.telefone || '',
         nomeMae: municipeToEdit.nome_mae || '',
@@ -198,9 +200,10 @@ export const CadastroMunicipeScreen = ({
           municipeToEdit.usoMedicamentoContinuo
         ),
         quaisMedicamentos: parseMedicamentos(municipeToEdit.quaisMedicamentos || municipeToEdit.quais_medicamentos || ''), // Convertendo para array
-        deficiencia: municipeToEdit.deficiencia || municipeToEdit.tem_deficiencia_fisica || municipeToEdit.possui_deficiencia || '',
-        necessitaAcompanhante: municipeToEdit.necessitaAcompanhante || municipeToEdit.necessita_acompanhante || municipeToEdit.precisa_acompanhante || '',
+        deficiencia: convertDeficienciaFromDatabase(municipeToEdit.deficiencia || municipeToEdit.tem_deficiencia_fisica || municipeToEdit.possui_deficiencia || false),
+        necessitaAcompanhante: convertAcompanhanteFromDatabase(municipeToEdit.necessita_acompanhante || false),
         doencasCronicas: parseDoencasCronicas(municipeToEdit.doencasCronicas || municipeToEdit.doencas_cronicas || municipeToEdit.doenca_cronica || municipeToEdit.tipo_doenca || ''), // Convertendo para array
+        observacoesMedicas: municipeToEdit.observacoes_medicas || '', // Campo para observações médicas
       });
       
       // Debug: verificar dados carregados
@@ -217,9 +220,9 @@ export const CadastroMunicipeScreen = ({
 
   // Opções para os selects
   const medicamentoOptions = ['Sim', 'Não'];
-  const deficienciaOptions = ['Nenhuma', 'Física', 'Visual', 'Auditiva', 'Intelectual', 'Múltipla'];
+  const deficienciaOptions = ['Sim', 'Não'];
   const acompanhanteOptions = ['Sim', 'Não'];
-  const estadoCivilOptions = ['SOLTEIRO', 'CASADO', 'DIVORCIADO', 'VIUVO', 'UNIÃO ESTÁVEL', 'SEPARADO'];
+  const estadoCivilOptions = ['Solteiro', 'Casado', 'Divorciado', 'Viúvo', 'União Estável', 'Separado'];
   const sexoOptions = ['Feminino', 'Masculino'];
 
   const updateForm = (field: keyof CadastroMunicipeForm, value: string | string[]) => {
@@ -254,9 +257,67 @@ export const CadastroMunicipeScreen = ({
     return sexo; // Se já estiver em formato M/F
   };
 
+  // 🎯 Função para conversão de sexo do banco para exibição
+  const convertSexoFromDatabase = (sexo: string): string => {
+    if (sexo === 'M') return 'Masculino';
+    if (sexo === 'F') return 'Feminino';
+    return sexo; // Se já estiver em formato extenso
+  };
+
   // 🎯 Função para conversão de acompanhante para banco
   const convertAcompanhanteToDatabase = (acompanhante: string): boolean => {
     return acompanhante === 'Sim';
+  };
+
+  // 🎯 Função para conversão de acompanhante do banco para exibição
+  const convertAcompanhanteFromDatabase = (acompanhante: boolean | string): string => {
+    if (typeof acompanhante === 'boolean') {
+      return acompanhante ? 'Sim' : 'Não';
+    }
+    if (acompanhante === 'true' || acompanhante === '1') return 'Sim';
+    if (acompanhante === 'false' || acompanhante === '0') return 'Não';
+    return acompanhante || 'Não';
+  };
+
+  // 🎯 Função para conversão de estado civil para banco (formato sem acento)
+  const convertEstadoCivilToDatabase = (estadoCivil: string): string => {
+    const conversions: { [key: string]: string } = {
+      'Solteiro': 'SOLTEIRO',
+      'Casado': 'CASADO',
+      'Divorciado': 'DIVORCIADO',
+      'Viúvo': 'VIUVO',
+      'União Estável': 'UNIAO_ESTAVEL',
+      'Separado': 'SEPARADO'
+    };
+    return conversions[estadoCivil] || estadoCivil;
+  };
+
+  // 🎯 Função para conversão de estado civil do banco para exibição (formato com acento)
+  const convertEstadoCivilFromDatabase = (estadoCivil: string): string => {
+    const conversions: { [key: string]: string } = {
+      'SOLTEIRO': 'Solteiro',
+      'CASADO': 'Casado',
+      'DIVORCIADO': 'Divorciado',
+      'VIUVO': 'Viúvo',
+      'UNIAO_ESTAVEL': 'União Estável',
+      'SEPARADO': 'Separado'
+    };
+    return conversions[estadoCivil] || estadoCivil;
+  };
+
+  // 🎯 Função para conversão de deficiência para banco
+  const convertDeficienciaToDatabase = (deficiencia: string): boolean => {
+    return deficiencia === 'Sim';
+  };
+
+  // 🎯 Função para conversão de deficiência do banco para exibição
+  const convertDeficienciaFromDatabase = (deficiencia: boolean | string): string => {
+    if (typeof deficiencia === 'boolean') {
+      return deficiencia ? 'Sim' : 'Não';
+    }
+    if (deficiencia === 'true' || deficiencia === '1') return 'Sim';
+    if (deficiencia === 'false' || deficiencia === '0') return 'Não';
+    return deficiencia || 'Não';
   };
 
   // 💊 Funções para gerenciar medicamentos
@@ -385,7 +446,7 @@ export const CadastroMunicipeScreen = ({
         p_data_nascimento: form.dataNascimento || '', 
         p_doenca_cronica: form.doencasCronicas.join(', ') || '', // Array para string
         p_email: form.email || '', 
-        p_estado_civil: form.estadoCivil || '', 
+        p_estado_civil: convertEstadoCivilToDatabase(form.estadoCivil) || '', 
         p_foto_url: '', // Campo não presente no form atual
         p_logradouro: form.rua || '', 
         p_necessita_acompanhante: convertAcompanhanteToDatabase(form.necessitaAcompanhante), // Converte para true/false
@@ -393,13 +454,13 @@ export const CadastroMunicipeScreen = ({
         p_nome_mae: form.nomeMae || '', 
         p_numero: form.numero || '', 
         p_observacoes: '', // Campo não presente no form atual
-        p_observacoes_medicas: '', // Campo não presente no form atual
+        p_observacoes_medicas: form.observacoesMedicas || '', // Campo de observações médicas
         p_quais_medicamentos: form.quaisMedicamentos.join(', ') || '', // Array para string
         p_ref_zona_rural: false, 
         p_rg: form.rg || '', 
         p_sexo: convertSexoToDatabase(form.sexo), // Converte para M/F
         p_telefone: form.telefone || '', 
-        p_tem_deficiencia_fisica: form.deficiencia !== 'Nenhuma', 
+        p_tem_deficiencia_fisica: convertDeficienciaToDatabase(form.deficiencia), 
         p_tipo_doenca: '', 
         p_uf: form.estado || '', 
         p_uso_continuo_medicamentos: form.usoMedicamentoContinuo === 'Sim', 
@@ -458,7 +519,7 @@ export const CadastroMunicipeScreen = ({
         p_data_nascimento: form.dataNascimento || '', 
         p_doenca_cronica: form.doencasCronicas.join(', ') || '', // Array para string
         p_email: form.email || '', 
-        p_estado_civil: form.estadoCivil || '', 
+        p_estado_civil: convertEstadoCivilToDatabase(form.estadoCivil) || '', 
         p_foto_url: '', // Campo não presente no form atual
         p_logradouro: form.rua || '', 
         p_municipe_id: municipeToEdit.id, // ID para atualização
@@ -467,13 +528,13 @@ export const CadastroMunicipeScreen = ({
         p_nome_mae: form.nomeMae || '', 
         p_numero: form.numero || '', 
         p_observacoes: '', // Campo não presente no form atual
-        p_observacoes_medicas: '', // Campo não presente no form atual
+        p_observacoes_medicas: form.observacoesMedicas || '', // Campo de observações médicas
         p_quais_medicamentos: form.quaisMedicamentos.join(', ') || '', // Array para string
         p_ref_zona_rural: false, 
         p_rg: form.rg || '', 
         p_sexo: convertSexoToDatabase(form.sexo), // Converte para M/F
         p_telefone: form.telefone || '', 
-        p_tem_deficiencia_fisica: form.deficiencia !== 'Nenhuma', 
+        p_tem_deficiencia_fisica: convertDeficienciaToDatabase(form.deficiencia), 
         p_tipo_doenca: '', 
         p_uf: form.estado || '', 
         p_uso_continuo_medicamentos: form.usoMedicamentoContinuo === 'Sim', 
@@ -1102,6 +1163,25 @@ export const CadastroMunicipeScreen = ({
                   editable={true}
                 />
               </View>
+            </View>
+
+            {/* Observações Médicas */}
+            <View style={styles.fullWidth}>
+              <Text style={[styles.label, { color: currentTheme.text }]}>Observações Médicas</Text>
+              <TextInput
+                style={[styles.textArea, { 
+                  backgroundColor: currentTheme.surface, 
+                  borderColor: currentTheme.border,
+                  color: currentTheme.text 
+                }]}
+                placeholder="Digite observações médicas relevantes..."
+                placeholderTextColor={currentTheme.mutedForeground}
+                value={form.observacoesMedicas}
+                onChangeText={(value: string) => updateForm('observacoesMedicas', value)}
+                multiline
+                numberOfLines={4}
+                textAlignVertical="top"
+              />
             </View>
           </View>
         )}
