@@ -37,7 +37,9 @@ import {
   validateRG,
   validatePhone,
   validateSUS,
-  formatDate
+  formatDate,
+  validateBirthDate,
+  formatBirthDate
 } from '../../utils';
 
 interface CadastroMunicipeForm {
@@ -45,6 +47,7 @@ interface CadastroMunicipeForm {
   cpf: string;
   rg: string;
   dataNascimento: string;
+  idade: number; // Campo calculado automaticamente
   estadoCivil: string;
   sexo: string;
   email: string;
@@ -53,6 +56,7 @@ interface CadastroMunicipeForm {
   cep: string;
   rua: string;
   numero: string;
+  complemento: string; // Campo complemento do endereço
   bairro: string;
   cidade: string;
   estado: string;
@@ -84,8 +88,15 @@ export const CadastroMunicipeScreen = ({
   const [showDeficienciaModal, setShowDeficienciaModal] = useState(false);
   const [showAcompanhanteModal, setShowAcompanhanteModal] = useState(false);
   const [showEstadoCivilModal, setShowEstadoCivilModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const [showSexoModal, setShowSexoModal] = useState(false);
   const [loadingCEP, setLoadingCEP] = useState(false);
+
+  // Estados para controle de validação e erros
+  const [fieldErrors, setFieldErrors] = useState<{[key: string]: string}>({});
+  const [showErrors, setShowErrors] = useState(false);
 
   const isEditMode = !!municipeToEdit;
 
@@ -94,6 +105,7 @@ export const CadastroMunicipeScreen = ({
     cpf: '',
     rg: '',
     dataNascimento: '',
+    idade: 0, // Campo calculado automaticamente
     estadoCivil: '',
     sexo: '',
     email: '',
@@ -102,6 +114,7 @@ export const CadastroMunicipeScreen = ({
     cep: '',
     rua: '',
     numero: '',
+    complemento: '', // Campo complemento do endereço
     bairro: '',
     cidade: '',
     estado: '',
@@ -121,11 +134,49 @@ export const CadastroMunicipeScreen = ({
     if (municipeToEdit) {
 
 
-      // Função para formatar data para o formato do input
+      // Função para calcular idade baseada na data de nascimento
+      const calculateAge = (birthDate: string): number => {
+        if (!birthDate) return 0;
+        
+        try {
+          let date: Date;
+          
+          // Se for formato dd/MM/yyyy
+          if (birthDate.includes('/')) {
+            const [day, month, year] = birthDate.split('/').map(Number);
+            date = new Date(year, month - 1, day);
+          } else {
+            // Se for formato ISO (yyyy-MM-dd)
+            date = new Date(birthDate);
+          }
+          
+          if (isNaN(date.getTime())) return 0;
+          
+          const today = new Date();
+          let age = today.getFullYear() - date.getFullYear();
+          const monthDiff = today.getMonth() - date.getMonth();
+          
+          if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < date.getDate())) {
+            age--;
+          }
+          
+          return age >= 0 ? age : 0;
+        } catch {
+          return 0;
+        }
+      };
+
+      // Função para formatar data para o formato dd/MM/yyyy
       const formatDateForInput = (dateString: string) => {
         try {
+          if (!dateString) return '';
           const date = new Date(dateString);
-          return date.toISOString().split('T')[0]; // YYYY-MM-DD
+          if (isNaN(date.getTime())) return '';
+          
+          const day = date.getDate().toString().padStart(2, '0');
+          const month = (date.getMonth() + 1).toString().padStart(2, '0');
+          const year = date.getFullYear();
+          return `${day}/${month}/${year}`;
         } catch {
           return '';
         }
@@ -181,6 +232,7 @@ export const CadastroMunicipeScreen = ({
         cpf: municipeToEdit.cpf || '',
         rg: municipeToEdit.rg || '',
         dataNascimento: formatDateForInput(municipeToEdit.data_nascimento),
+        idade: calculateAge(municipeToEdit.data_nascimento || ''), // Calcular idade automaticamente
         estadoCivil: convertEstadoCivilFromDatabase(municipeToEdit.estado_civil || ''),
         sexo: convertSexoFromDatabase(municipeToEdit.sexo || ''), // Converte M/F para Masculino/Feminino
         email: municipeToEdit.email || '',
@@ -190,6 +242,7 @@ export const CadastroMunicipeScreen = ({
         cep: municipeToEdit.cep || '',
         rua: municipeToEdit.endereco || municipeToEdit.logradouro || '',
         numero: municipeToEdit.numero_endereco || municipeToEdit.numero || '',
+        complemento: municipeToEdit.complemento_endereco || municipeToEdit.complemento || '', // Campo complemento
         bairro: municipeToEdit.bairro || '',
         cidade: municipeToEdit.cidade || '',
         estado: municipeToEdit.estado || municipeToEdit.uf || '', // Adicionando fallback para uf
@@ -226,7 +279,48 @@ export const CadastroMunicipeScreen = ({
     setForm((prev: CadastroMunicipeForm) => ({ ...prev, [field]: value }));
   };
 
-  // 🎭 Funções para aplicar máscaras
+  // � Função para calcular idade baseada na data de nascimento
+  const calculateAge = (birthDate: string): number => {
+    if (!birthDate) return 0;
+    
+    try {
+      let date: Date;
+      
+      // Se for formato dd/MM/yyyy
+      if (birthDate.includes('/')) {
+        const [day, month, year] = birthDate.split('/').map(Number);
+        date = new Date(year, month - 1, day);
+      } else {
+        // Se for formato ISO (yyyy-MM-dd)
+        date = new Date(birthDate);
+      }
+      
+      if (isNaN(date.getTime())) return 0;
+      
+      const today = new Date();
+      let age = today.getFullYear() - date.getFullYear();
+      const monthDiff = today.getMonth() - date.getMonth();
+      
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < date.getDate())) {
+        age--;
+      }
+      
+      return age >= 0 ? age : 0;
+    } catch {
+      return 0;
+    }
+  };
+
+  // 🎂 Função específica para atualizar data de nascimento e calcular idade
+  const updateBirthDate = (dateString: string) => {
+    setForm((prev: CadastroMunicipeForm) => ({
+      ...prev,
+      dataNascimento: dateString,
+      idade: calculateAge(dateString)
+    }));
+  };
+
+  // �🎭 Funções para aplicar máscaras
   const updateCPF = (value: string) => {
     const formatted = formatCPF(value);
     updateForm('cpf', formatted);
@@ -252,6 +346,27 @@ export const CadastroMunicipeScreen = ({
     if (sexo === 'Masculino') return 'M';
     if (sexo === 'Feminino') return 'F';
     return sexo; // Se já estiver em formato M/F
+  };
+
+  // 🎯 Função para conversão de data dd/MM/yyyy para YYYY-MM-DD
+  const convertDateToDatabase = (dateString: string): string => {
+    if (!dateString) return '';
+    
+    // Se já estiver no formato YYYY-MM-DD, retorna como está
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+      return dateString;
+    }
+    
+    // Converte dd/MM/yyyy para YYYY-MM-DD
+    const datePattern = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+    const match = dateString.match(datePattern);
+    
+    if (match) {
+      const [, day, month, year] = match;
+      return `${year}-${month}-${day}`;
+    }
+    
+    return dateString; // Retorna como está se não conseguir converter
   };
 
   // 🎯 Função para conversão de sexo do banco para exibição
@@ -345,6 +460,9 @@ export const CadastroMunicipeScreen = ({
 
   const handleSelectOption = (field: keyof CadastroMunicipeForm, value: string) => {
     updateForm(field, value);
+    
+    // Limpar erro do campo selecionado
+    clearFieldError(field as string);
 
     // Limpar campo de medicamentos se mudar para "Não"
     if (field === 'usoMedicamentoContinuo' && value === 'Não') {
@@ -420,7 +538,127 @@ export const CadastroMunicipeScreen = ({
     }
   };
 
-  // 💾 Função para criar novo munícipe
+  // � Função para validar todos os campos e retornar erros
+  const validateAllFields = (): {[key: string]: string} => {
+    const errors: {[key: string]: string} = {};
+
+    // ✅ CAMPOS OBRIGATÓRIOS - DADOS PESSOAIS
+    if (!form.nomeCompleto.trim()) {
+      errors.nomeCompleto = 'Nome completo é obrigatório';
+    }
+
+    if (!form.cpf.trim()) {
+      errors.cpf = 'CPF é obrigatório';
+    } else if (!validateCPF(form.cpf)) {
+      errors.cpf = 'CPF inválido. Verifique os números digitados';
+    }
+
+    if (!form.rg.trim()) {
+      errors.rg = 'RG é obrigatório';
+    } else if (!validateRG(form.rg)) {
+      errors.rg = 'RG inválido. Deve ter entre 7 e 12 caracteres';
+    }
+
+    if (!form.dataNascimento.trim()) {
+      errors.dataNascimento = 'Data de nascimento é obrigatória';
+    } else if (!validateBirthDate(form.dataNascimento)) {
+      errors.dataNascimento = 'Data inválida. Use formato dd/MM/yyyy e data no passado';
+    }
+
+    if (!form.sexo.trim()) {
+      errors.sexo = 'Sexo é obrigatório';
+    }
+
+    if (!form.email.trim()) {
+      errors.email = 'E-mail é obrigatório';
+    } else if (!validateEmail(form.email)) {
+      errors.email = 'E-mail inválido. Verifique o formato (exemplo@email.com)';
+    }
+
+    if (!form.telefone.trim()) {
+      errors.telefone = 'Telefone é obrigatório';
+    } else if (!validatePhone(form.telefone)) {
+      errors.telefone = 'Telefone inválido. Use o formato (XX) XXXXX-XXXX';
+    }
+
+    if (!form.nomeMae.trim()) {
+      errors.nomeMae = 'Nome da mãe é obrigatório';
+    }
+
+    if (!form.estadoCivil.trim()) {
+      errors.estadoCivil = 'Estado civil é obrigatório';
+    }
+
+    // ✅ CAMPOS OBRIGATÓRIOS - ENDEREÇO
+    if (!form.cep.trim()) {
+      errors.cep = 'CEP é obrigatório';
+    }
+
+    if (!form.rua.trim()) {
+      errors.rua = 'Rua é obrigatória';
+    }
+
+    if (!form.numero.trim()) {
+      errors.numero = 'Número é obrigatório';
+    }
+
+    if (!form.bairro.trim()) {
+      errors.bairro = 'Bairro é obrigatório';
+    }
+
+    if (!form.cidade.trim()) {
+      errors.cidade = 'Cidade é obrigatória';
+    }
+
+    if (!form.estado.trim()) {
+      errors.estado = 'Estado é obrigatório';
+    }
+
+    // ✅ CAMPOS OBRIGATÓRIOS - SAÚDE
+    if (!form.numeroSus.trim()) {
+      errors.numeroSus = 'Número do SUS é obrigatório';
+    } else if (!validateSUS(form.numeroSus)) {
+      errors.numeroSus = 'Número do SUS inválido. Deve conter 15 dígitos';
+    }
+
+    if (!form.usoMedicamentoContinuo.trim()) {
+      errors.usoMedicamentoContinuo = 'Informe se faz uso contínuo de medicamentos';
+    }
+
+    if (!form.deficiencia.trim()) {
+      errors.deficiencia = 'Informe se possui deficiência';
+    }
+
+    if (!form.necessitaAcompanhante.trim()) {
+      errors.necessitaAcompanhante = 'Informe se necessita de acompanhante';
+    }
+
+    // 🔄 VALIDAÇÃO CONDICIONAL - obrigatório apenas se uso de medicamento for "Sim"
+    if (form.usoMedicamentoContinuo === 'Sim' && form.quaisMedicamentos.length === 0) {
+      errors.quaisMedicamentos = 'Selecione pelo menos um medicamento quando uso contínuo for "Sim"';
+    }
+
+    return errors;
+  };
+
+  // 🎯 Função para limpar erro de um campo específico
+  const clearFieldError = (fieldName: string) => {
+    if (fieldErrors[fieldName]) {
+      setFieldErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[fieldName];
+        return newErrors;
+      });
+    }
+  };
+
+  // 🔄 Função updateForm modificada para limpar erros
+  const updateFormAndClearError = (field: keyof CadastroMunicipeForm, value: string | string[]) => {
+    updateForm(field, value);
+    clearFieldError(field as string);
+  };
+
+  // �💾 Função para criar novo munícipe
   const criarMunicipe = async () => {
     try {
 
@@ -432,30 +670,34 @@ export const CadastroMunicipeScreen = ({
       }
       const newId = uuidv4();
 
+      
       const dataUrl = form.foto; // sua string
-      const mime = dataUrl.match(/^data:(.*);base64,/)[1];
-      const base64 = dataUrl.split(',')[1];
+    if (hasBase64DataUrl(dataUrl)) {
+          const match = dataUrl.match(/^data:(.*);base64,/);
+          if (!match) throw new Error('Formato de imagem inválido');
+          const mime = match[1];
+          const base64 = dataUrl.split(',')[1];
 
 
-      // Decodifica Base64 -> bytes
-      const binary = atob(base64);
-      const bytes = new Uint8Array(binary.length);
-      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+          // Decodifica Base64 -> bytes
+          const binary = atob(base64);
+          const bytes = new Uint8Array(binary.length);
+          for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
 
 
-      // Fazer chamada direta à API para salvar foto
-      const responseStorage = await fetch(`${SUPABASE_ENDPOINTS.storage}/object/avatars/municipes/${newId}/avatar.jpg`, {
-        method: 'POST',
-        headers: getSupabaseHeadersFoto(accessToken, mime),
-        body: bytes
-      });
+          // Fazer chamada direta à API para salvar foto
+          const responseStorage = await fetch(`${SUPABASE_ENDPOINTS.storage}/object/avatars/municipes/${newId}/avatar.jpg`, {
+            method: 'POST',
+            headers: getSupabaseHeadersFoto(accessToken, mime),
+            body: bytes
+          });
 
-      if (!responseStorage.ok) {
-        const errorData = await responseStorage.text();
-        throw new Error(`HTTP Error ${responseStorage.status}: ${errorData}`);
+          if (!responseStorage.ok) {
+            const errorData = await responseStorage.text();
+            throw new Error(`HTTP Error ${responseStorage.status}: ${errorData}`);
+          }
+
       }
-
-
 
 
       const parametros = {
@@ -464,9 +706,9 @@ export const CadastroMunicipeScreen = ({
         p_cartao_sus: form.numeroSus.replace(/\s/g, '') || '', // Remove espaços do SUS
         p_cep: form.cep.replace(/\D/g, '') || '', // Remove máscara do CEP
         p_cidade: form.cidade || '',
-        p_complemento: '', // Campo não presente no form atual
+        p_complemento: form.complemento || '', // Campo complemento do formulário
         p_cpf: form.cpf.replace(/\D/g, '') || '', // Remove máscara do CPF
-        p_data_nascimento: form.dataNascimento || '',
+        p_data_nascimento: convertDateToDatabase(form.dataNascimento) || '',
         p_doenca_cronica: form.doencasCronicas.join(', ') || '', // Array para string
         p_email: form.email || '',
         p_estado_civil: convertEstadoCivilToDatabase(form.estadoCivil) || '',
@@ -520,26 +762,34 @@ export const CadastroMunicipeScreen = ({
 
   // 🔄 Função para atualizar munícipe existente
   const atualizarMunicipe = async () => {
+    console.log('🔄 atualizarMunicipe: Iniciando atualização...');
+    
     try {
-
+      console.log('📝 Verificando ID do munícipe...');
 
       if (!municipeToEdit?.id) {
         throw new Error('ID do munícipe não encontrado para atualização');
       }
 
+      console.log('🔑 ID do munícipe encontrado:', municipeToEdit.id);
+
       // Obter access_token do auth-simple
       const accessToken = authService.getAccessToken();
+      console.log('🔐 Access token obtido:', accessToken ? 'Sim' : 'Não');
 
       if (!accessToken) {
         throw new Error('Token de acesso não encontrado. Usuário não autenticado.');
       }
 
-
+      console.log('📸 Verificando foto...');
 
 
       const dataUrl = form.foto; // sua string
       if (hasBase64DataUrl(dataUrl)) {
-        const mime = dataUrl.match(/^data:(.*);base64,/)[1];
+        console.log('📷 Processando upload de foto...');
+        const match = dataUrl.match(/^data:(.*);base64,/);
+        if (!match) throw new Error('Formato de imagem inválido');
+        const mime = match[1];
         const base64 = dataUrl.split(',')[1];
 
 
@@ -548,7 +798,7 @@ export const CadastroMunicipeScreen = ({
         const bytes = new Uint8Array(binary.length);
         for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
 
-
+        console.log('☁️ Fazendo upload da foto...');
         // Fazer chamada direta à API para salvar foto
         const responseStorage = await fetch(`${SUPABASE_ENDPOINTS.storage}/object/avatars/municipes/${municipeToEdit?.id}/avatar.jpg`, {
           method: 'POST',
@@ -562,17 +812,21 @@ export const CadastroMunicipeScreen = ({
         }
 
         const dataFoto = await responseStorage.json();
+        console.log('✅ Foto enviada com sucesso');
 
+      } else {
+        console.log('📷 Nenhuma foto nova para fazer upload');
       }
 
+      console.log('📋 Preparando parâmetros para atualização...');
 
       const parametros = {
         p_bairro: form.bairro || '',
         p_cartao_sus: form.numeroSus.replace(/\s/g, '') || '', // Remove espaços do SUS
         p_cep: form.cep.replace(/\D/g, '') || '', // Remove máscara do CEP
         p_cidade: form.cidade || '',
-        p_complemento: '', // Campo não presente no form atual
-        p_data_nascimento: form.dataNascimento || '',
+        p_complemento: form.complemento || '', // Campo complemento do formulário
+        p_data_nascimento: convertDateToDatabase(form.dataNascimento) || '',
         p_doenca_cronica: form.doencasCronicas.join(', ') || '', // Array para string
         p_email: form.email || '',
         p_estado_civil: convertEstadoCivilToDatabase(form.estadoCivil) || '',
@@ -597,7 +851,7 @@ export const CadastroMunicipeScreen = ({
         p_zona_rural: false
       };
 
-
+      console.log('🌐 Fazendo chamada à API para atualizar...');
 
       // Fazer chamada direta à API usando fetch com access_token correto
       const response = await fetch(`${SUPABASE_ENDPOINTS.rest}/rpc/rpc_atualizar_municipe_completo`, {
@@ -606,105 +860,95 @@ export const CadastroMunicipeScreen = ({
         body: JSON.stringify(parametros)
       });
 
+      console.log('📡 Resposta da API recebida. Status:', response.status);
+
       if (!response.ok) {
         const errorData = await response.text();
         throw new Error(`HTTP Error ${response.status}: ${errorData}`);
       }
 
       const data = await response.json();
-
+      console.log('✅ Dados atualizados com sucesso no backend');
 
       return data;
 
     } catch (error) {
       console.error('💥 Erro na atualização do munícipe:', error);
+      
+      // Log detalhado do erro
+      if (error instanceof Error) {
+        console.error('📋 Mensagem do erro:', error.message);
+        console.error('📚 Stack trace:', error.stack);
+      } else {
+        console.error('❓ Erro desconhecido:', error);
+      }
+      
       throw error;
     }
   };
 
   const handleSalvar = async () => {
+    console.log('🔄 handleSalvar: Iniciando função de salvamento...');
+    console.log('🔍 isEditMode:', isEditMode);
+    
+    // Limpar erros anteriores
+    setFieldErrors({});
+    setIsLoading(true);
 
-
-    // Validações básicas
-
-
-    if (!form.nomeCompleto || !form.cpf || !form.email) {
-
-      Alert.alert('Erro', 'Por favor, preencha os campos obrigatórios: Nome Completo, CPF e E-mail');
+    // Executar validação completa
+    const errors = validateAllFields();
+    console.log('✅ Validação completa:', Object.keys(errors).length === 0 ? 'Sem erros' : `${Object.keys(errors).length} erros encontrados`);
+    
+    if (Object.keys(errors).length > 0) {
+      setIsLoading(false);
+      // Mostrar erros no formulário
+      setFieldErrors(errors);
+      
+      // Encontrar primeiro campo com erro para navegar até a aba correta
+      const firstErrorField = Object.keys(errors)[0];
+      const healthFields = ['numeroSus', 'usoMedicamentoContinuo', 'quaisMedicamentos', 'doencasCronicas'];
+      
+      // Determinar qual aba contém o erro
+      const targetTab = healthFields.includes(firstErrorField) ? 'saude' : 'pessoais';
+      
+      // Navegar para a aba com erro
+      setActiveTab(targetTab);
+      
+      // Mostrar alerta com resumo dos erros
+      const errorCount = Object.keys(errors).length;
+      const errorFields = Object.keys(errors).join(', ');
+      Alert.alert(
+        'Dados incompletos', 
+        `Encontrei ${errorCount} erro(s) nos campos: ${errorFields}.\n\nOs campos com erro estão destacados em vermelho.`
+      );
       return;
     }
-
-
-
-    // Validação de CPF
-
-    if (!validateCPF(form.cpf)) {
-
-      Alert.alert('Erro', 'CPF inválido. Verifique os dados informados.');
-      return;
-    }
-
-
-
-    // Validação de e-mail
-
-    if (!validateEmail(form.email)) {
-
-      Alert.alert('Erro', 'E-mail inválido. Verifique o formato do e-mail.');
-      return;
-    }
-
-
-
-    // Validação de telefone (se preenchido)
-
-    if (form.telefone && !validatePhone(form.telefone)) {
-
-      Alert.alert('Erro', 'Telefone inválido. Verifique o formato do telefone.');
-      return;
-    }
-
-
-
-    // Validação do número do SUS (se preenchido)
-
-    if (form.numeroSus && !validateSUS(form.numeroSus)) {
-
-      Alert.alert('Erro', 'Número do SUS inválido. Deve conter 15 dígitos.');
-      return;
-    }
-
-    console.log('✅ SUS OK');
-
-    // Validação condicional para medicamentos
-
-    if (form.usoMedicamentoContinuo === 'Sim' && form.quaisMedicamentos.length === 0) {
-
-      Alert.alert('Erro', 'Por favor, selecione pelo menos um medicamento');
-      return;
-    }
-
 
     try {
-
+      console.log('💾 Iniciando processo de salvamento...');
+      
+      let resultado;
+      
       if (isEditMode) {
-        // Modo edição - atualizar munícipe existente
-        await atualizarMunicipe();
+        console.log('✏️ Modo edição - atualizando munícipe existente...');
+        resultado = await atualizarMunicipe();
+        console.log('✅ atualizarMunicipe concluída com sucesso!', resultado);
       } else {
-        // Modo criação - criar novo munícipe
-        await criarMunicipe();
+        console.log('➕ Modo criação - criando novo munícipe...');
+        resultado = await criarMunicipe();
+        console.log('✅ criarMunicipe concluída com sucesso!', resultado);
       }
 
-      // Retornar à tela anterior após sucesso
-      if (onBack) {
-        onBack();
-      }
-
-      // Exibir mensagem de sucesso (igual à tela de doenças crônicas)
-      Alert.alert('Sucesso', isEditMode ? 'Munícipe atualizado com sucesso!' : 'Munícipe cadastrado com sucesso!');
+      console.log('🎉 Salvamento concluído - preparando mensagem de sucesso...');
+      
+      // Usar modal personalizado ao invés de Alert
+      setIsLoading(false);
+      setSuccessMessage(isEditMode ? 'Dados atualizados com sucesso!' : 'Cadastro salvo com sucesso!');
+      setShowSuccessModal(true);
 
     } catch (error) {
       console.error('❌ Erro ao salvar munícipe:', error);
+      setIsLoading(false);
 
       const mensagemErro = isEditMode
         ? 'Erro ao atualizar munícipe. Tente novamente.'
@@ -723,6 +967,31 @@ export const CadastroMunicipeScreen = ({
     } else {
 
     }
+  };
+
+  // 🎨 Componente para mostrar erro de campo
+  const FieldError = ({ error }: { error?: string }) => {
+    if (!error) return null;
+    return (
+      <Text style={{
+        color: '#e74c3c',
+        fontSize: 12,
+        marginTop: 4,
+        marginLeft: 4
+      }}>
+        {error}
+      </Text>
+    );
+  };
+
+  // 🎨 Função para obter estilo de campo com erro
+  const getFieldStyle = (fieldName: string, baseStyle: any) => {
+    const hasError = fieldErrors[fieldName];
+    return {
+      ...baseStyle,
+      borderColor: hasError ? '#e74c3c' : baseStyle.borderColor,
+      borderWidth: hasError ? 2 : baseStyle.borderWidth || 1,
+    };
   };
 
   return (
@@ -798,77 +1067,119 @@ export const CadastroMunicipeScreen = ({
               <View style={styles.basicInfoSection}>
                 {/* Nome Completo */}
                 <View style={styles.fullWidth}>
-                  <Text style={[styles.label, { color: currentTheme.text }]}>Nome Completo</Text>
+                  <Text style={[styles.label, { color: currentTheme.text }]}>Nome Completo *</Text>
                   <TextInput
-                    style={[styles.input, {
+                    style={[getFieldStyle('nomeCompleto', {
+                      ...styles.input,
                       backgroundColor: currentTheme.surface,
                       borderColor: currentTheme.border,
                       color: currentTheme.text
-                    }]}
+                    })]}
                     placeholder="Digite o nome completo"
                     placeholderTextColor={currentTheme.mutedForeground}
                     value={form.nomeCompleto}
-                    onChangeText={(value: string) => updateForm('nomeCompleto', value)}
+                    onChangeText={(value: string) => updateFormAndClearError('nomeCompleto', value)}
                   />
+                  <FieldError error={fieldErrors.nomeCompleto} />
                 </View>
 
                 {/* CPF e RG na mesma linha */}
                 <View style={styles.row}>
                   <View style={styles.halfWidth}>
-                    <Text style={[styles.label, { color: currentTheme.text }]}>CPF</Text>
+                    <Text style={[styles.label, { color: currentTheme.text }]}>CPF *</Text>
                     <TextInput
-                      style={[styles.input, {
+                      style={[getFieldStyle('cpf', {
+                        ...styles.input,
                         backgroundColor: currentTheme.surface,
                         borderColor: currentTheme.border,
                         color: currentTheme.text
-                      }]}
+                      })]}
                       placeholder="000.000.000-00"
                       placeholderTextColor={currentTheme.mutedForeground}
                       value={form.cpf}
-                      onChangeText={(value: string) => updateCPF(value)}
+                      onChangeText={(value: string) => {
+                        updateCPF(value);
+                        clearFieldError('cpf');
+                      }}
                       keyboardType="numeric"
                       maxLength={14} // 11 dígitos + 3 caracteres de máscara
                     />
+                    <FieldError error={fieldErrors.cpf} />
                   </View>
 
                   <View style={styles.halfWidth}>
-                    <Text style={[styles.label, { color: currentTheme.text }]}>RG</Text>
+                    <Text style={[styles.label, { color: currentTheme.text }]}>RG *</Text>
                     <TextInput
-                      style={[styles.input, {
+                      style={[getFieldStyle('rg', {
+                        ...styles.input,
                         backgroundColor: currentTheme.surface,
                         borderColor: currentTheme.border,
                         color: currentTheme.text
-                      }]}
+                      })]}
                       placeholder="00.000.000-0"
                       placeholderTextColor={currentTheme.mutedForeground}
                       value={form.rg}
-                      onChangeText={(value: string) => updateRG(value)}
+                      onChangeText={(value: string) => {
+                        updateRG(value);
+                        clearFieldError('rg');
+                      }}
                       maxLength={12} // 9 dígitos + 3 caracteres de máscara
                     />
+                    <FieldError error={fieldErrors.rg} />
                   </View>
                 </View>
               </View>
             </View>
 
             {/* Resto dos campos */}
-            {/* Data de Nascimento e Sexo */}
+            {/* Data de Nascimento, Idade e Sexo */}
             <View style={styles.row}>
-              <View style={styles.halfWidth}>
-                <Text style={[styles.label, { color: currentTheme.text }]}>Data de Nascimento</Text>
-                <DatePicker
+              <View style={styles.thirdWidth}>
+                <Text style={[styles.label, { color: currentTheme.text }]}>Data de Nascimento *</Text>
+                <TextInput
+                  style={[getFieldStyle('dataNascimento', {
+                    ...styles.input,
+                    backgroundColor: currentTheme.surface,
+                    borderColor: currentTheme.border,
+                    color: currentTheme.text
+                  })]}
+                  placeholder="dd/MM/yyyy"
+                  placeholderTextColor={currentTheme.mutedForeground}
                   value={form.dataNascimento}
-                  onDateChange={(date: string) => updateForm('dataNascimento', date)}
-                  placeholder="Selecione a data"
+                  onChangeText={(value: string) => {
+                    const formatted = formatBirthDate(value);
+                    updateBirthDate(formatted); // Usar a nova função que calcula idade
+                    clearFieldError('dataNascimento');
+                  }}
+                  keyboardType="numeric"
+                  maxLength={10} // dd/MM/yyyy
+                />
+                <FieldError error={fieldErrors.dataNascimento} />
+              </View>
+
+              <View style={styles.thirdWidth}>
+                <Text style={[styles.label, { color: currentTheme.text }]}>Idade</Text>
+                <TextInput
+                  style={[styles.input, {
+                    backgroundColor: currentTheme.muted,
+                    borderColor: currentTheme.border,
+                    color: currentTheme.mutedForeground,
+                  }]}
+                  value={form.idade > 0 ? `${form.idade} anos` : ''}
+                  placeholder="Calculado automaticamente"
+                  placeholderTextColor={currentTheme.mutedForeground}
+                  editable={false} // Campo não editável
                 />
               </View>
 
-              <View style={styles.halfWidth}>
-                <Text style={[styles.label, { color: currentTheme.text }]}>Sexo</Text>
+              <View style={styles.thirdWidth}>
+                <Text style={[styles.label, { color: currentTheme.text }]}>Sexo *</Text>
                 <TouchableOpacity
-                  style={[styles.selectContainer, {
+                  style={[getFieldStyle('sexo', {
+                    ...styles.selectContainer,
                     backgroundColor: currentTheme.surface,
                     borderColor: currentTheme.border
-                  }]}
+                  })]}
                   onPress={() => setShowSexoModal(true)}
                 >
                   <Text style={[
@@ -879,35 +1190,39 @@ export const CadastroMunicipeScreen = ({
                   </Text>
                   <Ionicons name="chevron-down" size={16} color={currentTheme.mutedForeground} />
                 </TouchableOpacity>
+                <FieldError error={fieldErrors.sexo} />
               </View>
             </View>
 
             {/* E-mail e Estado Civil */}
             <View style={styles.row}>
               <View style={styles.halfWidth}>
-                <Text style={[styles.label, { color: currentTheme.text }]}>E-mail</Text>
+                <Text style={[styles.label, { color: currentTheme.text }]}>E-mail *</Text>
                 <TextInput
-                  style={[styles.input, {
+                  style={[getFieldStyle('email', {
+                    ...styles.input,
                     backgroundColor: currentTheme.surface,
                     borderColor: currentTheme.border,
                     color: currentTheme.text
-                  }]}
+                  })]}
                   placeholder="exemplo@email.com"
                   placeholderTextColor={currentTheme.mutedForeground}
                   value={form.email}
-                  onChangeText={(value: string) => updateForm('email', value)}
+                  onChangeText={(value: string) => updateFormAndClearError('email', value)}
                   keyboardType="email-address"
                   autoCapitalize="none"
                 />
+                <FieldError error={fieldErrors.email} />
               </View>
 
               <View style={styles.halfWidth}>
-                <Text style={[styles.label, { color: currentTheme.text }]}>Estado Civil</Text>
+                <Text style={[styles.label, { color: currentTheme.text }]}>Estado Civil *</Text>
                 <TouchableOpacity
-                  style={[styles.selectContainer, {
+                  style={[getFieldStyle('estadoCivil', {
+                    ...styles.selectContainer,
                     backgroundColor: currentTheme.surface,
                     borderColor: currentTheme.border
-                  }]}
+                  })]}
                   onPress={() => setShowEstadoCivilModal(true)}
                 >
                   <Text style={[
@@ -918,41 +1233,49 @@ export const CadastroMunicipeScreen = ({
                   </Text>
                   <Ionicons name="chevron-down" size={16} color={currentTheme.mutedForeground} />
                 </TouchableOpacity>
+                <FieldError error={fieldErrors.estadoCivil} />
               </View>
             </View>
 
             {/* Telefone */}
             <View style={styles.halfWidth}>
-              <Text style={[styles.label, { color: currentTheme.text }]}>Telefone</Text>
+              <Text style={[styles.label, { color: currentTheme.text }]}>Telefone *</Text>
               <TextInput
-                style={[styles.input, {
+                style={[getFieldStyle('telefone', {
+                  ...styles.input,
                   backgroundColor: currentTheme.surface,
                   borderColor: currentTheme.border,
                   color: currentTheme.text
-                }]}
+                })]}
                 placeholder="(XX) XXXXX-XXXX"
                 placeholderTextColor={currentTheme.mutedForeground}
                 value={form.telefone}
-                onChangeText={(value: string) => updatePhone(value)}
+                onChangeText={(value: string) => {
+                  updatePhone(value);
+                  clearFieldError('telefone');
+                }}
                 keyboardType="phone-pad"
                 maxLength={15} // 11 dígitos + 4 caracteres de máscara
               />
+              <FieldError error={fieldErrors.telefone} />
             </View>
 
             {/* Nome da Mãe */}
             <View style={styles.fullWidth}>
-              <Text style={[styles.label, { color: currentTheme.text }]}>Nome da Mãe</Text>
+              <Text style={[styles.label, { color: currentTheme.text }]}>Nome da Mãe *</Text>
               <TextInput
-                style={[styles.input, {
+                style={[getFieldStyle('nomeMae', {
+                  ...styles.input,
                   backgroundColor: currentTheme.surface,
                   borderColor: currentTheme.border,
                   color: currentTheme.text
-                }]}
+                })]}
                 placeholder="Digite o nome da mãe"
                 placeholderTextColor={currentTheme.mutedForeground}
                 value={form.nomeMae}
-                onChangeText={(value: string) => updateForm('nomeMae', value)}
+                onChangeText={(value: string) => updateFormAndClearError('nomeMae', value)}
               />
+              <FieldError error={fieldErrors.nomeMae} />
             </View>
 
             {/* Endereço */}
@@ -962,18 +1285,22 @@ export const CadastroMunicipeScreen = ({
 
             {/* CEP */}
             <View style={styles.halfWidth}>
-              <Text style={[styles.label, { color: currentTheme.text }]}>CEP</Text>
+              <Text style={[styles.label, { color: currentTheme.text }]}>CEP *</Text>
               <View style={styles.cepRow}>
                 <TextInput
-                  style={[styles.cepInput, {
+                  style={[getFieldStyle('cep', {
+                    ...styles.cepInput,
                     backgroundColor: currentTheme.surface,
                     borderColor: currentTheme.border,
                     color: currentTheme.text
-                  }]}
+                  })]}
                   placeholder="00000-000"
                   placeholderTextColor={currentTheme.mutedForeground}
                   value={form.cep}
-                  onChangeText={handleCEPChange}
+                  onChangeText={(value: string) => {
+                    handleCEPChange(value);
+                    clearFieldError('cep');
+                  }}
                   keyboardType="numeric"
                   maxLength={9}
                 />
@@ -989,87 +1316,114 @@ export const CadastroMunicipeScreen = ({
                   )}
                 </TouchableOpacity>
               </View>
+              <FieldError error={fieldErrors.cep} />
             </View>
 
             {/* Rua e Número */}
             <View style={styles.row}>
               <View style={[styles.halfWidth, { flex: 2 }]}>
-                <Text style={[styles.label, { color: currentTheme.text }]}>Rua</Text>
+                <Text style={[styles.label, { color: currentTheme.text }]}>Rua *</Text>
                 <TextInput
-                  style={[styles.input, {
+                  style={[getFieldStyle('rua', {
+                    ...styles.input,
                     backgroundColor: currentTheme.surface,
                     borderColor: currentTheme.border,
                     color: currentTheme.text
-                  }]}
+                  })]}
                   placeholder="Nome da rua"
                   placeholderTextColor={currentTheme.mutedForeground}
                   value={form.rua}
-                  onChangeText={(value: string) => updateForm('rua', value)}
+                  onChangeText={(value: string) => updateFormAndClearError('rua', value)}
                 />
+                <FieldError error={fieldErrors.rua} />
               </View>
 
               <View style={[styles.halfWidth, { flex: 1 }]}>
-                <Text style={[styles.label, { color: currentTheme.text }]}>Número</Text>
+                <Text style={[styles.label, { color: currentTheme.text }]}>Número *</Text>
                 <TextInput
-                  style={[styles.input, {
+                  style={[getFieldStyle('numero', {
+                    ...styles.input,
                     backgroundColor: currentTheme.surface,
                     borderColor: currentTheme.border,
                     color: currentTheme.text
-                  }]}
+                  })]}
                   placeholder="Ex: 123"
                   placeholderTextColor={currentTheme.mutedForeground}
                   value={form.numero}
-                  onChangeText={(value: string) => updateForm('numero', value)}
+                  onChangeText={(value: string) => updateFormAndClearError('numero', value)}
                 />
+                <FieldError error={fieldErrors.numero} />
               </View>
+            </View>
+
+            {/* Complemento */}
+            <View style={styles.fullWidth}>
+              <Text style={[styles.label, { color: currentTheme.text }]}>Complemento</Text>
+              <TextInput
+                style={[styles.input, {
+                  backgroundColor: currentTheme.surface,
+                  borderColor: currentTheme.border,
+                  color: currentTheme.text
+                }]}
+                placeholder="Apto, bloco, casa, etc. (opcional)"
+                placeholderTextColor={currentTheme.mutedForeground}
+                value={form.complemento}
+                onChangeText={(value: string) => updateForm('complemento', value)}
+              />
             </View>
 
             {/* Bairro, Cidade e Estado */}
             <View style={styles.row}>
               <View style={styles.thirdWidth}>
-                <Text style={[styles.label, { color: currentTheme.text }]}>Bairro</Text>
+                <Text style={[styles.label, { color: currentTheme.text }]}>Bairro *</Text>
                 <TextInput
-                  style={[styles.input, {
+                  style={[getFieldStyle('bairro', {
+                    ...styles.input,
                     backgroundColor: currentTheme.surface,
                     borderColor: currentTheme.border,
                     color: currentTheme.text
-                  }]}
+                  })]}
                   placeholder="Nome do bairro"
                   placeholderTextColor={currentTheme.mutedForeground}
                   value={form.bairro}
-                  onChangeText={(value: string) => updateForm('bairro', value)}
+                  onChangeText={(value: string) => updateFormAndClearError('bairro', value)}
                 />
+                <FieldError error={fieldErrors.bairro} />
               </View>
 
               <View style={styles.thirdWidth}>
-                <Text style={[styles.label, { color: currentTheme.text }]}>Cidade</Text>
+                <Text style={[styles.label, { color: currentTheme.text }]}>Cidade *</Text>
                 <TextInput
-                  style={[styles.input, {
+                  style={[getFieldStyle('cidade', {
+                    ...styles.input,
                     backgroundColor: currentTheme.surface,
                     borderColor: currentTheme.border,
                     color: currentTheme.text
-                  }]}
+                  })]}
                   placeholder="Nome da cidade"
                   placeholderTextColor={currentTheme.mutedForeground}
                   value={form.cidade}
-                  onChangeText={(value: string) => updateForm('cidade', value)}
+                  onChangeText={(value: string) => updateFormAndClearError('cidade', value)}
                 />
+                <FieldError error={fieldErrors.cidade} />
               </View>
 
               <View style={styles.thirdWidth}>
-                <Text style={[styles.label, { color: currentTheme.text }]}>Estado</Text>
+                <Text style={[styles.label, { color: currentTheme.text }]}>Estado *</Text>
                 <TextInput
-                  style={[styles.input, {
+                  style={[getFieldStyle('estado', {
+                    ...styles.input,
                     backgroundColor: currentTheme.surface,
                     borderColor: currentTheme.border,
                     color: currentTheme.text
-                  }]}
+                  })]}
                   placeholder="UF"
                   placeholderTextColor={currentTheme.mutedForeground}
                   value={form.estado}
-                  onChangeText={(value: string) => updateForm('estado', value)}
+                  onChangeText={(value: string) => updateFormAndClearError('estado', value)}
                   maxLength={2}
                 />
+                <FieldError error={fieldErrors.estado} />
               </View>
             </View>
           </View>
@@ -1079,20 +1433,25 @@ export const CadastroMunicipeScreen = ({
           <View style={styles.formContainer}>
             {/* Número SUS */}
             <View style={styles.fullWidth}>
-              <Text style={[styles.label, { color: currentTheme.text }]}>Número SUS</Text>
+              <Text style={[styles.label, { color: currentTheme.text }]}>Número SUS *</Text>
               <TextInput
-                style={[styles.input, {
+                style={[getFieldStyle('numeroSus', {
+                  ...styles.input,
                   backgroundColor: currentTheme.surface,
                   borderColor: currentTheme.border,
                   color: currentTheme.text
-                }]}
+                })]}
                 placeholder="000 0000 0000 0000"
                 placeholderTextColor={currentTheme.mutedForeground}
                 value={form.numeroSus}
-                onChangeText={(value: string) => updateSUS(value)}
+                onChangeText={(value: string) => {
+                  updateSUS(value);
+                  clearFieldError('numeroSus');
+                }}
                 keyboardType="numeric"
                 maxLength={18} // 15 dígitos + 3 espaços
               />
+              <FieldError error={fieldErrors.numeroSus} />
             </View>
 
             {/* Uso contínuo de medicamentos e Deficiência */}
@@ -1119,12 +1478,13 @@ export const CadastroMunicipeScreen = ({
               </View>
 
               <View style={styles.halfWidth}>
-                <Text style={[styles.label, { color: currentTheme.text }]}>Deficiência</Text>
+                <Text style={[styles.label, { color: currentTheme.text }]}>Deficiência *</Text>
                 <TouchableOpacity
-                  style={[styles.selectContainer, {
+                  style={[getFieldStyle('deficiencia', {
+                    ...styles.selectContainer,
                     backgroundColor: currentTheme.surface,
                     borderColor: currentTheme.border
-                  }]}
+                  })]}
                   onPress={() => setShowDeficienciaModal(true)}
                 >
                   <Text style={[
@@ -1135,6 +1495,7 @@ export const CadastroMunicipeScreen = ({
                   </Text>
                   <Ionicons name="chevron-down" size={16} color={currentTheme.mutedForeground} />
                 </TouchableOpacity>
+                <FieldError error={fieldErrors.deficiencia} />
               </View>
             </View>
 
@@ -1146,13 +1507,25 @@ export const CadastroMunicipeScreen = ({
                 </Text>
 
                 {/* Campo de busca de medicamentos */}
-                <View style={styles.medicamentoSearchContainer}>
+                <View style={[
+                  styles.medicamentoSearchContainer,
+                  fieldErrors.quaisMedicamentos ? {
+                    borderColor: '#e74c3c',
+                    borderWidth: 2,
+                    borderRadius: 8
+                  } : null
+                ]}>
                   <MedicamentoSearch
-                    onSelectMedicamento={adicionarMedicamento}
+                    onSelectMedicamento={(medicamento: string) => {
+                      adicionarMedicamento(medicamento);
+                      clearFieldError('quaisMedicamentos');
+                    }}
                     selectedMedicamentos={form.quaisMedicamentos}
                     placeholder="Buscar e selecionar medicamento..."
                   />
                 </View>
+
+                <FieldError error={fieldErrors.quaisMedicamentos} />
 
                 {/* Tags dos medicamentos selecionados */}
                 <View style={styles.medicamentoTagsContainer}>
@@ -1167,12 +1540,13 @@ export const CadastroMunicipeScreen = ({
 
             {/* Necessita de acompanhante */}
             <View style={styles.halfWidth}>
-              <Text style={[styles.label, { color: currentTheme.text }]}>Necessita de acompanhante</Text>
+              <Text style={[styles.label, { color: currentTheme.text }]}>Necessita de acompanhante *</Text>
               <TouchableOpacity
-                style={[styles.selectContainer, {
+                style={[getFieldStyle('necessitaAcompanhante', {
+                  ...styles.selectContainer,
                   backgroundColor: currentTheme.surface,
                   borderColor: currentTheme.border
-                }]}
+                })]}
                 onPress={() => setShowAcompanhanteModal(true)}
               >
                 <Text style={[
@@ -1183,6 +1557,7 @@ export const CadastroMunicipeScreen = ({
                 </Text>
                 <Ionicons name="chevron-down" size={16} color={currentTheme.mutedForeground} />
               </TouchableOpacity>
+              <FieldError error={fieldErrors.necessitaAcompanhante} />
             </View>
 
             {/* Doenças crônicas - NOVA IMPLEMENTAÇÃO COM CHIP-TAGS */}
@@ -1391,11 +1766,74 @@ export const CadastroMunicipeScreen = ({
             <Text style={styles.cancelButtonText}>Cancelar</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.saveButton} onPress={handleSalvar}>
-            <Text style={styles.saveButtonText}>Salvar</Text>
+          <TouchableOpacity 
+            style={[styles.saveButton, isLoading && { opacity: 0.7 }]} 
+            onPress={handleSalvar}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator color="#FFFFFF" size="small" />
+            ) : (
+              <Text style={styles.saveButtonText}>Salvar</Text>
+            )}
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* Modal de Sucesso Personalizado */}
+      <Modal
+        visible={showSuccessModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => {
+          console.log('📱 Modal foi fechado - executando navegação...');
+          setShowSuccessModal(false);
+          if (onBack) {
+            console.log('🔄 Executando onBack após modal...');
+            onBack();
+          } else {
+            console.log('❌ onBack não disponível no modal');
+          }
+        }}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => {
+            console.log('📱 Overlay clicado - fechando modal...');
+            setShowSuccessModal(false);
+            if (onBack) {
+              console.log('🔄 Executando onBack após overlay...');
+              onBack();
+            }
+          }}
+        >
+          <TouchableOpacity style={styles.successModalContent} activeOpacity={1}>
+            <View style={styles.successIconContainer}>
+              <Ionicons name="checkmark-circle" size={64} color="#4CAF50" />
+            </View>
+            
+            <Text style={styles.successTitle}>Sucesso!</Text>
+            <Text style={styles.successMessage}>{successMessage}</Text>
+            
+            <TouchableOpacity 
+              style={styles.successButton}
+              onPress={() => {
+                console.log('👆 Botão OK clicado no modal personalizado...');
+                setShowSuccessModal(false);
+                if (onBack) {
+                  console.log('🔄 Executando onBack após botão OK...');
+                  onBack();
+                } else {
+                  console.log('❌ onBack não disponível no botão OK');
+                }
+              }}
+            >
+              <Text style={styles.successButtonText}>OK</Text>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -1646,5 +2084,51 @@ const styles = StyleSheet.create({
   basicInfoSection: {
     flex: 2,
     gap: 16,
+  },
+  // Estilos para o modal de sucesso
+  successModalContent: {
+    backgroundColor: '#FFFFFF',
+    margin: 20,
+    borderRadius: 16,
+    padding: 32,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  successIconContainer: {
+    marginBottom: 20,
+  },
+  successTitle: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: '#333333',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  successMessage: {
+    fontSize: 16,
+    color: '#666666',
+    marginBottom: 24,
+    textAlign: 'center',
+    lineHeight: 24,
+  },
+  successButton: {
+    backgroundColor: '#4CAF50',
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    borderRadius: 8,
+    minWidth: 100,
+  },
+  successButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
   },
 });

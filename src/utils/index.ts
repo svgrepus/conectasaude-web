@@ -84,23 +84,23 @@ export const formatCEP = (cep: string): string => {
   return cep;
 };
 
-// Format RG (Brazilian ID document) - LIMITED TO 9 DIGITS
+// Format RG (Brazilian ID document) - ALLOWS LETTERS AND NUMBERS
 export const formatRG = (rg: string): string => {
-  // Remove all non-digit characters
-  const cleanRG = rg.replace(/[^\d]/g, '');
+  // Remove special characters but keep letters and numbers
+  const cleanRG = rg.replace(/[^\w]/g, '').toUpperCase();
   
-  // Limit to maximum 9 digits
-  const limitedRG = cleanRG.substring(0, 9);
+  // Limit to maximum 12 characters (allowing for longer RGs with letters)
+  const limitedRG = cleanRG.substring(0, 12);
   
   // Apply mask based on length
   if (limitedRG.length <= 2) {
     return limitedRG;
   } else if (limitedRG.length <= 5) {
-    return limitedRG.replace(/(\d{2})(\d{0,3})/, '$1.$2');
+    return limitedRG.replace(/(\w{2})(\w{0,3})/, '$1.$2');
   } else if (limitedRG.length <= 8) {
-    return limitedRG.replace(/(\d{2})(\d{3})(\d{0,3})/, '$1.$2.$3');
+    return limitedRG.replace(/(\w{2})(\w{3})(\w{0,3})/, '$1.$2.$3');
   } else {
-    return limitedRG.replace(/(\d{2})(\d{3})(\d{3})(\d{0,1})/, '$1.$2.$3-$4');
+    return limitedRG.replace(/(\w{2})(\w{3})(\w{3})(\w{0,3})/, '$1.$2.$3-$4');
   }
 };
 
@@ -140,16 +140,71 @@ export const validateCEP = (cep: string): boolean => {
   return VALIDATION_PATTERNS.CEP.test(cep);
 };
 
-// RG validation
+// RG validation - accepts letters and numbers
 export const validateRG = (rg: string): boolean => {
-  const cleanRG = rg.replace(/[^\d]/g, '');
-  return cleanRG.length >= 7 && cleanRG.length <= 9;
+  const cleanRG = rg.replace(/[^\w]/g, '');
+  return cleanRG.length >= 7 && cleanRG.length <= 12;
 };
 
 // SUS validation
 export const validateSUS = (sus: string): boolean => {
   const cleanSUS = sus.replace(/[^\d]/g, '');
   return cleanSUS.length === 15;
+};
+
+// Validate birth date - format dd/MM/yyyy and in the past
+export const validateBirthDate = (dateString: string): boolean => {
+  if (!dateString) return false;
+  
+  // Check format dd/MM/yyyy
+  const datePattern = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+  const match = dateString.match(datePattern);
+  
+  if (!match) return false;
+  
+  const [, day, month, year] = match;
+  const dayNum = parseInt(day, 10);
+  const monthNum = parseInt(month, 10);
+  const yearNum = parseInt(year, 10);
+  
+  // Check valid ranges
+  if (monthNum < 1 || monthNum > 12) return false;
+  if (dayNum < 1 || dayNum > 31) return false;
+  if (yearNum < 1900 || yearNum > new Date().getFullYear()) return false;
+  
+  // Create date and check if it's valid
+  const date = new Date(yearNum, monthNum - 1, dayNum);
+  
+  // Check if date construction was successful
+  if (date.getDate() !== dayNum || 
+      date.getMonth() !== monthNum - 1 || 
+      date.getFullYear() !== yearNum) {
+    return false;
+  }
+  
+  // Check if date is in the past
+  const today = new Date();
+  today.setHours(23, 59, 59, 999); // End of today
+  
+  return date < today;
+};
+
+// Format date input for dd/MM/yyyy
+export const formatBirthDate = (input: string): string => {
+  // Remove all non-digit characters
+  const numbers = input.replace(/\D/g, '');
+  
+  // Limit to 8 digits (ddMMyyyy)
+  const limited = numbers.substring(0, 8);
+  
+  // Apply mask
+  if (limited.length <= 2) {
+    return limited;
+  } else if (limited.length <= 4) {
+    return limited.replace(/(\d{2})(\d{0,2})/, '$1/$2');
+  } else {
+    return limited.replace(/(\d{2})(\d{2})(\d{0,4})/, '$1/$2/$3');
+  }
 };
 
 // Date formatting utilities
