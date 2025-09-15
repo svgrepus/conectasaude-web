@@ -61,6 +61,21 @@ export const getSupabaseHeaders = (accessToken?: string): Record<string, string>
   return headers;
 };
 
+// Headers padrão para todas as requisições REST Foto
+export const getSupabaseHeadersFoto = (accessToken?: string, mimeType?: string): Record<string, string> => {
+  const headers: Record<string, string> = {
+    'apikey': SUPABASE_CONFIG.anonKey,
+    'x-upsert': 'true',
+    'Content-Type': mimeType || 'image/jpeg'
+  };
+
+  if (accessToken) {
+    headers['Authorization'] = `Bearer ${accessToken}`;
+  }
+
+  return headers;
+};
+
 // URLs base para diferentes endpoints - CENTRALIZADO
 export const SUPABASE_ENDPOINTS = {
   rest: `${SUPABASE_CONFIG.url}/rest/v1`,
