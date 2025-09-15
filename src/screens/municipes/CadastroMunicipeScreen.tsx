@@ -25,6 +25,7 @@ import DatePicker from '../../components/DatePicker';
 import PhotoUpload from '../../components/PhotoUpload';
 import { ComboPicker } from '../../components/ComboPicker';
 import { v4 as uuidv4 } from 'uuid';
+import { decode as atob } from 'base-64';
 import {
   formatCPF,
   formatRG,
@@ -431,21 +432,21 @@ export const CadastroMunicipeScreen = ({
       }
       const newId = uuidv4();
 
-       const dataUrl = form.foto; // sua string
+      const dataUrl = form.foto; // sua string
       const mime = dataUrl.match(/^data:(.*);base64,/)[1];
       const base64 = dataUrl.split(',')[1];
-      
+
 
       // Decodifica Base64 -> bytes
       const binary = atob(base64);
       const bytes = new Uint8Array(binary.length);
       for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-      
-      
+
+
       // Fazer chamada direta à API para salvar foto
       const responseStorage = await fetch(`${SUPABASE_ENDPOINTS.storage}/object/avatars/municipes/${newId}/avatar.jpg`, {
         method: 'POST',
-        headers: getSupabaseHeadersFoto(accessToken,mime),
+        headers: getSupabaseHeadersFoto(accessToken, mime),
         body: bytes
       });
 
@@ -458,7 +459,7 @@ export const CadastroMunicipeScreen = ({
 
 
       const parametros = {
-        p_municipe_id: newId,  
+        p_municipe_id: newId,
         p_bairro: form.bairro || '',
         p_cartao_sus: form.numeroSus.replace(/\s/g, '') || '', // Remove espaços do SUS
         p_cep: form.cep.replace(/\D/g, '') || '', // Remove máscara do CEP
@@ -513,6 +514,10 @@ export const CadastroMunicipeScreen = ({
     }
   };
 
+  function hasBase64DataUrl(s: unknown): s is string {
+    return typeof s === 'string' && /^data:[^;]+;base64,/.test(s);
+  }
+
   // 🔄 Função para atualizar munícipe existente
   const atualizarMunicipe = async () => {
     try {
@@ -528,866 +533,871 @@ export const CadastroMunicipeScreen = ({
       if (!accessToken) {
         throw new Error('Token de acesso não encontrado. Usuário não autenticado.');
       }
-    
+
+
+
 
       const dataUrl = form.foto; // sua string
-      const mime = dataUrl.match(/^data:(.*);base64,/)[1];
-      const base64 = dataUrl.split(',')[1];
-      
+      if (hasBase64DataUrl(dataUrl)) {
+        const mime = dataUrl.match(/^data:(.*);base64,/)[1];
+        const base64 = dataUrl.split(',')[1];
 
-      // Decodifica Base64 -> bytes
-      const binary = atob(base64);
-      const bytes = new Uint8Array(binary.length);
-      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-      
-      
-      // Fazer chamada direta à API para salvar foto
-      const responseStorage = await fetch(`${SUPABASE_ENDPOINTS.storage}/object/avatars/municipes/${municipeToEdit?.id}/avatar.jpg`, {
-        method: 'POST',
-        headers: getSupabaseHeadersFoto(accessToken,mime),
-        body: bytes
-      });
 
-      if (!responseStorage.ok) {
-        const errorData = await responseStorage.text();
-        throw new Error(`HTTP Error ${responseStorage.status}: ${errorData}`);
+        // Decodifica Base64 -> bytes
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+
+
+        // Fazer chamada direta à API para salvar foto
+        const responseStorage = await fetch(`${SUPABASE_ENDPOINTS.storage}/object/avatars/municipes/${municipeToEdit?.id}/avatar.jpg`, {
+          method: 'POST',
+          headers: getSupabaseHeadersFoto(accessToken, mime),
+          body: bytes
+        });
+
+        if (!responseStorage.ok) {
+          const errorData = await responseStorage.text();
+          throw new Error(`HTTP Error ${responseStorage.status}: ${errorData}`);
+        }
+
+        const dataFoto = await responseStorage.json();
+
       }
 
-      const dataFoto = await responseStorage.json();
 
-
-    const parametros = {
-      p_bairro: form.bairro || '',
-      p_cartao_sus: form.numeroSus.replace(/\s/g, '') || '', // Remove espaços do SUS
-      p_cep: form.cep.replace(/\D/g, '') || '', // Remove máscara do CEP
-      p_cidade: form.cidade || '',
-      p_complemento: '', // Campo não presente no form atual
-      p_data_nascimento: form.dataNascimento || '',
-      p_doenca_cronica: form.doencasCronicas.join(', ') || '', // Array para string
-      p_email: form.email || '',
-      p_estado_civil: convertEstadoCivilToDatabase(form.estadoCivil) || '',
-      p_foto_url: !form.foto ? '' : `${SUPABASE_ENDPOINTS.storage}/object/public/avatars/municipes/${municipeToEdit?.id}/avatar.jpg`, // Campo não presente no form atual // Campo não presente no form atual
-      p_logradouro: form.rua || '',
-      p_municipe_id: municipeToEdit.id, // ID para atualização
-      p_necessita_acompanhante: convertAcompanhanteToDatabase(form.necessitaAcompanhante), // Converte para true/false
-      p_nome_completo: form.nomeCompleto || '',
-      p_nome_mae: form.nomeMae || '',
-      p_numero: form.numero || '',
-      p_observacoes: '', // Campo não presente no form atual
-      p_observacoes_medicas: form.observacoesMedicas || '', // Campo de observações médicas
-      p_quais_medicamentos: form.quaisMedicamentos.join(', ') || '', // Array para string
-      p_ref_zona_rural: false,
-      p_rg: form.rg || '',
-      p_sexo: convertSexoToDatabase(form.sexo), // Converte para M/F
-      p_telefone: form.telefone || '',
-      p_tem_deficiencia_fisica: convertDeficienciaToDatabase(form.deficiencia),
-      p_tipo_doenca: '',
-      p_uf: form.estado || '',
-      p_uso_continuo_medicamentos: form.usoMedicamentoContinuo === 'Sim',
-      p_zona_rural: false
-    };
+      const parametros = {
+        p_bairro: form.bairro || '',
+        p_cartao_sus: form.numeroSus.replace(/\s/g, '') || '', // Remove espaços do SUS
+        p_cep: form.cep.replace(/\D/g, '') || '', // Remove máscara do CEP
+        p_cidade: form.cidade || '',
+        p_complemento: '', // Campo não presente no form atual
+        p_data_nascimento: form.dataNascimento || '',
+        p_doenca_cronica: form.doencasCronicas.join(', ') || '', // Array para string
+        p_email: form.email || '',
+        p_estado_civil: convertEstadoCivilToDatabase(form.estadoCivil) || '',
+        p_foto_url: !form.foto ? '' : `${SUPABASE_ENDPOINTS.storage}/object/public/avatars/municipes/${municipeToEdit?.id}/avatar.jpg`, // Campo não presente no form atual // Campo não presente no form atual
+        p_logradouro: form.rua || '',
+        p_municipe_id: municipeToEdit.id, // ID para atualização
+        p_necessita_acompanhante: convertAcompanhanteToDatabase(form.necessitaAcompanhante), // Converte para true/false
+        p_nome_completo: form.nomeCompleto || '',
+        p_nome_mae: form.nomeMae || '',
+        p_numero: form.numero || '',
+        p_observacoes: '', // Campo não presente no form atual
+        p_observacoes_medicas: form.observacoesMedicas || '', // Campo de observações médicas
+        p_quais_medicamentos: form.quaisMedicamentos.join(', ') || '', // Array para string
+        p_ref_zona_rural: false,
+        p_rg: form.rg || '',
+        p_sexo: convertSexoToDatabase(form.sexo), // Converte para M/F
+        p_telefone: form.telefone || '',
+        p_tem_deficiencia_fisica: convertDeficienciaToDatabase(form.deficiencia),
+        p_tipo_doenca: '',
+        p_uf: form.estado || '',
+        p_uso_continuo_medicamentos: form.usoMedicamentoContinuo === 'Sim',
+        p_zona_rural: false
+      };
 
 
 
-    // Fazer chamada direta à API usando fetch com access_token correto
-    const response = await fetch(`${SUPABASE_ENDPOINTS.rest}/rpc/rpc_atualizar_municipe_completo`, {
-      method: 'POST',
-      headers: getSupabaseHeaders(accessToken),
-      body: JSON.stringify(parametros)
-    });
+      // Fazer chamada direta à API usando fetch com access_token correto
+      const response = await fetch(`${SUPABASE_ENDPOINTS.rest}/rpc/rpc_atualizar_municipe_completo`, {
+        method: 'POST',
+        headers: getSupabaseHeaders(accessToken),
+        body: JSON.stringify(parametros)
+      });
 
-    if (!response.ok) {
-      const errorData = await response.text();
-      throw new Error(`HTTP Error ${response.status}: ${errorData}`);
+      if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(`HTTP Error ${response.status}: ${errorData}`);
+      }
+
+      const data = await response.json();
+
+
+      return data;
+
+    } catch (error) {
+      console.error('💥 Erro na atualização do munícipe:', error);
+      throw error;
+    }
+  };
+
+  const handleSalvar = async () => {
+
+
+    // Validações básicas
+
+
+    if (!form.nomeCompleto || !form.cpf || !form.email) {
+
+      Alert.alert('Erro', 'Por favor, preencha os campos obrigatórios: Nome Completo, CPF e E-mail');
+      return;
     }
 
-    const data = await response.json();
 
 
-    return data;
+    // Validação de CPF
 
-  } catch (error) {
-    console.error('💥 Erro na atualização do munícipe:', error);
-    throw error;
-  }
-};
+    if (!validateCPF(form.cpf)) {
 
-const handleSalvar = async () => {
-
-
-  // Validações básicas
-
-
-  if (!form.nomeCompleto || !form.cpf || !form.email) {
-
-    Alert.alert('Erro', 'Por favor, preencha os campos obrigatórios: Nome Completo, CPF e E-mail');
-    return;
-  }
-
-
-
-  // Validação de CPF
-
-  if (!validateCPF(form.cpf)) {
-
-    Alert.alert('Erro', 'CPF inválido. Verifique os dados informados.');
-    return;
-  }
-
-
-
-  // Validação de e-mail
-
-  if (!validateEmail(form.email)) {
-
-    Alert.alert('Erro', 'E-mail inválido. Verifique o formato do e-mail.');
-    return;
-  }
-
-
-
-  // Validação de telefone (se preenchido)
-
-  if (form.telefone && !validatePhone(form.telefone)) {
-
-    Alert.alert('Erro', 'Telefone inválido. Verifique o formato do telefone.');
-    return;
-  }
-
-
-
-  // Validação do número do SUS (se preenchido)
-
-  if (form.numeroSus && !validateSUS(form.numeroSus)) {
-
-    Alert.alert('Erro', 'Número do SUS inválido. Deve conter 15 dígitos.');
-    return;
-  }
-
-  console.log('✅ SUS OK');
-
-  // Validação condicional para medicamentos
-
-  if (form.usoMedicamentoContinuo === 'Sim' && form.quaisMedicamentos.length === 0) {
-
-    Alert.alert('Erro', 'Por favor, selecione pelo menos um medicamento');
-    return;
-  }
-
-
-  try {
-
-    if (isEditMode) {
-      // Modo edição - atualizar munícipe existente
-      await atualizarMunicipe();
-    } else {
-      // Modo criação - criar novo munícipe
-      await criarMunicipe();
+      Alert.alert('Erro', 'CPF inválido. Verifique os dados informados.');
+      return;
     }
 
-    // Retornar à tela anterior após sucesso
+
+
+    // Validação de e-mail
+
+    if (!validateEmail(form.email)) {
+
+      Alert.alert('Erro', 'E-mail inválido. Verifique o formato do e-mail.');
+      return;
+    }
+
+
+
+    // Validação de telefone (se preenchido)
+
+    if (form.telefone && !validatePhone(form.telefone)) {
+
+      Alert.alert('Erro', 'Telefone inválido. Verifique o formato do telefone.');
+      return;
+    }
+
+
+
+    // Validação do número do SUS (se preenchido)
+
+    if (form.numeroSus && !validateSUS(form.numeroSus)) {
+
+      Alert.alert('Erro', 'Número do SUS inválido. Deve conter 15 dígitos.');
+      return;
+    }
+
+    console.log('✅ SUS OK');
+
+    // Validação condicional para medicamentos
+
+    if (form.usoMedicamentoContinuo === 'Sim' && form.quaisMedicamentos.length === 0) {
+
+      Alert.alert('Erro', 'Por favor, selecione pelo menos um medicamento');
+      return;
+    }
+
+
+    try {
+
+      if (isEditMode) {
+        // Modo edição - atualizar munícipe existente
+        await atualizarMunicipe();
+      } else {
+        // Modo criação - criar novo munícipe
+        await criarMunicipe();
+      }
+
+      // Retornar à tela anterior após sucesso
+      if (onBack) {
+        onBack();
+      }
+
+      // Exibir mensagem de sucesso (igual à tela de doenças crônicas)
+      Alert.alert('Sucesso', isEditMode ? 'Munícipe atualizado com sucesso!' : 'Munícipe cadastrado com sucesso!');
+
+    } catch (error) {
+      console.error('❌ Erro ao salvar munícipe:', error);
+
+      const mensagemErro = isEditMode
+        ? 'Erro ao atualizar munícipe. Tente novamente.'
+        : 'Erro ao cadastrar munícipe. Tente novamente.';
+
+      Alert.alert('Erro', mensagemErro);
+    }
+  };
+
+  const handleCancelar = () => {
+
+    // Tentar ir direto sem Alert para testar
     if (onBack) {
+
       onBack();
+    } else {
+
     }
+  };
 
-    // Exibir mensagem de sucesso (igual à tela de doenças crônicas)
-    Alert.alert('Sucesso', isEditMode ? 'Munícipe atualizado com sucesso!' : 'Munícipe cadastrado com sucesso!');
-
-  } catch (error) {
-    console.error('❌ Erro ao salvar munícipe:', error);
-
-    const mensagemErro = isEditMode
-      ? 'Erro ao atualizar munícipe. Tente novamente.'
-      : 'Erro ao cadastrar munícipe. Tente novamente.';
-
-    Alert.alert('Erro', mensagemErro);
-  }
-};
-
-const handleCancelar = () => {
-
-  // Tentar ir direto sem Alert para testar
-  if (onBack) {
-
-    onBack();
-  } else {
-
-  }
-};
-
-return (
-  <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
-    <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={[styles.title, { color: currentTheme.text }]}>
-          {isEditMode ? 'Editar Munícipe' : 'Cadastro de Munícipe'}
-        </Text>
-      </View>
-
-      {/* Tabs */}
-      <View style={[styles.tabContainer, { borderBottomColor: currentTheme.border }]}>
-        <TouchableOpacity
-          style={[
-            styles.tab,
-            activeTab === 'pessoais' && styles.activeTab,
-            activeTab === 'pessoais' && { borderBottomColor: '#8A9E8E' }
-          ]}
-          onPress={() => setActiveTab('pessoais')}
-        >
-          <Ionicons
-            name="person"
-            size={20}
-            color={activeTab === 'pessoais' ? '#8A9E8E' : currentTheme.mutedForeground}
-          />
-          <Text style={[
-            styles.tabText,
-            { color: activeTab === 'pessoais' ? '#8A9E8E' : currentTheme.mutedForeground }
-          ]}>
-            Dados Pessoais
+  return (
+    <SafeAreaView style={[styles.container, { backgroundColor: currentTheme.background }]}>
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={[styles.title, { color: currentTheme.text }]}>
+            {isEditMode ? 'Editar Munícipe' : 'Cadastro de Munícipe'}
           </Text>
-        </TouchableOpacity>
+        </View>
 
-        <TouchableOpacity
-          style={[
-            styles.tab,
-            activeTab === 'saude' && styles.activeTab,
-            activeTab === 'saude' && { borderBottomColor: '#8A9E8E' }
-          ]}
-          onPress={() => setActiveTab('saude')}
-        >
-          <Ionicons
-            name="medical"
-            size={20}
-            color={activeTab === 'saude' ? '#8A9E8E' : currentTheme.mutedForeground}
-          />
-          <Text style={[
-            styles.tabText,
-            { color: activeTab === 'saude' ? '#8A9E8E' : currentTheme.mutedForeground }
-          ]}>
-            Dados de Saúde
-          </Text>
-        </TouchableOpacity>
-      </View>
+        {/* Tabs */}
+        <View style={[styles.tabContainer, { borderBottomColor: currentTheme.border }]}>
+          <TouchableOpacity
+            style={[
+              styles.tab,
+              activeTab === 'pessoais' && styles.activeTab,
+              activeTab === 'pessoais' && { borderBottomColor: '#8A9E8E' }
+            ]}
+            onPress={() => setActiveTab('pessoais')}
+          >
+            <Ionicons
+              name="person"
+              size={20}
+              color={activeTab === 'pessoais' ? '#8A9E8E' : currentTheme.mutedForeground}
+            />
+            <Text style={[
+              styles.tabText,
+              { color: activeTab === 'pessoais' ? '#8A9E8E' : currentTheme.mutedForeground }
+            ]}>
+              Dados Pessoais
+            </Text>
+          </TouchableOpacity>
 
-      {/* Form */}
-      {activeTab === 'pessoais' && (
-        <View style={styles.formContainer}>
-          {/* Layout com foto à esquerda e campos à direita */}
-          <View style={styles.photoAndBasicInfo}>
-            {/* Foto do Munícipe à esquerda */}
-            <View style={styles.photoSection}>
-              <PhotoUpload
-                currentPhoto={form.foto}
-                onPhotoSelected={(uri: string) => updateForm('foto', uri)}
-                label="Foto do Munícipe"
-              />
+          <TouchableOpacity
+            style={[
+              styles.tab,
+              activeTab === 'saude' && styles.activeTab,
+              activeTab === 'saude' && { borderBottomColor: '#8A9E8E' }
+            ]}
+            onPress={() => setActiveTab('saude')}
+          >
+            <Ionicons
+              name="medical"
+              size={20}
+              color={activeTab === 'saude' ? '#8A9E8E' : currentTheme.mutedForeground}
+            />
+            <Text style={[
+              styles.tabText,
+              { color: activeTab === 'saude' ? '#8A9E8E' : currentTheme.mutedForeground }
+            ]}>
+              Dados de Saúde
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Form */}
+        {activeTab === 'pessoais' && (
+          <View style={styles.formContainer}>
+            {/* Layout com foto à esquerda e campos à direita */}
+            <View style={styles.photoAndBasicInfo}>
+              {/* Foto do Munícipe à esquerda */}
+              <View style={styles.photoSection}>
+                <PhotoUpload
+                  currentPhoto={form.foto}
+                  onPhotoSelected={(uri: string) => updateForm('foto', uri)}
+                  label="Foto do Munícipe"
+                />
+              </View>
+
+              {/* Informações básicas à direita */}
+              <View style={styles.basicInfoSection}>
+                {/* Nome Completo */}
+                <View style={styles.fullWidth}>
+                  <Text style={[styles.label, { color: currentTheme.text }]}>Nome Completo</Text>
+                  <TextInput
+                    style={[styles.input, {
+                      backgroundColor: currentTheme.surface,
+                      borderColor: currentTheme.border,
+                      color: currentTheme.text
+                    }]}
+                    placeholder="Digite o nome completo"
+                    placeholderTextColor={currentTheme.mutedForeground}
+                    value={form.nomeCompleto}
+                    onChangeText={(value: string) => updateForm('nomeCompleto', value)}
+                  />
+                </View>
+
+                {/* CPF e RG na mesma linha */}
+                <View style={styles.row}>
+                  <View style={styles.halfWidth}>
+                    <Text style={[styles.label, { color: currentTheme.text }]}>CPF</Text>
+                    <TextInput
+                      style={[styles.input, {
+                        backgroundColor: currentTheme.surface,
+                        borderColor: currentTheme.border,
+                        color: currentTheme.text
+                      }]}
+                      placeholder="000.000.000-00"
+                      placeholderTextColor={currentTheme.mutedForeground}
+                      value={form.cpf}
+                      onChangeText={(value: string) => updateCPF(value)}
+                      keyboardType="numeric"
+                      maxLength={14} // 11 dígitos + 3 caracteres de máscara
+                    />
+                  </View>
+
+                  <View style={styles.halfWidth}>
+                    <Text style={[styles.label, { color: currentTheme.text }]}>RG</Text>
+                    <TextInput
+                      style={[styles.input, {
+                        backgroundColor: currentTheme.surface,
+                        borderColor: currentTheme.border,
+                        color: currentTheme.text
+                      }]}
+                      placeholder="00.000.000-0"
+                      placeholderTextColor={currentTheme.mutedForeground}
+                      value={form.rg}
+                      onChangeText={(value: string) => updateRG(value)}
+                      maxLength={12} // 9 dígitos + 3 caracteres de máscara
+                    />
+                  </View>
+                </View>
+              </View>
             </View>
 
-            {/* Informações básicas à direita */}
-            <View style={styles.basicInfoSection}>
-              {/* Nome Completo */}
-              <View style={styles.fullWidth}>
-                <Text style={[styles.label, { color: currentTheme.text }]}>Nome Completo</Text>
+            {/* Resto dos campos */}
+            {/* Data de Nascimento e Sexo */}
+            <View style={styles.row}>
+              <View style={styles.halfWidth}>
+                <Text style={[styles.label, { color: currentTheme.text }]}>Data de Nascimento</Text>
+                <DatePicker
+                  value={form.dataNascimento}
+                  onDateChange={(date: string) => updateForm('dataNascimento', date)}
+                  placeholder="Selecione a data"
+                />
+              </View>
+
+              <View style={styles.halfWidth}>
+                <Text style={[styles.label, { color: currentTheme.text }]}>Sexo</Text>
+                <TouchableOpacity
+                  style={[styles.selectContainer, {
+                    backgroundColor: currentTheme.surface,
+                    borderColor: currentTheme.border
+                  }]}
+                  onPress={() => setShowSexoModal(true)}
+                >
+                  <Text style={[
+                    styles.selectText,
+                    { color: form.sexo ? currentTheme.text : currentTheme.mutedForeground }
+                  ]}>
+                    {form.sexo || 'Selecione o sexo'}
+                  </Text>
+                  <Ionicons name="chevron-down" size={16} color={currentTheme.mutedForeground} />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* E-mail e Estado Civil */}
+            <View style={styles.row}>
+              <View style={styles.halfWidth}>
+                <Text style={[styles.label, { color: currentTheme.text }]}>E-mail</Text>
                 <TextInput
                   style={[styles.input, {
                     backgroundColor: currentTheme.surface,
                     borderColor: currentTheme.border,
                     color: currentTheme.text
                   }]}
-                  placeholder="Digite o nome completo"
+                  placeholder="exemplo@email.com"
                   placeholderTextColor={currentTheme.mutedForeground}
-                  value={form.nomeCompleto}
-                  onChangeText={(value: string) => updateForm('nomeCompleto', value)}
+                  value={form.email}
+                  onChangeText={(value: string) => updateForm('email', value)}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
                 />
               </View>
 
-              {/* CPF e RG na mesma linha */}
-              <View style={styles.row}>
-                <View style={styles.halfWidth}>
-                  <Text style={[styles.label, { color: currentTheme.text }]}>CPF</Text>
-                  <TextInput
-                    style={[styles.input, {
-                      backgroundColor: currentTheme.surface,
-                      borderColor: currentTheme.border,
-                      color: currentTheme.text
-                    }]}
-                    placeholder="000.000.000-00"
-                    placeholderTextColor={currentTheme.mutedForeground}
-                    value={form.cpf}
-                    onChangeText={(value: string) => updateCPF(value)}
-                    keyboardType="numeric"
-                    maxLength={14} // 11 dígitos + 3 caracteres de máscara
-                  />
-                </View>
-
-                <View style={styles.halfWidth}>
-                  <Text style={[styles.label, { color: currentTheme.text }]}>RG</Text>
-                  <TextInput
-                    style={[styles.input, {
-                      backgroundColor: currentTheme.surface,
-                      borderColor: currentTheme.border,
-                      color: currentTheme.text
-                    }]}
-                    placeholder="00.000.000-0"
-                    placeholderTextColor={currentTheme.mutedForeground}
-                    value={form.rg}
-                    onChangeText={(value: string) => updateRG(value)}
-                    maxLength={12} // 9 dígitos + 3 caracteres de máscara
-                  />
-                </View>
+              <View style={styles.halfWidth}>
+                <Text style={[styles.label, { color: currentTheme.text }]}>Estado Civil</Text>
+                <TouchableOpacity
+                  style={[styles.selectContainer, {
+                    backgroundColor: currentTheme.surface,
+                    borderColor: currentTheme.border
+                  }]}
+                  onPress={() => setShowEstadoCivilModal(true)}
+                >
+                  <Text style={[
+                    styles.selectText,
+                    { color: form.estadoCivil ? currentTheme.text : currentTheme.mutedForeground }
+                  ]}>
+                    {form.estadoCivil || 'Selecione o estado civil'}
+                  </Text>
+                  <Ionicons name="chevron-down" size={16} color={currentTheme.mutedForeground} />
+                </TouchableOpacity>
               </View>
             </View>
-          </View>
 
-          {/* Resto dos campos */}
-          {/* Data de Nascimento e Sexo */}
-          <View style={styles.row}>
+            {/* Telefone */}
             <View style={styles.halfWidth}>
-              <Text style={[styles.label, { color: currentTheme.text }]}>Data de Nascimento</Text>
-              <DatePicker
-                value={form.dataNascimento}
-                onDateChange={(date: string) => updateForm('dataNascimento', date)}
-                placeholder="Selecione a data"
-              />
-            </View>
-
-            <View style={styles.halfWidth}>
-              <Text style={[styles.label, { color: currentTheme.text }]}>Sexo</Text>
-              <TouchableOpacity
-                style={[styles.selectContainer, {
-                  backgroundColor: currentTheme.surface,
-                  borderColor: currentTheme.border
-                }]}
-                onPress={() => setShowSexoModal(true)}
-              >
-                <Text style={[
-                  styles.selectText,
-                  { color: form.sexo ? currentTheme.text : currentTheme.mutedForeground }
-                ]}>
-                  {form.sexo || 'Selecione o sexo'}
-                </Text>
-                <Ionicons name="chevron-down" size={16} color={currentTheme.mutedForeground} />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* E-mail e Estado Civil */}
-          <View style={styles.row}>
-            <View style={styles.halfWidth}>
-              <Text style={[styles.label, { color: currentTheme.text }]}>E-mail</Text>
+              <Text style={[styles.label, { color: currentTheme.text }]}>Telefone</Text>
               <TextInput
                 style={[styles.input, {
                   backgroundColor: currentTheme.surface,
                   borderColor: currentTheme.border,
                   color: currentTheme.text
                 }]}
-                placeholder="exemplo@email.com"
+                placeholder="(XX) XXXXX-XXXX"
                 placeholderTextColor={currentTheme.mutedForeground}
-                value={form.email}
-                onChangeText={(value: string) => updateForm('email', value)}
-                keyboardType="email-address"
-                autoCapitalize="none"
+                value={form.telefone}
+                onChangeText={(value: string) => updatePhone(value)}
+                keyboardType="phone-pad"
+                maxLength={15} // 11 dígitos + 4 caracteres de máscara
               />
             </View>
 
-            <View style={styles.halfWidth}>
-              <Text style={[styles.label, { color: currentTheme.text }]}>Estado Civil</Text>
-              <TouchableOpacity
-                style={[styles.selectContainer, {
-                  backgroundColor: currentTheme.surface,
-                  borderColor: currentTheme.border
-                }]}
-                onPress={() => setShowEstadoCivilModal(true)}
-              >
-                <Text style={[
-                  styles.selectText,
-                  { color: form.estadoCivil ? currentTheme.text : currentTheme.mutedForeground }
-                ]}>
-                  {form.estadoCivil || 'Selecione o estado civil'}
-                </Text>
-                <Ionicons name="chevron-down" size={16} color={currentTheme.mutedForeground} />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* Telefone */}
-          <View style={styles.halfWidth}>
-            <Text style={[styles.label, { color: currentTheme.text }]}>Telefone</Text>
-            <TextInput
-              style={[styles.input, {
-                backgroundColor: currentTheme.surface,
-                borderColor: currentTheme.border,
-                color: currentTheme.text
-              }]}
-              placeholder="(XX) XXXXX-XXXX"
-              placeholderTextColor={currentTheme.mutedForeground}
-              value={form.telefone}
-              onChangeText={(value: string) => updatePhone(value)}
-              keyboardType="phone-pad"
-              maxLength={15} // 11 dígitos + 4 caracteres de máscara
-            />
-          </View>
-
-          {/* Nome da Mãe */}
-          <View style={styles.fullWidth}>
-            <Text style={[styles.label, { color: currentTheme.text }]}>Nome da Mãe</Text>
-            <TextInput
-              style={[styles.input, {
-                backgroundColor: currentTheme.surface,
-                borderColor: currentTheme.border,
-                color: currentTheme.text
-              }]}
-              placeholder="Digite o nome da mãe"
-              placeholderTextColor={currentTheme.mutedForeground}
-              value={form.nomeMae}
-              onChangeText={(value: string) => updateForm('nomeMae', value)}
-            />
-          </View>
-
-          {/* Endereço */}
-          <View style={[styles.sectionHeader, { borderBottomColor: currentTheme.border }]}>
-            <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>Endereço</Text>
-          </View>
-
-          {/* CEP */}
-          <View style={styles.halfWidth}>
-            <Text style={[styles.label, { color: currentTheme.text }]}>CEP</Text>
-            <View style={styles.cepRow}>
-              <TextInput
-                style={[styles.cepInput, {
-                  backgroundColor: currentTheme.surface,
-                  borderColor: currentTheme.border,
-                  color: currentTheme.text
-                }]}
-                placeholder="00000-000"
-                placeholderTextColor={currentTheme.mutedForeground}
-                value={form.cep}
-                onChangeText={handleCEPChange}
-                keyboardType="numeric"
-                maxLength={9}
-              />
-              <TouchableOpacity
-                style={[styles.buscarButton, loadingCEP && styles.buscarButtonDisabled]}
-                onPress={buscarCEP}
-                disabled={loadingCEP}
-              >
-                {loadingCEP ? (
-                  <ActivityIndicator size="small" color="#FFF" />
-                ) : (
-                  <Text style={styles.buscarButtonText}>Buscar</Text>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* Rua e Número */}
-          <View style={styles.row}>
-            <View style={[styles.halfWidth, { flex: 2 }]}>
-              <Text style={[styles.label, { color: currentTheme.text }]}>Rua</Text>
-              <TextInput
-                style={[styles.input, {
-                  backgroundColor: currentTheme.surface,
-                  borderColor: currentTheme.border,
-                  color: currentTheme.text
-                }]}
-                placeholder="Nome da rua"
-                placeholderTextColor={currentTheme.mutedForeground}
-                value={form.rua}
-                onChangeText={(value: string) => updateForm('rua', value)}
-              />
-            </View>
-
-            <View style={[styles.halfWidth, { flex: 1 }]}>
-              <Text style={[styles.label, { color: currentTheme.text }]}>Número</Text>
-              <TextInput
-                style={[styles.input, {
-                  backgroundColor: currentTheme.surface,
-                  borderColor: currentTheme.border,
-                  color: currentTheme.text
-                }]}
-                placeholder="Ex: 123"
-                placeholderTextColor={currentTheme.mutedForeground}
-                value={form.numero}
-                onChangeText={(value: string) => updateForm('numero', value)}
-              />
-            </View>
-          </View>
-
-          {/* Bairro, Cidade e Estado */}
-          <View style={styles.row}>
-            <View style={styles.thirdWidth}>
-              <Text style={[styles.label, { color: currentTheme.text }]}>Bairro</Text>
-              <TextInput
-                style={[styles.input, {
-                  backgroundColor: currentTheme.surface,
-                  borderColor: currentTheme.border,
-                  color: currentTheme.text
-                }]}
-                placeholder="Nome do bairro"
-                placeholderTextColor={currentTheme.mutedForeground}
-                value={form.bairro}
-                onChangeText={(value: string) => updateForm('bairro', value)}
-              />
-            </View>
-
-            <View style={styles.thirdWidth}>
-              <Text style={[styles.label, { color: currentTheme.text }]}>Cidade</Text>
-              <TextInput
-                style={[styles.input, {
-                  backgroundColor: currentTheme.surface,
-                  borderColor: currentTheme.border,
-                  color: currentTheme.text
-                }]}
-                placeholder="Nome da cidade"
-                placeholderTextColor={currentTheme.mutedForeground}
-                value={form.cidade}
-                onChangeText={(value: string) => updateForm('cidade', value)}
-              />
-            </View>
-
-            <View style={styles.thirdWidth}>
-              <Text style={[styles.label, { color: currentTheme.text }]}>Estado</Text>
-              <TextInput
-                style={[styles.input, {
-                  backgroundColor: currentTheme.surface,
-                  borderColor: currentTheme.border,
-                  color: currentTheme.text
-                }]}
-                placeholder="UF"
-                placeholderTextColor={currentTheme.mutedForeground}
-                value={form.estado}
-                onChangeText={(value: string) => updateForm('estado', value)}
-                maxLength={2}
-              />
-            </View>
-          </View>
-        </View>
-      )}
-
-      {activeTab === 'saude' && (
-        <View style={styles.formContainer}>
-          {/* Número SUS */}
-          <View style={styles.fullWidth}>
-            <Text style={[styles.label, { color: currentTheme.text }]}>Número SUS</Text>
-            <TextInput
-              style={[styles.input, {
-                backgroundColor: currentTheme.surface,
-                borderColor: currentTheme.border,
-                color: currentTheme.text
-              }]}
-              placeholder="000 0000 0000 0000"
-              placeholderTextColor={currentTheme.mutedForeground}
-              value={form.numeroSus}
-              onChangeText={(value: string) => updateSUS(value)}
-              keyboardType="numeric"
-              maxLength={18} // 15 dígitos + 3 espaços
-            />
-          </View>
-
-          {/* Uso contínuo de medicamentos e Deficiência */}
-          <View style={styles.row}>
-            <View style={styles.halfWidth}>
-              <Text style={[styles.label, { color: currentTheme.text }]}>
-                Faz uso contínuo de medicamentos? <Text style={styles.required}>*</Text>
-              </Text>
-              <TouchableOpacity
-                style={[styles.selectContainer, {
-                  backgroundColor: currentTheme.surface,
-                  borderColor: currentTheme.border
-                }]}
-                onPress={() => setShowMedicamentoModal(true)}
-              >
-                <Text style={[
-                  styles.selectText,
-                  { color: form.usoMedicamentoContinuo ? currentTheme.text : currentTheme.mutedForeground }
-                ]}>
-                  {form.usoMedicamentoContinuo || 'Selecione uma opção'}
-                </Text>
-                <Ionicons name="chevron-down" size={16} color={currentTheme.mutedForeground} />
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.halfWidth}>
-              <Text style={[styles.label, { color: currentTheme.text }]}>Deficiência</Text>
-              <TouchableOpacity
-                style={[styles.selectContainer, {
-                  backgroundColor: currentTheme.surface,
-                  borderColor: currentTheme.border
-                }]}
-                onPress={() => setShowDeficienciaModal(true)}
-              >
-                <Text style={[
-                  styles.selectText,
-                  { color: form.deficiencia ? currentTheme.text : currentTheme.mutedForeground }
-                ]}>
-                  {form.deficiencia || 'Selecione uma opção'}
-                </Text>
-                <Ionicons name="chevron-down" size={16} color={currentTheme.mutedForeground} />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* Campo condicional: Quais medicamentos - NOVA IMPLEMENTAÇÃO COM CHIP-TAGS */}
-          {form.usoMedicamentoContinuo === 'Sim' && (
+            {/* Nome da Mãe */}
             <View style={styles.fullWidth}>
-              <Text style={[styles.label, { color: currentTheme.text }]}>
-                Quais medicamentos? <Text style={styles.required}>*</Text>
-              </Text>
+              <Text style={[styles.label, { color: currentTheme.text }]}>Nome da Mãe</Text>
+              <TextInput
+                style={[styles.input, {
+                  backgroundColor: currentTheme.surface,
+                  borderColor: currentTheme.border,
+                  color: currentTheme.text
+                }]}
+                placeholder="Digite o nome da mãe"
+                placeholderTextColor={currentTheme.mutedForeground}
+                value={form.nomeMae}
+                onChangeText={(value: string) => updateForm('nomeMae', value)}
+              />
+            </View>
 
-              {/* Campo de busca de medicamentos */}
-              <View style={styles.medicamentoSearchContainer}>
-                <MedicamentoSearch
-                  onSelectMedicamento={adicionarMedicamento}
-                  selectedMedicamentos={form.quaisMedicamentos}
-                  placeholder="Buscar e selecionar medicamento..."
+            {/* Endereço */}
+            <View style={[styles.sectionHeader, { borderBottomColor: currentTheme.border }]}>
+              <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>Endereço</Text>
+            </View>
+
+            {/* CEP */}
+            <View style={styles.halfWidth}>
+              <Text style={[styles.label, { color: currentTheme.text }]}>CEP</Text>
+              <View style={styles.cepRow}>
+                <TextInput
+                  style={[styles.cepInput, {
+                    backgroundColor: currentTheme.surface,
+                    borderColor: currentTheme.border,
+                    color: currentTheme.text
+                  }]}
+                  placeholder="00000-000"
+                  placeholderTextColor={currentTheme.mutedForeground}
+                  value={form.cep}
+                  onChangeText={handleCEPChange}
+                  keyboardType="numeric"
+                  maxLength={9}
+                />
+                <TouchableOpacity
+                  style={[styles.buscarButton, loadingCEP && styles.buscarButtonDisabled]}
+                  onPress={buscarCEP}
+                  disabled={loadingCEP}
+                >
+                  {loadingCEP ? (
+                    <ActivityIndicator size="small" color="#FFF" />
+                  ) : (
+                    <Text style={styles.buscarButtonText}>Buscar</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Rua e Número */}
+            <View style={styles.row}>
+              <View style={[styles.halfWidth, { flex: 2 }]}>
+                <Text style={[styles.label, { color: currentTheme.text }]}>Rua</Text>
+                <TextInput
+                  style={[styles.input, {
+                    backgroundColor: currentTheme.surface,
+                    borderColor: currentTheme.border,
+                    color: currentTheme.text
+                  }]}
+                  placeholder="Nome da rua"
+                  placeholderTextColor={currentTheme.mutedForeground}
+                  value={form.rua}
+                  onChangeText={(value: string) => updateForm('rua', value)}
                 />
               </View>
 
-              {/* Tags dos medicamentos selecionados */}
-              <View style={styles.medicamentoTagsContainer}>
+              <View style={[styles.halfWidth, { flex: 1 }]}>
+                <Text style={[styles.label, { color: currentTheme.text }]}>Número</Text>
+                <TextInput
+                  style={[styles.input, {
+                    backgroundColor: currentTheme.surface,
+                    borderColor: currentTheme.border,
+                    color: currentTheme.text
+                  }]}
+                  placeholder="Ex: 123"
+                  placeholderTextColor={currentTheme.mutedForeground}
+                  value={form.numero}
+                  onChangeText={(value: string) => updateForm('numero', value)}
+                />
+              </View>
+            </View>
+
+            {/* Bairro, Cidade e Estado */}
+            <View style={styles.row}>
+              <View style={styles.thirdWidth}>
+                <Text style={[styles.label, { color: currentTheme.text }]}>Bairro</Text>
+                <TextInput
+                  style={[styles.input, {
+                    backgroundColor: currentTheme.surface,
+                    borderColor: currentTheme.border,
+                    color: currentTheme.text
+                  }]}
+                  placeholder="Nome do bairro"
+                  placeholderTextColor={currentTheme.mutedForeground}
+                  value={form.bairro}
+                  onChangeText={(value: string) => updateForm('bairro', value)}
+                />
+              </View>
+
+              <View style={styles.thirdWidth}>
+                <Text style={[styles.label, { color: currentTheme.text }]}>Cidade</Text>
+                <TextInput
+                  style={[styles.input, {
+                    backgroundColor: currentTheme.surface,
+                    borderColor: currentTheme.border,
+                    color: currentTheme.text
+                  }]}
+                  placeholder="Nome da cidade"
+                  placeholderTextColor={currentTheme.mutedForeground}
+                  value={form.cidade}
+                  onChangeText={(value: string) => updateForm('cidade', value)}
+                />
+              </View>
+
+              <View style={styles.thirdWidth}>
+                <Text style={[styles.label, { color: currentTheme.text }]}>Estado</Text>
+                <TextInput
+                  style={[styles.input, {
+                    backgroundColor: currentTheme.surface,
+                    borderColor: currentTheme.border,
+                    color: currentTheme.text
+                  }]}
+                  placeholder="UF"
+                  placeholderTextColor={currentTheme.mutedForeground}
+                  value={form.estado}
+                  onChangeText={(value: string) => updateForm('estado', value)}
+                  maxLength={2}
+                />
+              </View>
+            </View>
+          </View>
+        )}
+
+        {activeTab === 'saude' && (
+          <View style={styles.formContainer}>
+            {/* Número SUS */}
+            <View style={styles.fullWidth}>
+              <Text style={[styles.label, { color: currentTheme.text }]}>Número SUS</Text>
+              <TextInput
+                style={[styles.input, {
+                  backgroundColor: currentTheme.surface,
+                  borderColor: currentTheme.border,
+                  color: currentTheme.text
+                }]}
+                placeholder="000 0000 0000 0000"
+                placeholderTextColor={currentTheme.mutedForeground}
+                value={form.numeroSus}
+                onChangeText={(value: string) => updateSUS(value)}
+                keyboardType="numeric"
+                maxLength={18} // 15 dígitos + 3 espaços
+              />
+            </View>
+
+            {/* Uso contínuo de medicamentos e Deficiência */}
+            <View style={styles.row}>
+              <View style={styles.halfWidth}>
+                <Text style={[styles.label, { color: currentTheme.text }]}>
+                  Faz uso contínuo de medicamentos? <Text style={styles.required}>*</Text>
+                </Text>
+                <TouchableOpacity
+                  style={[styles.selectContainer, {
+                    backgroundColor: currentTheme.surface,
+                    borderColor: currentTheme.border
+                  }]}
+                  onPress={() => setShowMedicamentoModal(true)}
+                >
+                  <Text style={[
+                    styles.selectText,
+                    { color: form.usoMedicamentoContinuo ? currentTheme.text : currentTheme.mutedForeground }
+                  ]}>
+                    {form.usoMedicamentoContinuo || 'Selecione uma opção'}
+                  </Text>
+                  <Ionicons name="chevron-down" size={16} color={currentTheme.mutedForeground} />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.halfWidth}>
+                <Text style={[styles.label, { color: currentTheme.text }]}>Deficiência</Text>
+                <TouchableOpacity
+                  style={[styles.selectContainer, {
+                    backgroundColor: currentTheme.surface,
+                    borderColor: currentTheme.border
+                  }]}
+                  onPress={() => setShowDeficienciaModal(true)}
+                >
+                  <Text style={[
+                    styles.selectText,
+                    { color: form.deficiencia ? currentTheme.text : currentTheme.mutedForeground }
+                  ]}>
+                    {form.deficiencia || 'Selecione uma opção'}
+                  </Text>
+                  <Ionicons name="chevron-down" size={16} color={currentTheme.mutedForeground} />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Campo condicional: Quais medicamentos - NOVA IMPLEMENTAÇÃO COM CHIP-TAGS */}
+            {form.usoMedicamentoContinuo === 'Sim' && (
+              <View style={styles.fullWidth}>
+                <Text style={[styles.label, { color: currentTheme.text }]}>
+                  Quais medicamentos? <Text style={styles.required}>*</Text>
+                </Text>
+
+                {/* Campo de busca de medicamentos */}
+                <View style={styles.medicamentoSearchContainer}>
+                  <MedicamentoSearch
+                    onSelectMedicamento={adicionarMedicamento}
+                    selectedMedicamentos={form.quaisMedicamentos}
+                    placeholder="Buscar e selecionar medicamento..."
+                  />
+                </View>
+
+                {/* Tags dos medicamentos selecionados */}
+                <View style={styles.medicamentoTagsContainer}>
+                  <ChipTags
+                    tags={form.quaisMedicamentos}
+                    onRemove={removerMedicamento}
+                    editable={true}
+                  />
+                </View>
+              </View>
+            )}
+
+            {/* Necessita de acompanhante */}
+            <View style={styles.halfWidth}>
+              <Text style={[styles.label, { color: currentTheme.text }]}>Necessita de acompanhante</Text>
+              <TouchableOpacity
+                style={[styles.selectContainer, {
+                  backgroundColor: currentTheme.surface,
+                  borderColor: currentTheme.border
+                }]}
+                onPress={() => setShowAcompanhanteModal(true)}
+              >
+                <Text style={[
+                  styles.selectText,
+                  { color: form.necessitaAcompanhante ? currentTheme.text : currentTheme.mutedForeground }
+                ]}>
+                  {form.necessitaAcompanhante || 'Selecione uma opção'}
+                </Text>
+                <Ionicons name="chevron-down" size={16} color={currentTheme.mutedForeground} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Doenças crônicas - NOVA IMPLEMENTAÇÃO COM CHIP-TAGS */}
+            <View style={styles.fullWidth}>
+              <Text style={[styles.label, { color: currentTheme.text }]}>Doenças crônicas</Text>
+
+              {/* Campo de busca de doenças crônicas */}
+              <View style={styles.doencaSearchContainer}>
+                <DoencaCronicaSearch
+                  onSelectDoenca={adicionarDoencaCronica}
+                  selectedDoencas={form.doencasCronicas}
+                  placeholder="Buscar e selecionar doença crônica..."
+                />
+              </View>
+
+              {/* Tags das doenças crônicas selecionadas */}
+              <View style={styles.doencaTagsContainer}>
                 <ChipTags
-                  tags={form.quaisMedicamentos}
-                  onRemove={removerMedicamento}
+                  tags={form.doencasCronicas}
+                  onRemove={removerDoencaCronica}
                   editable={true}
                 />
               </View>
             </View>
-          )}
 
-          {/* Necessita de acompanhante */}
-          <View style={styles.halfWidth}>
-            <Text style={[styles.label, { color: currentTheme.text }]}>Necessita de acompanhante</Text>
-            <TouchableOpacity
-              style={[styles.selectContainer, {
-                backgroundColor: currentTheme.surface,
-                borderColor: currentTheme.border
-              }]}
-              onPress={() => setShowAcompanhanteModal(true)}
-            >
-              <Text style={[
-                styles.selectText,
-                { color: form.necessitaAcompanhante ? currentTheme.text : currentTheme.mutedForeground }
-              ]}>
-                {form.necessitaAcompanhante || 'Selecione uma opção'}
+            {/* Observações Médicas */}
+            <View style={styles.fullWidth}>
+              <Text style={[styles.label, { color: currentTheme.text }]}>Observações Médicas</Text>
+              <TextInput
+                style={[styles.textArea, {
+                  backgroundColor: currentTheme.surface,
+                  borderColor: currentTheme.border,
+                  color: currentTheme.text
+                }]}
+                placeholder="Digite observações médicas relevantes..."
+                placeholderTextColor={currentTheme.mutedForeground}
+                value={form.observacoesMedicas}
+                onChangeText={(value: string) => updateForm('observacoesMedicas', value)}
+                multiline
+                numberOfLines={4}
+                textAlignVertical="top"
+              />
+            </View>
+          </View>
+        )}
+
+        {/* Modals de Seleção */}
+        {/* Modal Medicamento */}
+        <Modal
+          visible={showMedicamentoModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowMedicamentoModal(false)}
+        >
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={() => setShowMedicamentoModal(false)}
+          >
+            <View style={[styles.modalContent, { backgroundColor: currentTheme.surface }]}>
+              <Text style={[styles.modalTitle, { color: currentTheme.text }]}>
+                Uso contínuo de medicamentos
               </Text>
-              <Ionicons name="chevron-down" size={16} color={currentTheme.mutedForeground} />
-            </TouchableOpacity>
-          </View>
-
-          {/* Doenças crônicas - NOVA IMPLEMENTAÇÃO COM CHIP-TAGS */}
-          <View style={styles.fullWidth}>
-            <Text style={[styles.label, { color: currentTheme.text }]}>Doenças crônicas</Text>
-
-            {/* Campo de busca de doenças crônicas */}
-            <View style={styles.doencaSearchContainer}>
-              <DoencaCronicaSearch
-                onSelectDoenca={adicionarDoencaCronica}
-                selectedDoencas={form.doencasCronicas}
-                placeholder="Buscar e selecionar doença crônica..."
-              />
+              {medicamentoOptions.map((option) => (
+                <TouchableOpacity
+                  key={option}
+                  style={styles.modalOption}
+                  onPress={() => handleSelectOption('usoMedicamentoContinuo', option)}
+                >
+                  <Text style={[styles.modalOptionText, { color: currentTheme.text }]}>
+                    {option}
+                  </Text>
+                </TouchableOpacity>
+              ))}
             </View>
+          </TouchableOpacity>
+        </Modal>
 
-            {/* Tags das doenças crônicas selecionadas */}
-            <View style={styles.doencaTagsContainer}>
-              <ChipTags
-                tags={form.doencasCronicas}
-                onRemove={removerDoencaCronica}
-                editable={true}
-              />
+        {/* Modal Deficiência */}
+        <Modal
+          visible={showDeficienciaModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowDeficienciaModal(false)}
+        >
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={() => setShowDeficienciaModal(false)}
+          >
+            <View style={[styles.modalContent, { backgroundColor: currentTheme.surface }]}>
+              <Text style={[styles.modalTitle, { color: currentTheme.text }]}>
+                Deficiência
+              </Text>
+              {deficienciaOptions.map((option) => (
+                <TouchableOpacity
+                  key={option}
+                  style={styles.modalOption}
+                  onPress={() => handleSelectOption('deficiencia', option)}
+                >
+                  <Text style={[styles.modalOptionText, { color: currentTheme.text }]}>
+                    {option}
+                  </Text>
+                </TouchableOpacity>
+              ))}
             </View>
-          </View>
+          </TouchableOpacity>
+        </Modal>
 
-          {/* Observações Médicas */}
-          <View style={styles.fullWidth}>
-            <Text style={[styles.label, { color: currentTheme.text }]}>Observações Médicas</Text>
-            <TextInput
-              style={[styles.textArea, {
-                backgroundColor: currentTheme.surface,
-                borderColor: currentTheme.border,
-                color: currentTheme.text
-              }]}
-              placeholder="Digite observações médicas relevantes..."
-              placeholderTextColor={currentTheme.mutedForeground}
-              value={form.observacoesMedicas}
-              onChangeText={(value: string) => updateForm('observacoesMedicas', value)}
-              multiline
-              numberOfLines={4}
-              textAlignVertical="top"
-            />
-          </View>
+        {/* Modal Acompanhante */}
+        <Modal
+          visible={showAcompanhanteModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowAcompanhanteModal(false)}
+        >
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={() => setShowAcompanhanteModal(false)}
+          >
+            <View style={[styles.modalContent, { backgroundColor: currentTheme.surface }]}>
+              <Text style={[styles.modalTitle, { color: currentTheme.text }]}>
+                Necessita de acompanhante
+              </Text>
+              {acompanhanteOptions.map((option) => (
+                <TouchableOpacity
+                  key={option}
+                  style={styles.modalOption}
+                  onPress={() => handleSelectOption('necessitaAcompanhante', option)}
+                >
+                  <Text style={[styles.modalOptionText, { color: currentTheme.text }]}>
+                    {option}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </TouchableOpacity>
+        </Modal>
+
+        {/* Modal Estado Civil */}
+        <Modal
+          visible={showEstadoCivilModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowEstadoCivilModal(false)}
+        >
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={() => setShowEstadoCivilModal(false)}
+          >
+            <View style={[styles.modalContent, { backgroundColor: currentTheme.surface }]}>
+              <Text style={[styles.modalTitle, { color: currentTheme.text }]}>
+                Estado Civil
+              </Text>
+              {estadoCivilOptions.map((option) => (
+                <TouchableOpacity
+                  key={option}
+                  style={styles.modalOption}
+                  onPress={() => handleSelectOption('estadoCivil', option)}
+                >
+                  <Text style={[styles.modalOptionText, { color: currentTheme.text }]}>
+                    {option}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </TouchableOpacity>
+        </Modal>
+
+        {/* Modal Sexo */}
+        <Modal
+          visible={showSexoModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowSexoModal(false)}
+        >
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={() => setShowSexoModal(false)}
+          >
+            <View style={[styles.modalContent, { backgroundColor: currentTheme.surface }]}>
+              <Text style={[styles.modalTitle, { color: currentTheme.text }]}>
+                Sexo
+              </Text>
+              {sexoOptions.map((option) => (
+                <TouchableOpacity
+                  key={option}
+                  style={styles.modalOption}
+                  onPress={() => handleSelectOption('sexo', option)}
+                >
+                  <Text style={[styles.modalOptionText, { color: currentTheme.text }]}>
+                    {option}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </TouchableOpacity>
+        </Modal>
+
+        {/* Botões de Ação */}
+        <View style={styles.actionButtons}>
+          <TouchableOpacity style={styles.cancelButton} onPress={handleCancelar}>
+            <Text style={styles.cancelButtonText}>Cancelar</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.saveButton} onPress={handleSalvar}>
+            <Text style={styles.saveButtonText}>Salvar</Text>
+          </TouchableOpacity>
         </View>
-      )}
-
-      {/* Modals de Seleção */}
-      {/* Modal Medicamento */}
-      <Modal
-        visible={showMedicamentoModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowMedicamentoModal(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowMedicamentoModal(false)}
-        >
-          <View style={[styles.modalContent, { backgroundColor: currentTheme.surface }]}>
-            <Text style={[styles.modalTitle, { color: currentTheme.text }]}>
-              Uso contínuo de medicamentos
-            </Text>
-            {medicamentoOptions.map((option) => (
-              <TouchableOpacity
-                key={option}
-                style={styles.modalOption}
-                onPress={() => handleSelectOption('usoMedicamentoContinuo', option)}
-              >
-                <Text style={[styles.modalOptionText, { color: currentTheme.text }]}>
-                  {option}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </TouchableOpacity>
-      </Modal>
-
-      {/* Modal Deficiência */}
-      <Modal
-        visible={showDeficienciaModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowDeficienciaModal(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowDeficienciaModal(false)}
-        >
-          <View style={[styles.modalContent, { backgroundColor: currentTheme.surface }]}>
-            <Text style={[styles.modalTitle, { color: currentTheme.text }]}>
-              Deficiência
-            </Text>
-            {deficienciaOptions.map((option) => (
-              <TouchableOpacity
-                key={option}
-                style={styles.modalOption}
-                onPress={() => handleSelectOption('deficiencia', option)}
-              >
-                <Text style={[styles.modalOptionText, { color: currentTheme.text }]}>
-                  {option}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </TouchableOpacity>
-      </Modal>
-
-      {/* Modal Acompanhante */}
-      <Modal
-        visible={showAcompanhanteModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowAcompanhanteModal(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowAcompanhanteModal(false)}
-        >
-          <View style={[styles.modalContent, { backgroundColor: currentTheme.surface }]}>
-            <Text style={[styles.modalTitle, { color: currentTheme.text }]}>
-              Necessita de acompanhante
-            </Text>
-            {acompanhanteOptions.map((option) => (
-              <TouchableOpacity
-                key={option}
-                style={styles.modalOption}
-                onPress={() => handleSelectOption('necessitaAcompanhante', option)}
-              >
-                <Text style={[styles.modalOptionText, { color: currentTheme.text }]}>
-                  {option}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </TouchableOpacity>
-      </Modal>
-
-      {/* Modal Estado Civil */}
-      <Modal
-        visible={showEstadoCivilModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowEstadoCivilModal(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowEstadoCivilModal(false)}
-        >
-          <View style={[styles.modalContent, { backgroundColor: currentTheme.surface }]}>
-            <Text style={[styles.modalTitle, { color: currentTheme.text }]}>
-              Estado Civil
-            </Text>
-            {estadoCivilOptions.map((option) => (
-              <TouchableOpacity
-                key={option}
-                style={styles.modalOption}
-                onPress={() => handleSelectOption('estadoCivil', option)}
-              >
-                <Text style={[styles.modalOptionText, { color: currentTheme.text }]}>
-                  {option}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </TouchableOpacity>
-      </Modal>
-
-      {/* Modal Sexo */}
-      <Modal
-        visible={showSexoModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowSexoModal(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowSexoModal(false)}
-        >
-          <View style={[styles.modalContent, { backgroundColor: currentTheme.surface }]}>
-            <Text style={[styles.modalTitle, { color: currentTheme.text }]}>
-              Sexo
-            </Text>
-            {sexoOptions.map((option) => (
-              <TouchableOpacity
-                key={option}
-                style={styles.modalOption}
-                onPress={() => handleSelectOption('sexo', option)}
-              >
-                <Text style={[styles.modalOptionText, { color: currentTheme.text }]}>
-                  {option}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </TouchableOpacity>
-      </Modal>
-
-      {/* Botões de Ação */}
-      <View style={styles.actionButtons}>
-        <TouchableOpacity style={styles.cancelButton} onPress={handleCancelar}>
-          <Text style={styles.cancelButtonText}>Cancelar</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.saveButton} onPress={handleSalvar}>
-          <Text style={styles.saveButtonText}>Salvar</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
-  </SafeAreaView>
-);
+      </ScrollView>
+    </SafeAreaView>
+  );
 };
 
 const styles = StyleSheet.create({
