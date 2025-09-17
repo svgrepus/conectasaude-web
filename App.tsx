@@ -1,20 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import './src/polyfills';
-import { StatusBar } from 'expo-status-bar';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { NavigationContainer } from '@react-navigation/native';
-import { PaperProvider } from 'react-native-paper';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { ActivityIndicator, View, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from "react";
+import "./src/polyfills";
+import { StatusBar } from "expo-status-bar";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { NavigationContainer } from "@react-navigation/native";
+import { PaperProvider } from "react-native-paper";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import { ActivityIndicator, View, StyleSheet } from "react-native";
 
-import { useTheme } from './src/hooks';
-import AppNavigator from './src/navigation/AppNavigator';
+import { useTheme } from "./src/hooks";
+import AppNavigator from "./src/navigation/AppNavigator";
 
 // New imports for our Dashboard
-import { LoginScreen } from './src/screens/LoginScreen';
-import { CustomLayout } from './src/navigation/CustomLayout';
-import { authService } from './src/services/auth-simple';
-import { theme as customTheme } from './src/constants/theme';
+import { LoginScreen } from "./src/screens/LoginScreen";
+import { CustomLayout } from "./src/navigation/CustomLayout";
+import { authService } from "./src/services/auth-simple";
+import { theme as customTheme } from "./src/constants/theme";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -30,8 +30,8 @@ const queryClient = new QueryClient({
 const styles = StyleSheet.create({
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     backgroundColor: customTheme.light.background,
   },
 });
@@ -56,7 +56,7 @@ export default function App() {
       const user = await authService.getCurrentUser();
       setIsAuthenticated(!!user);
     } catch (error) {
-      console.error('Erro ao verificar autenticação:', error);
+      console.error("Erro ao verificar autenticação:", error);
       setIsAuthenticated(false);
     } finally {
       setLoading(false);
@@ -86,14 +86,14 @@ export default function App() {
       text: theme.colors.text,
       disabled: theme.colors.textSecondary,
       placeholder: theme.colors.textSecondary,
-      backdrop: 'rgba(0, 0, 0, 0.5)',
+      backdrop: "rgba(0, 0, 0, 0.5)",
       onSurface: theme.colors.text,
       notification: theme.colors.error,
     },
     dark: isDark,
   };
 
-    // New Dashboard Flow
+  // New Dashboard Flow
   if (useNewDashboard) {
     if (loading) {
       return (
@@ -106,11 +106,11 @@ export default function App() {
     }
 
     const linking = {
-      prefixes: ['http://localhost:19006'],
+      prefixes: ["http://localhost:19006"],
       config: {
         screens: {
-          Home: '/',
-          Login: '/login',
+          Home: "/",
+          Login: "/login",
         },
       },
     };
@@ -119,11 +119,13 @@ export default function App() {
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
           <PaperProvider theme={paperTheme}>
-            <NavigationContainer 
+            <NavigationContainer
               linking={linking}
               documentTitle={{
-                formatter: (options, route) => 
-                  `${options?.title ?? route?.name ?? 'ConectaSaúde'} - Jambeiro`
+                formatter: (options, route) =>
+                  `${
+                    options?.title ?? route?.name ?? "ConectaSaúde"
+                  } - Jambeiro`,
               }}
             >
               {isAuthenticated ? (
@@ -131,7 +133,7 @@ export default function App() {
               ) : (
                 <LoginScreen onLoginSuccess={handleLoginSuccess} />
               )}
-              <StatusBar style={isDark ? 'light' : 'dark'} />
+              <StatusBar style={isDark ? "light" : "dark"} />
             </NavigationContainer>
           </PaperProvider>
         </QueryClientProvider>
@@ -146,7 +148,7 @@ export default function App() {
         <PaperProvider theme={paperTheme}>
           <NavigationContainer>
             <AppNavigator />
-            <StatusBar style={isDark ? 'light' : 'dark'} />
+            <StatusBar style={isDark ? "light" : "dark"} />
           </NavigationContainer>
         </PaperProvider>
       </QueryClientProvider>

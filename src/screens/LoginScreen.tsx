@@ -1,61 +1,69 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Platform } from 'react-native';
-import { TextInput, Button } from 'react-native-paper';
-import { Ionicons } from '@expo/vector-icons';
-import { useTheme } from '../hooks';
-import { validateEmail } from '../utils';
-import { authService } from '../services/auth-simple';
-import { BrasaoJambeiro } from '../components/BrasaoJambeiro';
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Dimensions,
+  Platform,
+} from "react-native";
+import { TextInput, Button } from "react-native-paper";
+import { Ionicons } from "@expo/vector-icons";
+import { useTheme } from "../hooks";
+import { validateEmail } from "../utils";
+import { authService } from "../services/auth-simple";
+import { BrasaoJambeiro } from "../components/BrasaoJambeiro";
 
-const { width, height } = Dimensions.get('window');
+const { width, height } = Dimensions.get("window");
 
 interface LoginScreenProps {
   onLoginSuccess: () => void;
 }
 
 export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   const { theme, isDark, toggleTheme } = useTheme();
 
   // Fix document title for web
   useEffect(() => {
-    if (Platform.OS === 'web') {
-      document.title = 'Login - ConectaSaúde - Jambeiro';
+    if (Platform.OS === "web") {
+      document.title = "Login - ConectaSaúde - Jambeiro";
     }
   }, []);
 
   const handleLogin = async () => {
     // Limpar mensagens anteriores
-    setErrorMessage('');
-    setSuccessMessage('');
+    setErrorMessage("");
+    setSuccessMessage("");
 
     if (!email || !password) {
-      setErrorMessage('Por favor, preencha todos os campos');
+      setErrorMessage("Por favor, preencha todos os campos");
       return;
     }
 
     if (!validateEmail(email)) {
-      setErrorMessage('Por favor, insira um email válido');
+      setErrorMessage("Por favor, insira um email válido");
       return;
     }
 
-    console.log('Iniciando login para:', email);
+    console.log("Iniciando login para:", email);
     setLoading(true);
-    
+
     try {
       const user = await authService.signIn(email, password);
-      console.log('Login realizado com sucesso!', user);
-      setSuccessMessage('Login realizado com sucesso!');
+      console.log("Login realizado com sucesso!", user);
+      setSuccessMessage("Login realizado com sucesso!");
       onLoginSuccess();
     } catch (error: any) {
-      console.error('Erro no login:', error);
-      setErrorMessage(error.message || 'Erro desconhecido');
+      console.error("Erro no login:", error);
+      setErrorMessage(error.message || "Erro desconhecido");
     } finally {
       setLoading(false);
     }
@@ -64,26 +72,26 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
   const styles = StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: isDark ? '#1a1a1a' : '#FFFFFF',
+      backgroundColor: isDark ? "#1a1a1a" : "#FFFFFF",
     },
     scrollContainer: {
       flexGrow: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
+      justifyContent: "center",
+      alignItems: "center",
       padding: 20,
       minHeight: height,
     },
     themeToggle: {
-      position: 'absolute',
+      position: "absolute",
       top: 50,
       right: 20,
       width: 44,
       height: 44,
       borderRadius: 22,
-      backgroundColor: isDark ? '#3a3a3a' : '#E6EAE7',
-      justifyContent: 'center',
-      alignItems: 'center',
-      shadowColor: '#000',
+      backgroundColor: isDark ? "#3a3a3a" : "#E6EAE7",
+      justifyContent: "center",
+      alignItems: "center",
+      shadowColor: "#000",
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.25,
       shadowRadius: 3.84,
@@ -91,19 +99,19 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
       zIndex: 10,
     },
     card: {
-      width: '100%',
+      width: "100%",
       maxWidth: 400,
-      backgroundColor: isDark ? '#2a2a2a' : '#E6EAE7',
+      backgroundColor: isDark ? "#2a2a2a" : "#E6EAE7",
       borderRadius: 12,
       padding: 32,
-      shadowColor: '#000',
+      shadowColor: "#000",
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.1,
       shadowRadius: 8,
       elevation: 8,
     },
     logoContainer: {
-      alignItems: 'center',
+      alignItems: "center",
       marginBottom: 32,
     },
     logo: {
@@ -113,51 +121,51 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
     },
     title: {
       fontSize: 28,
-      fontWeight: 'bold',
-      color: isDark ? '#FFFFFF' : '#333333',
-      textAlign: 'center',
+      fontWeight: "bold",
+      color: isDark ? "#FFFFFF" : "#333333",
+      textAlign: "center",
       marginBottom: 8,
-      fontFamily: 'Arial Black, Helvetica, sans-serif',
+      fontFamily: "Arial Black, Helvetica, sans-serif",
     },
     subtitle: {
       fontSize: 14,
-      color: isDark ? '#B6B9B7' : '#B6B9B7',
-      textAlign: 'center',
+      color: isDark ? "#B6B9B7" : "#B6B9B7",
+      textAlign: "center",
       marginBottom: 32,
-      fontFamily: 'Arial, Helvetica, sans-serif',
+      fontFamily: "Arial, Helvetica, sans-serif",
     },
     inputContainer: {
       marginBottom: 16,
     },
     inputWrapper: {
-      position: 'relative',
+      position: "relative",
     },
     input: {
-      backgroundColor: isDark ? '#3a3a3a' : '#FFFFFF',
+      backgroundColor: isDark ? "#3a3a3a" : "#FFFFFF",
       paddingLeft: 40,
       height: 48,
       borderRadius: 6,
       borderWidth: 1,
-      borderColor: isDark ? '#B6B9B7' : '#E6EAE7',
+      borderColor: isDark ? "#B6B9B7" : "#E6EAE7",
       fontSize: 14,
-      color: isDark ? '#FFFFFF' : '#333333',
-      fontFamily: 'Arial, Helvetica, sans-serif',
+      color: isDark ? "#FFFFFF" : "#333333",
+      fontFamily: "Arial, Helvetica, sans-serif",
     },
     inputIcon: {
-      position: 'absolute',
+      position: "absolute",
       left: 12,
       top: 12,
       zIndex: 1,
     },
     forgotPassword: {
-      alignSelf: 'flex-end',
+      alignSelf: "flex-end",
       marginBottom: 24,
     },
     forgotPasswordText: {
       fontSize: 14,
-      color: '#8A9E8E',
-      fontWeight: '500',
-      fontFamily: 'Arial, Helvetica, sans-serif',
+      color: "#8A9E8E",
+      fontWeight: "500",
+      fontFamily: "Arial, Helvetica, sans-serif",
     },
     messageContainer: {
       marginBottom: 16,
@@ -166,56 +174,56 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
       borderRadius: 8,
     },
     errorMessage: {
-      backgroundColor: isDark ? '#7f1d1d' : '#fee2e2',
-      borderColor: '#ef4444',
+      backgroundColor: isDark ? "#7f1d1d" : "#fee2e2",
+      borderColor: "#ef4444",
       borderWidth: 1,
     },
     successMessage: {
-      backgroundColor: isDark ? '#14532d' : '#dcfce7',
-      borderColor: '#22c55e',
+      backgroundColor: isDark ? "#14532d" : "#dcfce7",
+      borderColor: "#22c55e",
       borderWidth: 1,
     },
     messageText: {
       fontSize: 14,
-      textAlign: 'center',
-      fontWeight: '500',
+      textAlign: "center",
+      fontWeight: "500",
     },
     errorText: {
-      color: isDark ? '#fca5a5' : '#dc2626',
+      color: isDark ? "#fca5a5" : "#dc2626",
     },
     successText: {
-      color: isDark ? '#86efac' : '#16a34a',
+      color: isDark ? "#86efac" : "#16a34a",
     },
     loginButton: {
-      backgroundColor: '#8A9E8E',
+      backgroundColor: "#8A9E8E",
       height: 48,
       borderRadius: 6,
-      justifyContent: 'center',
+      justifyContent: "center",
       marginBottom: 16,
     },
     loginButtonText: {
-      color: '#FFFFFF',
+      color: "#FFFFFF",
       fontSize: 16,
-      fontWeight: '600',
-      fontFamily: 'Arial, Helvetica, sans-serif',
-      textTransform: 'uppercase',
+      fontWeight: "600",
+      fontFamily: "Arial, Helvetica, sans-serif",
+      textTransform: "uppercase",
     },
     registerContainer: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'center',
+      flexDirection: "row",
+      justifyContent: "center",
+      alignItems: "center",
     },
     registerText: {
       fontSize: 14,
-      color: isDark ? '#B6B9B7' : '#B6B9B7',
-      fontFamily: 'Arial, Helvetica, sans-serif',
+      color: isDark ? "#B6B9B7" : "#B6B9B7",
+      fontFamily: "Arial, Helvetica, sans-serif",
     },
     registerLink: {
       fontSize: 14,
-      color: '#8A9E8E',
-      fontWeight: '500',
+      color: "#8A9E8E",
+      fontWeight: "500",
       marginLeft: 4,
-      fontFamily: 'Arial, Helvetica, sans-serif',
+      fontFamily: "Arial, Helvetica, sans-serif",
     },
   });
 
@@ -223,10 +231,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
     <View style={styles.container}>
       {/* Theme Toggle Button */}
       <TouchableOpacity style={styles.themeToggle} onPress={toggleTheme}>
-        <Ionicons 
-          name={isDark ? 'sunny' : 'moon'} 
-          size={24} 
-          color={isDark ? '#fbbf24' : '#B6B9B7'} 
+        <Ionicons
+          name={isDark ? "sunny" : "moon"}
+          size={24}
+          color={isDark ? "#fbbf24" : "#B6B9B7"}
         />
       </TouchableOpacity>
 
@@ -242,10 +250,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
           {/* Email Input */}
           <View style={styles.inputContainer}>
             <View style={styles.inputWrapper}>
-              <Ionicons 
-                name="mail-outline" 
-                size={20} 
-                color="#9ca3af" 
+              <Ionicons
+                name="mail-outline"
+                size={20}
+                color="#9ca3af"
                 style={styles.inputIcon}
               />
               <TextInput
@@ -267,10 +275,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
           {/* Password Input */}
           <View style={styles.inputContainer}>
             <View style={styles.inputWrapper}>
-              <Ionicons 
-                name="lock-closed-outline" 
-                size={20} 
-                color="#9ca3af" 
+              <Ionicons
+                name="lock-closed-outline"
+                size={20}
+                color="#9ca3af"
                 style={styles.inputIcon}
               />
               <TextInput
@@ -285,7 +293,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                 contentStyle={{ paddingLeft: 28 }}
                 right={
                   <TextInput.Icon
-                    icon={showPassword ? 'eye-off' : 'eye'}
+                    icon={showPassword ? "eye-off" : "eye"}
                     onPress={() => setShowPassword(!showPassword)}
                   />
                 }
