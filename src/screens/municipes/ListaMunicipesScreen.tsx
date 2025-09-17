@@ -13,6 +13,7 @@ import {
   Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import { theme } from '../../constants/theme';
 import { MunicipeService } from '../../services/municipe';
 import { Municipe } from '../../types';
@@ -113,6 +114,14 @@ export const ListaMunicipesScreen = forwardRef<ListaMunicipesScreenRef, ListaMun
     console.log('🚀 ListaMunicipesScreen: Componente montado, carregando dados iniciais');
     loadMunicipes(1);
   }, []);
+
+  // Effect para recarregar quando a tela ganhar foco (volta da edição)
+  useFocusEffect(
+    useCallback(() => {
+      console.log('🔄 ListaMunicipesScreen: Tela ganhou foco, recarregando dados...');
+      loadMunicipes(1); // Recarrega sempre que a tela ganhar foco
+    }, [])
+  );
 
   // Effect para busca com debounce
   useEffect(() => {

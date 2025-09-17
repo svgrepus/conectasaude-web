@@ -43,12 +43,20 @@ export const MunicipeDetailScreen: React.FC<MunicipeDetailScreenProps> = ({
     navigate("Municipes");
   };
 
+  // Callback para invalidar cache após salvamento
+  const handleSaveSuccess = () => {
+    console.log("🔄 MunicipeDetailScreen: Dados salvos, invalidando cache da lista...");
+    // Forçar recarregamento da lista ao voltar
+    navigate("Municipes", { refresh: true, timestamp: Date.now() });
+  };
+
   // If in edit mode and we have the municipe data, show the edit form
   if (mode === "edit" && municipe) {
     return (
       <CadastroMunicipeScreen
         onBack={handleBackToList}
         municipeToEdit={municipe}
+        onSaveSuccess={handleSaveSuccess}
       />
     );
   }

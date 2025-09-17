@@ -4,7 +4,7 @@ export const lightTheme: Theme = {
   colors: {
     primary: '#8A9E8E', // Verde institucional da Prefeitura de Jambeiro
     secondary: '#4CAF50',
-    background: '#fdf2f2',
+    background: '#FFFFFF', // Mudança: de #fdf2f2 para branco puro
     surface: '#FFFFFF',
     text: '#111827',
     textSecondary: '#6b7280',
