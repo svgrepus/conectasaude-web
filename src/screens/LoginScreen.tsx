@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -28,6 +28,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+
+  const passwordInputRef = useRef<any>(null);
 
   const { theme, isDark, toggleTheme } = useTheme();
 
@@ -268,6 +270,12 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                 mode="flat"
                 underlineStyle={{ height: 0 }}
                 contentStyle={{ paddingLeft: 28 }}
+                onSubmitEditing={() => {
+                  // Focus on password field when Enter is pressed on email
+                  passwordInputRef.current?.focus();
+                }}
+                returnKeyType="next"
+                blurOnSubmit={false}
               />
             </View>
           </View>
@@ -282,6 +290,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                 style={styles.inputIcon}
               />
               <TextInput
+                ref={passwordInputRef}
                 value={password}
                 onChangeText={setPassword}
                 placeholder="Senha"
@@ -291,6 +300,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                 mode="flat"
                 underlineStyle={{ height: 0 }}
                 contentStyle={{ paddingLeft: 28 }}
+                onSubmitEditing={handleLogin}
+                returnKeyType="send"
                 right={
                   <TextInput.Icon
                     icon={showPassword ? "eye-off" : "eye"}
