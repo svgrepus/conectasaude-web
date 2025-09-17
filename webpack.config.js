@@ -25,7 +25,14 @@ module.exports = async function (env, argv) {
     https: require.resolve('https-browserify'),
     os: require.resolve('os-browserify/browser'),
     path: require.resolve('path-browserify'),
+    vm: require.resolve('vm-browserify'),
     fs: false,
+  };
+
+  // Add aliases for React Native Paper icons
+  config.resolve.alias = {
+    ...config.resolve.alias,
+    '@react-native-vector-icons/material-design-icons': '@expo/vector-icons/MaterialCommunityIcons',
   };
 
   // Provide polyfills
