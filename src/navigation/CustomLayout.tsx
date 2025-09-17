@@ -12,6 +12,8 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../hooks";
 import { BrasaoJambeiro } from "../components/BrasaoJambeiro";
+import { createStackNavigator } from "@react-navigation/stack";
+import { navigate, onRouteChange, getCurrentRoute } from "./navigationService";
 
 // Screens
 import { DashboardScreen } from "../screens/DashboardScreen";
@@ -28,22 +30,142 @@ import {
   TipoVeiculoScreen,
   CargoScreen,
 } from "../screens/cadastros";
+import { MunicipeDetailScreen } from "../screens/municipes/MunicipeDetailScreen";
+import { MunicipeDetailScreenWrapper } from "../screens/municipes/MunicipeDetailScreenWrapper";
+import { LoginScreen } from "../screens/LoginScreen";
+
+const Stack = createStackNavigator();
 
 const { width } = Dimensions.get("window");
 const isWeb = width > 768; // Detecta se é web/desktop
 
+// Function to get screen component based on screen name
+const getScreenComponent = (screenName: string) => {
+  const screenComponents: { [key: string]: React.ComponentType<any> } = {
+    Dashboard: DashboardScreen,
+    Medicamentos: MedicamentosScreen,
+    Motoristas: MotoristasScreen,
+    Veículos: VeiculosScreen,
+    Munícipes: MunicipesContainer,
+    DoencaCronica: DoencaCronicaScreen,
+    TipoDoenca: TipoDoencaScreen,
+    TipoVeiculo: TipoVeiculoScreen,
+    Cargo: CargoScreen,
+  };
+  
+  return screenComponents[screenName];
+};
+
 interface CustomLayoutProps {
   isDarkMode?: boolean;
+  children?: React.ReactNode;
 }
+
+// Create internal Stack Navigator
+function MainStackNavigator() {
+  return (
+    <Stack.Navigator 
+      screenOptions={{ headerShown: false }}
+      initialRouteName="Dashboard"
+    >
+      <Stack.Screen name="Dashboard" component={DashboardScreen} />
+      <Stack.Screen name="Medicamentos" component={MedicamentosScreen} />
+      <Stack.Screen name="Motoristas" component={MotoristasScreen} />
+      <Stack.Screen name="Veiculos" component={VeiculosScreen} />
+      <Stack.Screen name="Municipes" component={MunicipesContainer} />
+      <Stack.Screen 
+        name="MunicipeDetail" 
+        component={MunicipeDetailScreenWrapper}
+        options={({ route }) => ({ 
+          title: `Munícipe ${(route.params as any)?.id || ''}` 
+        })}
+      />
+      <Stack.Screen name="DoencasCronicas" component={DoencaCronicaScreen} />
+      <Stack.Screen name="TipoDoenca" component={TipoDoencaScreen} />
+      <Stack.Screen name="TipoVeiculo" component={TipoVeiculoScreen} />
+      <Stack.Screen name="Cargo" component={CargoScreen} />
+    </Stack.Navigator>
+  );
+}
+
+// Map navigation screen names to your internal screen keys
+const navigationScreenMap: { [key: string]: string } = {
+  Dashboard: "Dashboard",
+  Medicamentos: "Medicamentos", 
+  Motoristas: "Motoristas",
+  Veiculos: "Veículos",
+  Municipes: "Munícipes",
+  MunicipeDetail: "Munícipes",
+  DoencasCronicas: "DoencaCronica",
+  TipoDoenca: "TipoDoenca",
+  TipoVeiculo: "TipoVeiculo",
+  Cargo: "Cargo",
+};
+
+// Reverse map: internal screen keys to React Navigation screen names
+const screenToNavigation: { [key: string]: string } = {
+  Dashboard: "Dashboard",
+  Medicamentos: "Medicamentos",
+  Motoristas: "Motoristas", 
+  Veículos: "Veiculos",
+  Munícipes: "Municipes",
+  DoencaCronica: "DoencasCronicas",
+  TipoDoenca: "TipoDoenca", 
+  TipoVeiculo: "TipoVeiculo",
+  Cargo: "Cargo",
+};
 
 export const CustomLayout: React.FC<CustomLayoutProps> = ({
   isDarkMode = false,
+  children,
 }) => {
   const { isDark, toggleTheme } = useTheme();
-  const [activeScreen, setActiveScreen] = useState("Dashboard");
+  
+  // Track current route
+  const [currentRoute, setCurrentRoute] = useState<any>(null);
+  
+  useEffect(() => {
+    // Set initial route
+    const initialRoute = getCurrentRoute();
+    if (initialRoute) {
+      setCurrentRoute(initialRoute);
+    }
+    
+    // Listen for route changes
+    const unsubscribe = onRouteChange((route) => {
+      setCurrentRoute(route);
+    });
+    
+    return unsubscribe;
+  }, []);
+  
+  // Get current screen from tracked route
+  const currentScreenName = currentRoute?.name || "Dashboard";
+  const activeScreen = navigationScreenMap[currentScreenName] || "Dashboard";
+  const params = currentRoute?.params || {};
+  
+  // Debug logging
+  console.log("CustomLayout - currentRoute:", currentRoute);
+  console.log("CustomLayout - currentScreenName:", currentScreenName);
+  console.log("CustomLayout - activeScreen:", activeScreen);
+  
   const [sidebarOpen, setSidebarOpen] = useState(isWeb);
   const [expandedMenus, setExpandedMenus] = useState<string[]>([]); // Menus principais
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]); // Categorias expandidas
+
+  // Auto-expand menus based on current screen
+  useEffect(() => {
+    if (["DoencaCronica", "TipoDoenca"].includes(activeScreen)) {
+      setExpandedMenus(["CadastrosBasicos"]);
+      setExpandedCategories(["AreaSaude"]);
+    } else if (activeScreen === "TipoVeiculo") {
+      setExpandedMenus(["CadastrosBasicos"]);
+      setExpandedCategories(["Logistica"]);
+    } else if (activeScreen === "Cargo") {
+      setExpandedMenus(["CadastrosBasicos"]);
+      setExpandedCategories(["Administrativo"]);
+    }
+  }, [activeScreen]);
 
   // Fix document title for web
   useEffect(() => {
@@ -171,14 +293,20 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({
       // Clique em categoria - alterna a categoria
       toggleCategory(submenuItem.key);
     } else if (submenuItem && !submenuItem.isCategory) {
-      // Clique em item de submenu - navega para a tela
-      setActiveScreen(submenuItem.key);
+      // Clique em item de submenu - navega para a tela usando React Navigation
+      const navigationScreen = screenToNavigation[submenuItem.key];
+      if (navigationScreen) {
+        navigate(navigationScreen);
+      }
     } else if (item.hasSubmenu && !submenuItem) {
       // Clique no menu principal com submenu - alterna o menu
       toggleSubmenu(item.key);
     } else if (!item.hasSubmenu) {
-      // Clique em menu sem submenu - navega para a tela
-      setActiveScreen(item.key);
+      // Clique em menu sem submenu - navega para a tela usando React Navigation
+      const navigationScreen = screenToNavigation[item.key];
+      if (navigationScreen) {
+        navigate(navigationScreen);
+      }
     }
   };
 
@@ -586,7 +714,7 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({
 
         {/* Screen Content */}
         <View style={styles.screenContainer}>
-          {ActiveComponent && <ActiveComponent />}
+          <MainStackNavigator />
         </View>
       </View>
     </View>
