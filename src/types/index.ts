@@ -65,6 +65,19 @@ export interface Municipe {
   saude_created_at?: string;
   saude_updated_at?: string;
   
+  // Campos do acompanhante (da view vw_municipes_completo)
+  acompanhante_id?: string;
+  acompanhante_nome?: string;
+  acompanhante_cpf?: string;
+  acompanhante_rg?: string;
+  acompanhante_data_nascimento?: string;
+  acompanhante_sexo?: 'M' | 'F';
+  acompanhante_grau_parentesco?: string;
+  acompanhante_idade?: number;
+  acompanhante_created_at?: string;
+  acompanhante_updated_at?: string;
+  tem_acompanhante_cadastrado?: string;
+  
   // Campos calculados da view
   idade?: number;
   

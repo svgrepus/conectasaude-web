@@ -31,7 +31,8 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ isDarkMode = false }
   const { isDark, toggleTheme } = useTheme();
   const [activeScreen, setActiveScreen] = useState('Dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(isWeb);
-  const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
+  const [expandedMenus, setExpandedMenus] = useState<string[]>([]); // Menus principais
+  const [expandedCategories, setExpandedCategories] = useState<string[]>([]); // Categorias expandidas
 
   const menuItems = [
     { key: 'Dashboard', label: 'Dashboard', icon: 'grid', component: DashboardScreen },
@@ -46,10 +47,50 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ isDarkMode = false }
       component: CadastrosBasicosScreen,
       hasSubmenu: true,
       submenu: [
-        { key: 'DoencaCronica', label: 'Área da Saúde - Doença Crônica', component: DoencaCronicaScreen },
-        { key: 'TipoDoenca', label: 'Área da Saúde - Tipo de Doença', component: TipoDoencaScreen },
-        { key: 'TipoVeiculo', label: 'Veículo - Tipo de Veículo', component: TipoVeiculoScreen },
-        { key: 'Cargo', label: 'Colaboradores - Cargo', component: CargoScreen },
+        // ÁREA DA SAÚDE
+        { 
+          key: 'AreaSaude', 
+          label: 'ÁREA DA SAÚDE', 
+          isCategory: true 
+        },
+        { 
+          key: 'DoencaCronica', 
+          label: '  • Doença Crônica', 
+          component: DoencaCronicaScreen,
+          parentCategory: 'AreaSaude'
+        },
+        { 
+          key: 'TipoDoenca', 
+          label: '  • Tipo de Doença', 
+          component: TipoDoencaScreen,
+          parentCategory: 'AreaSaude'
+        },
+        
+        // LOGÍSTICA
+        { 
+          key: 'Logistica', 
+          label: 'LOGÍSTICA', 
+          isCategory: true 
+        },
+        { 
+          key: 'TipoVeiculo', 
+          label: '  • Tipo de Veículo', 
+          component: TipoVeiculoScreen,
+          parentCategory: 'Logistica'
+        },
+        
+        // ADMINISTRATIVO
+        { 
+          key: 'Administrativo', 
+          label: 'ADMINISTRATIVO', 
+          isCategory: true 
+        },
+        { 
+          key: 'Cargo', 
+          label: '  • Cargo', 
+          component: CargoScreen,
+          parentCategory: 'Administrativo'
+        },
       ]
     },
   ];
@@ -62,12 +103,26 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ isDarkMode = false }
     );
   };
 
+  const toggleCategory = (categoryKey: string) => {
+    setExpandedCategories(prev => 
+      prev.includes(categoryKey) 
+        ? prev.filter(key => key !== categoryKey)
+        : [...prev, categoryKey]
+    );
+  };
+
   const handleMenuClick = (item: any, submenuItem?: any) => {
-    if (submenuItem) {
+    if (submenuItem && submenuItem.isCategory) {
+      // Clique em categoria - alterna a categoria
+      toggleCategory(submenuItem.key);
+    } else if (submenuItem && !submenuItem.isCategory) {
+      // Clique em item de submenu - navega para a tela
       setActiveScreen(submenuItem.key);
-    } else if (item.hasSubmenu) {
+    } else if (item.hasSubmenu && !submenuItem) {
+      // Clique no menu principal com submenu - alterna o menu
       toggleSubmenu(item.key);
-    } else {
+    } else if (!item.hasSubmenu) {
+      // Clique em menu sem submenu - navega para a tela
       setActiveScreen(item.key);
     }
   };
@@ -82,7 +137,7 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ isDarkMode = false }
     // Procura nos submenus
     for (const item of menuItems) {
       if (item.submenu) {
-        const submenuItem = item.submenu.find(sub => sub.key === activeScreen);
+        const submenuItem = item.submenu.find(sub => sub.key === activeScreen && !sub.isCategory);
         if (submenuItem) {
           return submenuItem.component;
         }
@@ -205,6 +260,27 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ isDarkMode = false }
     submenuTextActive: {
       color: '#FFFFFF',
       fontWeight: '600',
+    },
+    categoryItem: {
+      paddingVertical: 8,
+      paddingHorizontal: 16,
+      marginTop: 8,
+      marginBottom: 4,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    categoryText: {
+      fontSize: 12,
+      fontWeight: '700',
+      color: isDark ? '#8A9E8E' : '#8A9E8E',
+      fontFamily: 'Arial, Helvetica, sans-serif',
+      letterSpacing: 0.5,
+      textTransform: 'uppercase',
+      flex: 1,
+    },
+    categoryChevron: {
+      marginLeft: 8,
     },
     menuChevron: {
       marginLeft: 8,
@@ -334,25 +410,54 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ isDarkMode = false }
               {/* Submenu */}
               {item.hasSubmenu && item.submenu && expandedMenus.includes(item.key) && (
                 <View style={styles.submenuContainer}>
-                  {item.submenu.map((submenuItem: any) => (
-                    <TouchableOpacity
-                      key={submenuItem.key}
-                      style={[
-                        styles.submenuItem,
-                        activeScreen === submenuItem.key && styles.submenuItemActive,
-                      ]}
-                      onPress={() => handleMenuClick(item, submenuItem)}
-                    >
-                      <Text
+                  {item.submenu.map((submenuItem: any) => {
+                    // Se é uma categoria, sempre mostra
+                    if (submenuItem.isCategory) {
+                      return (
+                        <TouchableOpacity
+                          key={submenuItem.key}
+                          style={styles.categoryItem}
+                          onPress={() => handleMenuClick(item, submenuItem)}
+                        >
+                          <Text style={styles.categoryText}>
+                            {submenuItem.label}
+                          </Text>
+                          <Ionicons
+                            name={expandedCategories.includes(submenuItem.key) ? 'chevron-down' : 'chevron-forward'}
+                            size={12}
+                            color={isDark ? '#8A9E8E' : '#8A9E8E'}
+                            style={styles.categoryChevron}
+                          />
+                        </TouchableOpacity>
+                      );
+                    }
+                    
+                    // Se é um item de submenu, só mostra se a categoria pai estiver expandida
+                    const shouldShowItem = expandedCategories.includes(submenuItem.parentCategory);
+                    if (!shouldShowItem) {
+                      return null;
+                    }
+                    
+                    return (
+                      <TouchableOpacity
+                        key={submenuItem.key}
                         style={[
-                          styles.submenuText,
-                          activeScreen === submenuItem.key && styles.submenuTextActive,
+                          styles.submenuItem,
+                          activeScreen === submenuItem.key && styles.submenuItemActive,
                         ]}
+                        onPress={() => handleMenuClick(item, submenuItem)}
                       >
-                        {submenuItem.label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
+                        <Text
+                          style={[
+                            styles.submenuText,
+                            activeScreen === submenuItem.key && styles.submenuTextActive,
+                          ]}
+                        >
+                          {submenuItem.label}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
                 </View>
               )}
             </View>
@@ -396,7 +501,7 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ isDarkMode = false }
 
         {/* Screen Content */}
         <View style={styles.screenContainer}>
-          <ActiveComponent />
+          {ActiveComponent && <ActiveComponent />}
         </View>
       </View>
     </View>

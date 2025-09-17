@@ -182,11 +182,11 @@ export const validateBirthDate = (dateString: string): boolean => {
     return false;
   }
   
-  // Check if date is in the past
+  // Check if date is in the past or today
   const today = new Date();
   today.setHours(23, 59, 59, 999); // End of today
   
-  return date < today;
+  return date <= today;
 };
 
 // Format date input for dd/MM/yyyy

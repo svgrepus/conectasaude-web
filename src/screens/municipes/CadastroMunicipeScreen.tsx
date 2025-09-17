@@ -21,7 +21,6 @@ import { getSupabaseHeadersFoto, getSupabaseHeaders, SUPABASE_ENDPOINTS } from '
 import ChipTags from '../../components/ChipTags';
 import MedicamentoSearch from '../../components/MedicamentoSearch';
 import DoencaCronicaSearch from '../../components/DoencaCronicaSearch';
-import DatePicker from '../../components/DatePicker';
 import PhotoUpload from '../../components/PhotoUpload';
 import { ComboPicker } from '../../components/ComboPicker';
 import { v4 as uuidv4 } from 'uuid';
@@ -68,6 +67,13 @@ interface CadastroMunicipeForm {
   necessitaAcompanhante: string;
   doencasCronicas: string[]; // Mudança: agora é array de strings para doenças crônicas
   observacoesMedicas: string; // Campo para observações médicas
+  // Dados do Acompanhante
+  acompanhanteNome: string;
+  acompanhanteCpf: string;
+  acompanhanteRg: string;
+  acompanhanteDataNascimento: string;
+  acompanhanteSexo: string;
+  acompanhanteGrauParentesco: string;
   foto: string; // URL da foto
 }
 
@@ -92,6 +98,7 @@ export const CadastroMunicipeScreen = ({
   const [successMessage, setSuccessMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showSexoModal, setShowSexoModal] = useState(false);
+  const [showAcompanhanteSexoModal, setShowAcompanhanteSexoModal] = useState(false);
   const [loadingCEP, setLoadingCEP] = useState(false);
 
   // Estados para controle de validação e erros
@@ -126,6 +133,13 @@ export const CadastroMunicipeScreen = ({
     necessitaAcompanhante: '',
     doencasCronicas: [], // Mudança: agora é array vazio para doenças crônicas
     observacoesMedicas: '', // Campo para observações médicas
+    // Dados do Acompanhante
+    acompanhanteNome: '',
+    acompanhanteCpf: '',
+    acompanhanteRg: '',
+    acompanhanteDataNascimento: '',
+    acompanhanteSexo: '',
+    acompanhanteGrauParentesco: '',
     foto: '', // URL da foto
   });
 
@@ -259,6 +273,13 @@ export const CadastroMunicipeScreen = ({
         necessitaAcompanhante: convertAcompanhanteFromDatabase(municipeToEdit.necessita_acompanhante || false),
         doencasCronicas: parseDoencasCronicas(municipeToEdit.doencasCronicas || municipeToEdit.doencas_cronicas || municipeToEdit.doenca_cronica || municipeToEdit.tipo_doenca || ''), // Convertendo para array
         observacoesMedicas: municipeToEdit.observacoes_medicas || '',
+        // Dados do Acompanhante
+        acompanhanteNome: municipeToEdit.acompanhante_nome || '',
+        acompanhanteCpf: municipeToEdit.acompanhante_cpf || '',
+        acompanhanteRg: municipeToEdit.acompanhante_rg || '',
+        acompanhanteDataNascimento: formatDateForInput(municipeToEdit.acompanhante_data_nascimento || ''),
+        acompanhanteSexo: convertSexoFromDatabase(municipeToEdit.acompanhante_sexo || ''),
+        acompanhanteGrauParentesco: municipeToEdit.acompanhante_grau_parentesco || '',
         foto: municipeToEdit.foto_url || '', // Campo para foto
       });
 
@@ -469,12 +490,23 @@ export const CadastroMunicipeScreen = ({
       updateForm('quaisMedicamentos', []); // Agora limpa com array vazio
     }
 
+    // Limpar dados do acompanhante se mudar para "Não"
+    if (field === 'necessitaAcompanhante' && value === 'Não') {
+      updateForm('acompanhanteNome', '');
+      updateForm('acompanhanteCpf', '');
+      updateForm('acompanhanteRg', '');
+      updateForm('acompanhanteDataNascimento', '');
+      updateForm('acompanhanteSexo', '');
+      updateForm('acompanhanteGrauParentesco', '');
+    }
+
     // Fechar todos os modais
     setShowMedicamentoModal(false);
     setShowDeficienciaModal(false);
     setShowAcompanhanteModal(false);
     setShowEstadoCivilModal(false);
     setShowSexoModal(false);
+    setShowAcompanhanteSexoModal(false);
   };
 
   // 📍 Função para aplicar máscara de CEP
@@ -638,6 +670,39 @@ export const CadastroMunicipeScreen = ({
       errors.quaisMedicamentos = 'Selecione pelo menos um medicamento quando uso contínuo for "Sim"';
     }
 
+    // ✅ VALIDAÇÃO CONDICIONAL - ACOMPANHANTE (apenas se necessitaAcompanhante for "Sim")
+    if (form.necessitaAcompanhante === 'Sim') {
+      if (!form.acompanhanteNome.trim()) {
+        errors.acompanhanteNome = 'Nome do acompanhante é obrigatório';
+      }
+
+      if (!form.acompanhanteCpf.trim()) {
+        errors.acompanhanteCpf = 'CPF do acompanhante é obrigatório';
+      } else if (!validateCPF(form.acompanhanteCpf)) {
+        errors.acompanhanteCpf = 'CPF do acompanhante inválido';
+      }
+
+      if (!form.acompanhanteRg.trim()) {
+        errors.acompanhanteRg = 'RG do acompanhante é obrigatório';
+      } else if (!validateRG(form.acompanhanteRg)) {
+        errors.acompanhanteRg = 'RG do acompanhante inválido. Deve ter entre 7 e 12 caracteres';
+      }
+
+      if (!form.acompanhanteDataNascimento.trim()) {
+        errors.acompanhanteDataNascimento = 'Data de nascimento do acompanhante é obrigatória';
+      } else if (!validateBirthDate(form.acompanhanteDataNascimento)) {
+        errors.acompanhanteDataNascimento = 'Data inválida. Use formato dd/MM/yyyy e data no passado';
+      }
+
+      if (!form.acompanhanteSexo.trim()) {
+        errors.acompanhanteSexo = 'Sexo do acompanhante é obrigatório';
+      }
+
+      if (!form.acompanhanteGrauParentesco.trim()) {
+        errors.acompanhanteGrauParentesco = 'Grau de parentesco é obrigatório';
+      }
+    }
+
     return errors;
   };
 
@@ -729,7 +794,16 @@ export const CadastroMunicipeScreen = ({
         p_tipo_doenca: '',
         p_uf: form.estado || '',
         p_uso_continuo_medicamentos: form.usoMedicamentoContinuo === 'Sim',
-        p_zona_rural: false
+        p_zona_rural: false,
+        // Parâmetros do acompanhante (condicionais)
+        ...(form.necessitaAcompanhante === 'Sim' && form.acompanhanteNome.trim() && {
+          p_acompanhante_nome: form.acompanhanteNome || '',
+          p_acompanhante_cpf: form.acompanhanteCpf.replace(/\D/g, '') || '',
+          p_acompanhante_rg: form.acompanhanteRg || '',
+          p_acompanhante_data_nascimento: convertDateToDatabase(form.acompanhanteDataNascimento) || null,
+          p_acompanhante_sexo: convertSexoToDatabase(form.acompanhanteSexo) || '',
+          p_acompanhante_grau_parentesco: form.acompanhanteGrauParentesco || ''
+        })
       };
 
 
@@ -848,7 +922,18 @@ export const CadastroMunicipeScreen = ({
         p_tipo_doenca: '',
         p_uf: form.estado || '',
         p_uso_continuo_medicamentos: form.usoMedicamentoContinuo === 'Sim',
-        p_zona_rural: false
+        p_zona_rural: false,
+        // Parâmetros do acompanhante
+        ...(form.necessitaAcompanhante === 'Sim' && form.acompanhanteNome.trim() ? {
+          p_acompanhante_nome: form.acompanhanteNome || '',
+          p_acompanhante_cpf: form.acompanhanteCpf.replace(/\D/g, '') || '',
+          p_acompanhante_rg: form.acompanhanteRg || '',
+          p_acompanhante_data_nascimento: convertDateToDatabase(form.acompanhanteDataNascimento) || null,
+          p_acompanhante_sexo: convertSexoToDatabase(form.acompanhanteSexo) || '',
+          p_acompanhante_grau_parentesco: form.acompanhanteGrauParentesco || ''
+        } : {
+          p_remover_acompanhante: form.necessitaAcompanhante === 'Não'
+        })
       };
 
       console.log('🌐 Fazendo chamada à API para atualizar...');
@@ -906,7 +991,11 @@ export const CadastroMunicipeScreen = ({
       
       // Encontrar primeiro campo com erro para navegar até a aba correta
       const firstErrorField = Object.keys(errors)[0];
-      const healthFields = ['numeroSus', 'usoMedicamentoContinuo', 'quaisMedicamentos', 'doencasCronicas'];
+      const healthFields = [
+        'numeroSus', 'usoMedicamentoContinuo', 'quaisMedicamentos', 'doencasCronicas',
+        'acompanhanteNome', 'acompanhanteCpf', 'acompanhanteRg', 'acompanhanteDataNascimento',
+        'acompanhanteSexo', 'acompanhanteGrauParentesco'
+      ];
       
       // Determinar qual aba contém o erro
       const targetTab = healthFields.includes(firstErrorField) ? 'saude' : 'pessoais';
@@ -1560,6 +1649,140 @@ export const CadastroMunicipeScreen = ({
               <FieldError error={fieldErrors.necessitaAcompanhante} />
             </View>
 
+            {/* Dados do Acompanhante - Exibido apenas se necessitaAcompanhante for "Sim" */}
+            {form.necessitaAcompanhante === 'Sim' && (
+              <>
+                {/* Título da seção */}
+                <View style={styles.fullWidth}>
+                  <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>
+                    📋 Dados do Acompanhante
+                  </Text>
+                </View>
+
+                {/* Nome do Acompanhante */}
+                <View style={styles.fullWidth}>
+                  <Text style={[styles.label, { color: currentTheme.text }]}>Nome completo do acompanhante *</Text>
+                  <TextInput
+                    style={[getFieldStyle('acompanhanteNome', {
+                      ...styles.input,
+                      backgroundColor: currentTheme.surface,
+                      borderColor: currentTheme.border,
+                      color: currentTheme.text
+                    })]}
+                    placeholder="Digite o nome completo do acompanhante"
+                    placeholderTextColor={currentTheme.mutedForeground}
+                    value={form.acompanhanteNome}
+                    onChangeText={(value: string) => updateFormAndClearError('acompanhanteNome', value)}
+                  />
+                  <FieldError error={fieldErrors.acompanhanteNome} />
+                </View>
+
+                {/* CPF e RG do Acompanhante */}
+                <View style={styles.rowContainer}>
+                  <View style={styles.halfWidth}>
+                    <Text style={[styles.label, { color: currentTheme.text }]}>CPF do acompanhante *</Text>
+                    <TextInput
+                      style={[getFieldStyle('acompanhanteCpf', {
+                        ...styles.input,
+                        backgroundColor: currentTheme.surface,
+                        borderColor: currentTheme.border,
+                        color: currentTheme.text
+                      })]}
+                      placeholder="000.000.000-00"
+                      placeholderTextColor={currentTheme.mutedForeground}
+                      value={form.acompanhanteCpf}
+                      onChangeText={(value: string) => updateFormAndClearError('acompanhanteCpf', formatCPF(value))}
+                      keyboardType="numeric"
+                      maxLength={14}
+                    />
+                    <FieldError error={fieldErrors.acompanhanteCpf} />
+                  </View>
+
+                  <View style={styles.halfWidth}>
+                    <Text style={[styles.label, { color: currentTheme.text }]}>RG do acompanhante *</Text>
+                    <TextInput
+                      style={[getFieldStyle('acompanhanteRg', {
+                        ...styles.input,
+                        backgroundColor: currentTheme.surface,
+                        borderColor: currentTheme.border,
+                        color: currentTheme.text
+                      })]}
+                      placeholder="Digite o RG"
+                      placeholderTextColor={currentTheme.mutedForeground}
+                      value={form.acompanhanteRg}
+                      onChangeText={(value: string) => updateFormAndClearError('acompanhanteRg', formatRG(value))}
+                      maxLength={12}
+                    />
+                    <FieldError error={fieldErrors.acompanhanteRg} />
+                  </View>
+                </View>
+
+                {/* Data de Nascimento e Sexo do Acompanhante */}
+                <View style={styles.rowContainer}>
+                  <View style={styles.halfWidth}>
+                    <Text style={[styles.label, { color: currentTheme.text }]}>Data de nascimento *</Text>
+                    <TextInput
+                      style={[getFieldStyle('acompanhanteDataNascimento', {
+                        ...styles.input,
+                        backgroundColor: currentTheme.surface,
+                        borderColor: currentTheme.border,
+                        color: currentTheme.text
+                      })]}
+                      placeholder="dd/MM/yyyy"
+                      placeholderTextColor={currentTheme.mutedForeground}
+                      value={form.acompanhanteDataNascimento}
+                      onChangeText={(value: string) => {
+                        const formatted = formatBirthDate(value);
+                        updateFormAndClearError('acompanhanteDataNascimento', formatted);
+                      }}
+                      keyboardType="numeric"
+                      maxLength={10} // dd/MM/yyyy
+                    />
+                    <FieldError error={fieldErrors.acompanhanteDataNascimento} />
+                  </View>
+
+                  <View style={styles.halfWidth}>
+                    <Text style={[styles.label, { color: currentTheme.text }]}>Sexo *</Text>
+                    <TouchableOpacity
+                      style={[getFieldStyle('acompanhanteSexo', {
+                        ...styles.selectContainer,
+                        backgroundColor: currentTheme.surface,
+                        borderColor: currentTheme.border
+                      })]}
+                      onPress={() => setShowAcompanhanteSexoModal(true)}
+                    >
+                      <Text style={[
+                        styles.selectText,
+                        { color: form.acompanhanteSexo ? currentTheme.text : currentTheme.mutedForeground }
+                      ]}>
+                        {form.acompanhanteSexo || 'Selecione o sexo'}
+                      </Text>
+                      <Ionicons name="chevron-down" size={16} color={currentTheme.mutedForeground} />
+                    </TouchableOpacity>
+                    <FieldError error={fieldErrors.acompanhanteSexo} />
+                  </View>
+                </View>
+
+                {/* Grau de Parentesco */}
+                <View style={styles.fullWidth}>
+                  <Text style={[styles.label, { color: currentTheme.text }]}>Grau de parentesco *</Text>
+                  <TextInput
+                    style={[getFieldStyle('acompanhanteGrauParentesco', {
+                      ...styles.input,
+                      backgroundColor: currentTheme.surface,
+                      borderColor: currentTheme.border,
+                      color: currentTheme.text
+                    })]}
+                    value={form.acompanhanteGrauParentesco}
+                    onChangeText={(text) => updateFormAndClearError('acompanhanteGrauParentesco', text)}
+                    placeholder="Ex: Pai, Mãe, Filho, Esposo, etc."
+                    placeholderTextColor={currentTheme.mutedForeground}
+                  />
+                  <FieldError error={fieldErrors.acompanhanteGrauParentesco} />
+                </View>
+              </>
+            )}
+
             {/* Doenças crônicas - NOVA IMPLEMENTAÇÃO COM CHIP-TAGS */}
             <View style={styles.fullWidth}>
               <Text style={[styles.label, { color: currentTheme.text }]}>Doenças crônicas</Text>
@@ -1750,6 +1973,37 @@ export const CadastroMunicipeScreen = ({
                   key={option}
                   style={styles.modalOption}
                   onPress={() => handleSelectOption('sexo', option)}
+                >
+                  <Text style={[styles.modalOptionText, { color: currentTheme.text }]}>
+                    {option}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </TouchableOpacity>
+        </Modal>
+
+        {/* Modal Sexo do Acompanhante */}
+        <Modal
+          visible={showAcompanhanteSexoModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowAcompanhanteSexoModal(false)}
+        >
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={() => setShowAcompanhanteSexoModal(false)}
+          >
+            <View style={[styles.modalContent, { backgroundColor: currentTheme.surface }]}>
+              <Text style={[styles.modalTitle, { color: currentTheme.text }]}>
+                Sexo do acompanhante
+              </Text>
+              {sexoOptions.map((option) => (
+                <TouchableOpacity
+                  key={option}
+                  style={styles.modalOption}
+                  onPress={() => handleSelectOption('acompanhanteSexo', option)}
                 >
                   <Text style={[styles.modalOptionText, { color: currentTheme.text }]}>
                     {option}
@@ -2130,5 +2384,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     textAlign: 'center',
+  },
+  // Estilos para campos do acompanhante
+  rowContainer: {
+    flexDirection: 'row',
+    gap: 16,
+    width: '100%',
   },
 });
