@@ -1655,7 +1655,7 @@ export const CadastroMunicipeScreen = ({
                 {/* Título da seção */}
                 <View style={styles.fullWidth}>
                   <Text style={[styles.sectionTitle, { color: currentTheme.text }]}>
-                    📋 Dados do Acompanhante
+                     Dados do Acompanhante
                   </Text>
                 </View>
 
