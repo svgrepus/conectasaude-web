@@ -27,6 +27,15 @@ const queryClient = new QueryClient({
   },
 });
 
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: customTheme.light.background,
+  },
+});
+
 export default function App() {
   const { theme, isDark } = useTheme();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -84,23 +93,39 @@ export default function App() {
     dark: isDark,
   };
 
-  // New Dashboard Flow
+    // New Dashboard Flow
   if (useNewDashboard) {
     if (loading) {
       return (
         <SafeAreaProvider>
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={customTheme.light.jambeiroBlue} />
+            <ActivityIndicator size="large" color={customTheme.light.primary} />
           </View>
         </SafeAreaProvider>
       );
     }
 
+    const linking = {
+      prefixes: ['http://localhost:19006'],
+      config: {
+        screens: {
+          Home: '/',
+          Login: '/login',
+        },
+      },
+    };
+
     return (
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
           <PaperProvider theme={paperTheme}>
-            <NavigationContainer>
+            <NavigationContainer 
+              linking={linking}
+              documentTitle={{
+                formatter: (options, route) => 
+                  `${options?.title ?? route?.name ?? 'ConectaSaúde'} - Jambeiro`
+              }}
+            >
               {isAuthenticated ? (
                 <CustomLayout isDarkMode={isDark} />
               ) : (
@@ -128,12 +153,3 @@ export default function App() {
     </SafeAreaProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: customTheme.light.background,
-  },
-});

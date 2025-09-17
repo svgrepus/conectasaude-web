@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Platform } from 'react-native';
 import { TextInput, Button } from 'react-native-paper';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../hooks';
@@ -22,6 +22,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
   const [successMessage, setSuccessMessage] = useState('');
 
   const { theme, isDark, toggleTheme } = useTheme();
+
+  // Fix document title for web
+  useEffect(() => {
+    if (Platform.OS === 'web') {
+      document.title = 'Login - ConectaSaúde - Jambeiro';
+    }
+  }, []);
 
   const handleLogin = async () => {
     // Limpar mensagens anteriores

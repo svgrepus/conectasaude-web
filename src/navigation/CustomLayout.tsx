@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Dimensions, Image } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Dimensions, Image, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../hooks';
 import { BrasaoJambeiro } from '../components/BrasaoJambeiro';
@@ -33,6 +33,22 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({ isDarkMode = false }
   const [sidebarOpen, setSidebarOpen] = useState(isWeb);
   const [expandedMenus, setExpandedMenus] = useState<string[]>([]); // Menus principais
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]); // Categorias expandidas
+
+  // Fix document title for web
+  useEffect(() => {
+    if (Platform.OS === 'web') {
+      document.title = 'ConectaSaúde - Jambeiro';
+    }
+  }, []);
+
+  // Update document title when screen changes
+  useEffect(() => {
+    if (Platform.OS === 'web') {
+      const baseTitle = 'ConectaSaúde - Jambeiro';
+      const screenTitle = activeScreen === 'Dashboard' ? baseTitle : `${activeScreen} - ${baseTitle}`;
+      document.title = screenTitle;
+    }
+  }, [activeScreen]);
 
   const menuItems = [
     { key: 'Dashboard', label: 'Dashboard', icon: 'grid', component: DashboardScreen },
