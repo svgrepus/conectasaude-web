@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { ListaMunicipesScreen } from "./ListaMunicipesScreen";
+import React, { useState, useRef } from "react";
+import { ListaMunicipesScreen, ListaMunicipesScreenRef } from "./ListaMunicipesScreen";
 import { CadastroMunicipeScreen } from "./CadastroMunicipeScreen";
 import { Municipe } from "../../types";
 import { navigate } from "../../navigation/navigationService";
@@ -11,6 +11,10 @@ export const MunicipesContainer: React.FC = () => {
   const [selectedMunicipe, setSelectedMunicipe] = useState<Municipe | null>(
     null
   );
+  const [refreshKey, setRefreshKey] = useState(0); // Key para forçar recarga
+  
+  // Ref para acessar a função de reload da lista
+  const listScreenRef = useRef<ListaMunicipesScreenRef>(null);
 
   const handleNavigateToCadastro = () => {
     setSelectedMunicipe(null);
@@ -27,21 +31,49 @@ export const MunicipesContainer: React.FC = () => {
     setCurrentView("lista");
   };
 
+  // Callback para invalidar/recarregar a lista após salvamento
+  const handleRefreshAfterSave = () => {
+    console.log("🔄 MunicipesContainer: Iniciando processo de atualização da lista...");
+    
+    // Incrementar refresh key para forçar re-render da lista
+    setRefreshKey(prev => {
+      const newKey = prev + 1;
+      console.log("🔄 Atualizando refreshKey:", prev, "->", newKey);
+      return newKey;
+    });
+    
+    // Também tentar via ref se disponível
+    if (listScreenRef.current) {
+      console.log("🔄 Chamando reloadData via ref...");
+      listScreenRef.current.reloadData();
+    }
+  };
+
   if (currentView === "cadastro") {
-    return <CadastroMunicipeScreen onBack={handleBackToList} />;
+    console.log("🔧 MunicipesContainer: Renderizando tela de cadastro com callback");
+    return (
+      <CadastroMunicipeScreen 
+        onBack={handleBackToList}
+        onSaveSuccess={handleRefreshAfterSave} // ✅ Adicionar callback
+      />
+    );
   }
 
   if (currentView === "edicao" && selectedMunicipe) {
+    console.log("🔧 MunicipesContainer: Renderizando tela de edição com callback");
     return (
       <CadastroMunicipeScreen
         onBack={handleBackToList}
         municipeToEdit={selectedMunicipe}
+        onSaveSuccess={handleRefreshAfterSave} // ✅ Adicionar callback
       />
     );
   }
 
   return (
     <ListaMunicipesScreen
+      key={refreshKey} // ✅ Key que força re-render completo
+      ref={listScreenRef}
       onNavigateToCadastro={handleNavigateToCadastro}
       onNavigateToEdit={handleNavigateToEdit}
     />

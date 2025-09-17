@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, forwardRef, useImperativeHandle } from 'react';
 import {
   View,
   Text,
@@ -22,10 +22,14 @@ interface ListaMunicipesScreenProps {
   onNavigateToEdit: (municipe: Municipe) => void;
 }
 
-export const ListaMunicipesScreen: React.FC<ListaMunicipesScreenProps> = ({ 
+export interface ListaMunicipesScreenRef {
+  reloadData: () => void;
+}
+
+export const ListaMunicipesScreen = forwardRef<ListaMunicipesScreenRef, ListaMunicipesScreenProps>(({ 
   onNavigateToCadastro,
   onNavigateToEdit
-}) => {
+}, ref) => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -76,6 +80,16 @@ export const ListaMunicipesScreen: React.FC<ListaMunicipesScreenProps> = ({
       setLoading(false);
     }
   }, []);
+
+  // Expor função reloadData para o componente pai
+  useImperativeHandle(ref, () => ({
+    reloadData: () => {
+      console.log("🔄 ListaMunicipesScreen: reloadData chamado via ref");
+      setCurrentPage(1);
+      setSearchText('');
+      loadMunicipes(1, '');
+    }
+  }), [loadMunicipes]);
 
   // Debounce para busca
   const debounceSearch = useCallback(
@@ -512,7 +526,7 @@ export const ListaMunicipesScreen: React.FC<ListaMunicipesScreenProps> = ({
       </Modal>
     </SafeAreaView>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {

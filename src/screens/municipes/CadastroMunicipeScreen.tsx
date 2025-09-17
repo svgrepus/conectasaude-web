@@ -84,15 +84,19 @@ interface CadastroMunicipeForm {
 interface CadastroMunicipeScreenProps {
   onBack?: () => void;
   municipeToEdit?: Municipe;
+  onSaveSuccess?: () => void; // Callback para invalidar cache após salvamento
 }
 
 export const CadastroMunicipeScreen = ({
   onBack,
   municipeToEdit,
+  onSaveSuccess, // Adicionar o callback
 }: CadastroMunicipeScreenProps) => {
   console.log("🔧 CadastroMunicipeScreen: Props recebidas", {
-    onBack: !!onBack,
-    municipeToEdit: !!municipeToEdit,
+    hasOnBack: !!onBack,
+    hasOnSaveSuccess: !!onSaveSuccess,
+    hasMunicipeToEdit: !!municipeToEdit,
+    municipeId: municipeToEdit?.id
   });
 
   const [activeTab, setActiveTab] = useState<"pessoais" | "saude">("pessoais");
@@ -1163,6 +1167,21 @@ export const CadastroMunicipeScreen = ({
       console.log(
         "🎉 Salvamento concluído - preparando mensagem de sucesso..."
       );
+
+      // ✅ CHAMAR CALLBACK PARA INVALIDAR CACHE IMEDIATAMENTE APÓS SALVAMENTO
+      console.log("🔄 Verificando se onSaveSuccess foi fornecido...");
+      if (onSaveSuccess) {
+        console.log("🔄 onSaveSuccess encontrado! Executando callback...");
+        try {
+          await onSaveSuccess(); // Aguardar execução do callback
+          console.log("✅ onSaveSuccess executado com sucesso - lista foi atualizada");
+        } catch (error) {
+          console.error("❌ Erro ao executar onSaveSuccess:", error);
+        }
+      } else {
+        console.log("⚠️ onSaveSuccess NÃO foi fornecido - lista não será atualizada automaticamente");
+        console.log("⚠️ Props recebidas:", { onBack: !!onBack, municipeToEdit: !!municipeToEdit, onSaveSuccess: !!onSaveSuccess });
+      }
 
       // Usar modal personalizado ao invés de Alert
       setIsLoading(false);
