@@ -14,10 +14,10 @@ import { useTheme } from "./src/hooks";
 import { LoginScreen } from "./src/screens/LoginScreen";
 import { CustomLayout } from "./src/navigation/CustomLayout";
 import { DashboardScreen } from "./src/screens/DashboardScreen";
-import { 
-  MedicamentosScreen, 
-  MotoristasScreen, 
-  VeiculosScreen 
+import {
+  MedicamentosScreen,
+  MotoristasScreen,
+  VeiculosScreen,
 } from "./src/screens/PlaceholderScreens";
 import { MunicipesContainer } from "./src/screens/municipes/MunicipesContainer";
 import {
@@ -29,14 +29,17 @@ import {
 
 import { authService } from "./src/services/auth-simple";
 import { theme as customTheme } from "./src/constants/theme";
-import { navigationRef, notifyRouteChange } from "./src/navigation/navigationService";
+import {
+  navigationRef,
+  notifyRouteChange,
+} from "./src/navigation/navigationService";
 
 const Stack = createStackNavigator();
 
 // Create the Main Stack Navigator
 function MainStackNavigator() {
   return (
-    <Stack.Navigator 
+    <Stack.Navigator
       screenOptions={{ headerShown: false }}
       initialRouteName="Dashboard"
     >
@@ -45,11 +48,11 @@ function MainStackNavigator() {
       <Stack.Screen name="Motoristas" component={MotoristasScreen} />
       <Stack.Screen name="Veiculos" component={VeiculosScreen} />
       <Stack.Screen name="Municipes" component={MunicipesContainer} />
-      <Stack.Screen 
-        name="MunicipeDetail" 
+      <Stack.Screen
+        name="MunicipeDetail"
         component={MunicipesContainer}
-        options={({ route }) => ({ 
-          title: `Munícipe ${(route.params as any)?.id || ''}` 
+        options={({ route }) => ({
+          title: `Munícipe ${(route.params as any)?.id || ""}`,
         })}
       />
       <Stack.Screen name="DoencasCronicas" component={DoencaCronicaScreen} />
@@ -62,13 +65,17 @@ function MainStackNavigator() {
 
 // Configure deep linking
 const linking = {
-  prefixes: ["http://localhost:19006", "http://localhost:19007", "https://your-domain.com"],
+  prefixes: [
+    "http://localhost:19006",
+    "http://localhost:19007",
+    "https://your-domain.com",
+  ],
   config: {
     screens: {
       Dashboard: "/",
       Medicamentos: "/medicamentos",
       Motoristas: "/motoristas",
-      Veiculos: "/veiculos", 
+      Veiculos: "/veiculos",
       Municipes: "/municipes",
       MunicipeDetail: "/municipes/:id",
       DoencasCronicas: "/basicos/saude/doencas-cronicas",
@@ -173,7 +180,7 @@ export default function App() {
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
           <PaperProvider theme={paperTheme}>
-            <NavigationContainer 
+            <NavigationContainer
               ref={navigationRef}
               linking={linking}
               onReady={() => {
@@ -206,12 +213,13 @@ export default function App() {
         </QueryClientProvider>
       </SafeAreaProvider>
     );
-  }  return (
+  }
+  return (
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
         <PaperProvider theme={paperTheme}>
-          <NavigationContainer 
-            ref={navigationRef} 
+          <NavigationContainer
+            ref={navigationRef}
             linking={linking}
             onStateChange={(state) => {
               // Track route changes for sidebar navigation

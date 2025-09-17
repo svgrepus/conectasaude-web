@@ -1,25 +1,25 @@
-import React, { useEffect, useState } from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { createDrawerNavigator } from '@react-navigation/drawer';
-import { Ionicons } from '@expo/vector-icons';
-import { Platform } from 'react-native';
+import React, { useEffect, useState } from "react";
+import { createStackNavigator } from "@react-navigation/stack";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { createDrawerNavigator } from "@react-navigation/drawer";
+import { Ionicons } from "@expo/vector-icons";
+import { Platform } from "react-native";
 
-import { useTheme } from '../hooks';
-import { authService } from '../services/auth-simple';
+import { useTheme } from "../hooks";
+import { authService } from "../services/auth-simple";
 
 // Auth Screens
-import { LoginScreenWrapper } from '../screens/auth/LoginScreenWrapper';
+import { LoginScreenWrapper } from "../screens/auth/LoginScreenWrapper";
 
 // Main Screens
-import { DashboardScreen } from '../screens/DashboardScreen';
-import { 
-  MedicamentosScreen, 
-  MotoristasScreen, 
-  VeiculosScreen 
-} from '../screens/PlaceholderScreens';
-import { MunicipesContainer } from '../screens/municipes/MunicipesContainer';
-import { MunicipeDetailScreen } from '../screens/municipes/MunicipeDetailScreen';
+import { DashboardScreen } from "../screens/DashboardScreen";
+import {
+  MedicamentosScreen,
+  MotoristasScreen,
+  VeiculosScreen,
+} from "../screens/PlaceholderScreens";
+import { MunicipesContainer } from "../screens/municipes/MunicipesContainer";
+import { MunicipeDetailScreen } from "../screens/municipes/MunicipeDetailScreen";
 
 // Cadastros Básicos Screens
 import {
@@ -27,7 +27,7 @@ import {
   TipoDoencaScreen,
   TipoVeiculoScreen,
   CargoScreen,
-} from '../screens/cadastros';
+} from "../screens/cadastros";
 
 // Type definitions
 export type RootStackParamList = {
@@ -76,65 +76,65 @@ function MainStackNavigator() {
         headerStyle: {
           backgroundColor: theme.colors.primary,
         },
-        headerTintColor: '#fff',
+        headerTintColor: "#fff",
         headerTitleStyle: {
-          fontWeight: 'bold',
+          fontWeight: "bold",
         },
       }}
     >
-      <MainStack.Screen 
-        name="Dashboard" 
+      <MainStack.Screen
+        name="Dashboard"
         component={DashboardScreen}
-        options={{ title: 'Dashboard' }}
+        options={{ title: "Dashboard" }}
       />
-      <MainStack.Screen 
-        name="Medicamentos" 
+      <MainStack.Screen
+        name="Medicamentos"
         component={MedicamentosScreen}
-        options={{ title: 'Medicamentos' }}
+        options={{ title: "Medicamentos" }}
       />
-      <MainStack.Screen 
-        name="Motoristas" 
+      <MainStack.Screen
+        name="Motoristas"
         component={MotoristasScreen}
-        options={{ title: 'Motoristas' }}
+        options={{ title: "Motoristas" }}
       />
-      <MainStack.Screen 
-        name="Veiculos" 
+      <MainStack.Screen
+        name="Veiculos"
         component={VeiculosScreen}
-        options={{ title: 'Veículos' }}
+        options={{ title: "Veículos" }}
       />
-      <MainStack.Screen 
-        name="Municipes" 
+      <MainStack.Screen
+        name="Municipes"
         component={MunicipesContainer}
-        options={{ title: 'Munícipes' }}
+        options={{ title: "Munícipes" }}
       />
-      <MainStack.Screen 
-        name="MunicipeDetail" 
+      <MainStack.Screen
+        name="MunicipeDetail"
         component={MunicipeDetailScreen}
-        options={({ route }) => ({ 
-          title: `Munícipe ${route.params.id}` 
+        options={({ route }) => ({
+          title: `Munícipe ${route.params.id}`,
         })}
       />
-      
+
       {/* Cadastros Básicos */}
-      <MainStack.Screen 
-        name="DoencasCronicas" 
+      <MainStack.Screen
+        name="DoencasCronicas"
         component={DoencaCronicaScreen}
-        options={{ title: 'Doenças Crônicas' }}
+        options={{ title: "Doenças Crônicas" }}
       />
-      <MainStack.Screen 
-        name="TipoDoenca" 
+      <MainStack.Screen
+        name="TipoDoenca"
         component={TipoDoencaScreen}
-        options={{ title: 'Tipos de Doença' }}
+        options={{ title: "Tipos de Doença" }}
       />
-      <MainStack.Screen 
-        name="TipoVeiculo" 
+      <MainStack.Screen
+        name="TipoVeiculo"
         component={TipoVeiculoScreen}
-        options={{ title: 'Tipos de Veículo' }}
+        options={{ title: "Tipos de Veículo" }}
       />
-      <MainStack.Screen 
-        name="Cargo" 
+      <MainStack.Screen
+        name="Cargo"
         component={CargoScreen}
-        options={{ title: 'Cargos' }}
+        options={{ title: "Cargos" }}
       />
     </MainStack.Navigator>
   );
@@ -143,7 +143,7 @@ function MainStackNavigator() {
 // Main Drawer/Tab Navigator
 function MainNavigator() {
   const { theme } = useTheme();
-  const isWeb = Platform.OS === 'web';
+  const isWeb = Platform.OS === "web";
 
   if (isWeb) {
     // Use Drawer for web
@@ -159,94 +159,94 @@ function MainNavigator() {
           headerStyle: {
             backgroundColor: theme.colors.primary,
           },
-          headerTintColor: '#fff',
+          headerTintColor: "#fff",
         }}
       >
-        <Drawer.Screen 
-          name="Dashboard" 
+        <Drawer.Screen
+          name="Dashboard"
           component={DashboardScreen}
           options={{
-            title: 'Dashboard',
+            title: "Dashboard",
             drawerIcon: ({ color }) => (
               <Ionicons name="grid-outline" size={22} color={color} />
             ),
           }}
         />
-        <Drawer.Screen 
-          name="Medicamentos" 
+        <Drawer.Screen
+          name="Medicamentos"
           component={MedicamentosScreen}
           options={{
-            title: 'Medicamentos',
+            title: "Medicamentos",
             drawerIcon: ({ color }) => (
               <Ionicons name="medical-outline" size={22} color={color} />
             ),
           }}
         />
-        <Drawer.Screen 
-          name="Motoristas" 
+        <Drawer.Screen
+          name="Motoristas"
           component={MotoristasScreen}
           options={{
-            title: 'Motoristas',
+            title: "Motoristas",
             drawerIcon: ({ color }) => (
               <Ionicons name="people-outline" size={22} color={color} />
             ),
           }}
         />
-        <Drawer.Screen 
-          name="Veiculos" 
+        <Drawer.Screen
+          name="Veiculos"
           component={VeiculosScreen}
           options={{
-            title: 'Veículos',
+            title: "Veículos",
             drawerIcon: ({ color }) => (
               <Ionicons name="car-outline" size={22} color={color} />
             ),
           }}
         />
-        <Drawer.Screen 
-          name="Municipes" 
+        <Drawer.Screen
+          name="Municipes"
           component={MunicipesContainer}
           options={{
-            title: 'Munícipes',
+            title: "Munícipes",
             drawerIcon: ({ color }) => (
               <Ionicons name="person-outline" size={22} color={color} />
             ),
           }}
         />
-        <Drawer.Screen 
-          name="DoencasCronicas" 
+        <Drawer.Screen
+          name="DoencasCronicas"
           component={DoencaCronicaScreen}
           options={{
-            title: 'Doenças Crônicas',
+            title: "Doenças Crônicas",
             drawerIcon: ({ color }) => (
               <Ionicons name="medical-outline" size={22} color={color} />
             ),
           }}
         />
-        <Drawer.Screen 
-          name="TipoDoenca" 
+        <Drawer.Screen
+          name="TipoDoenca"
           component={TipoDoencaScreen}
           options={{
-            title: 'Tipos de Doença',
+            title: "Tipos de Doença",
             drawerIcon: ({ color }) => (
               <Ionicons name="list-outline" size={22} color={color} />
             ),
           }}
         />
-        <Drawer.Screen 
-          name="TipoVeiculo" 
+        <Drawer.Screen
+          name="TipoVeiculo"
           component={TipoVeiculoScreen}
           options={{
-            title: 'Tipos de Veículo',
+            title: "Tipos de Veículo",
             drawerIcon: ({ color }) => (
               <Ionicons name="car-outline" size={22} color={color} />
             ),
           }}
         />
-        <Drawer.Screen 
-          name="Cargo" 
+        <Drawer.Screen
+          name="Cargo"
           component={CargoScreen}
           options={{
-            title: 'Cargos',
+            title: "Cargos",
             drawerIcon: ({ color }) => (
               <Ionicons name="briefcase-outline" size={22} color={color} />
             ),

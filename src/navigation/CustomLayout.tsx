@@ -52,7 +52,7 @@ const getScreenComponent = (screenName: string) => {
     TipoVeiculo: TipoVeiculoScreen,
     Cargo: CargoScreen,
   };
-  
+
   return screenComponents[screenName];
 };
 
@@ -64,7 +64,7 @@ interface CustomLayoutProps {
 // Create internal Stack Navigator
 function MainStackNavigator() {
   return (
-    <Stack.Navigator 
+    <Stack.Navigator
       screenOptions={{ headerShown: false }}
       initialRouteName="Dashboard"
     >
@@ -73,11 +73,11 @@ function MainStackNavigator() {
       <Stack.Screen name="Motoristas" component={MotoristasScreen} />
       <Stack.Screen name="Veiculos" component={VeiculosScreen} />
       <Stack.Screen name="Municipes" component={MunicipesContainer} />
-      <Stack.Screen 
-        name="MunicipeDetail" 
+      <Stack.Screen
+        name="MunicipeDetail"
         component={MunicipeDetailScreenWrapper}
-        options={({ route }) => ({ 
-          title: `Munícipe ${(route.params as any)?.id || ''}` 
+        options={({ route }) => ({
+          title: `Munícipe ${(route.params as any)?.id || ""}`,
         })}
       />
       <Stack.Screen name="DoencasCronicas" component={DoencaCronicaScreen} />
@@ -91,7 +91,7 @@ function MainStackNavigator() {
 // Map navigation screen names to your internal screen keys
 const navigationScreenMap: { [key: string]: string } = {
   Dashboard: "Dashboard",
-  Medicamentos: "Medicamentos", 
+  Medicamentos: "Medicamentos",
   Motoristas: "Motoristas",
   Veiculos: "Veículos",
   Municipes: "Munícipes",
@@ -106,11 +106,11 @@ const navigationScreenMap: { [key: string]: string } = {
 const screenToNavigation: { [key: string]: string } = {
   Dashboard: "Dashboard",
   Medicamentos: "Medicamentos",
-  Motoristas: "Motoristas", 
+  Motoristas: "Motoristas",
   Veículos: "Veiculos",
   Munícipes: "Municipes",
   DoencaCronica: "DoencasCronicas",
-  TipoDoenca: "TipoDoenca", 
+  TipoDoenca: "TipoDoenca",
   TipoVeiculo: "TipoVeiculo",
   Cargo: "Cargo",
 };
@@ -120,35 +120,30 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({
   children,
 }) => {
   const { isDark, toggleTheme } = useTheme();
-  
+
   // Track current route
   const [currentRoute, setCurrentRoute] = useState<any>(null);
-  
+
   useEffect(() => {
     // Set initial route
     const initialRoute = getCurrentRoute();
     if (initialRoute) {
       setCurrentRoute(initialRoute);
     }
-    
+
     // Listen for route changes
     const unsubscribe = onRouteChange((route) => {
       setCurrentRoute(route);
     });
-    
+
     return unsubscribe;
   }, []);
-  
+
   // Get current screen from tracked route
   const currentScreenName = currentRoute?.name || "Dashboard";
   const activeScreen = navigationScreenMap[currentScreenName] || "Dashboard";
   const params = currentRoute?.params || {};
-  
-  // Debug logging
-  console.log("CustomLayout - currentRoute:", currentRoute);
-  console.log("CustomLayout - currentScreenName:", currentScreenName);
-  console.log("CustomLayout - activeScreen:", activeScreen);
-  
+
   const [sidebarOpen, setSidebarOpen] = useState(isWeb);
   const [expandedMenus, setExpandedMenus] = useState<string[]>([]); // Menus principais
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]); // Categorias expandidas
