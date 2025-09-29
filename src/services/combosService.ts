@@ -93,6 +93,34 @@ class CombosService {
   }
 
   /**
+   * 🏥 Busca equipes de saúde ativas
+   */
+  async getEquipesSaude(): Promise<ComboOption[]> {
+    return this.getComboOptions('health', 'teams', 'basic_health_teams_active');
+  }
+
+  /**
+   * 🏥 Busca unidades de saúde ativas
+   */
+  async getUnidadesSaude(): Promise<ComboOption[]> {
+    return this.getComboOptions('health', 'units', 'health_units_active');
+  }
+
+  /**
+   * 🏥 Busca áreas de cobertura ativas
+   */
+  async getAreasSaude(): Promise<ComboOption[]> {
+    return this.getComboOptions('health', 'areas', 'coverage_areas_active');
+  }
+
+  /**
+   * 🏥 Busca microáreas ativas
+   */
+  async getMicroareasSaude(): Promise<ComboOption[]> {
+    return this.getComboOptions('health', 'microareas', 'micro_areas_active');
+  }
+
+  /**
    * Busca todos os contextos disponíveis
    */
   async getContexts(): Promise<Context[]> {

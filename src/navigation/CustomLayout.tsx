@@ -29,6 +29,10 @@ import {
   TipoDoencaScreen,
   TipoVeiculoScreen,
   CargoScreen,
+  EquipeScreen,
+  UnidadeScreen,
+  AreaScreen,
+  MicroareaScreen,
 } from "../screens/cadastros";
 import { MunicipeDetailScreen } from "../screens/municipes/MunicipeDetailScreen";
 import { MunicipeDetailScreenWrapper } from "../screens/municipes/MunicipeDetailScreenWrapper";
@@ -51,6 +55,10 @@ const getScreenComponent = (screenName: string) => {
     TipoDoenca: TipoDoencaScreen,
     TipoVeiculo: TipoVeiculoScreen,
     Cargo: CargoScreen,
+    Equipe: EquipeScreen,
+    Unidade: UnidadeScreen,
+    Area: AreaScreen,
+    Microarea: MicroareaScreen,
   };
 
   return screenComponents[screenName];
@@ -84,6 +92,10 @@ function MainStackNavigator() {
       <Stack.Screen name="TipoDoenca" component={TipoDoencaScreen} />
       <Stack.Screen name="TipoVeiculo" component={TipoVeiculoScreen} />
       <Stack.Screen name="Cargo" component={CargoScreen} />
+      <Stack.Screen name="Equipes" component={EquipeScreen} />
+      <Stack.Screen name="Unidades" component={UnidadeScreen} />
+      <Stack.Screen name="Areas" component={AreaScreen} />
+      <Stack.Screen name="Microareas" component={MicroareaScreen} />
     </Stack.Navigator>
   );
 }
@@ -100,6 +112,10 @@ const navigationScreenMap: { [key: string]: string } = {
   TipoDoenca: "TipoDoenca",
   TipoVeiculo: "TipoVeiculo",
   Cargo: "Cargo",
+  Equipes: "Equipe",
+  Unidades: "Unidade",
+  Areas: "Area",
+  Microareas: "Microarea",
 };
 
 // Reverse map: internal screen keys to React Navigation screen names
@@ -113,6 +129,10 @@ const screenToNavigation: { [key: string]: string } = {
   TipoDoenca: "TipoDoenca",
   TipoVeiculo: "TipoVeiculo",
   Cargo: "Cargo",
+  Equipe: "Equipes",
+  Unidade: "Unidades",
+  Area: "Areas",
+  Microarea: "Microareas",
 };
 
 export const CustomLayout: React.FC<CustomLayoutProps> = ({
@@ -150,7 +170,7 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({
 
   // Auto-expand menus based on current screen
   useEffect(() => {
-    if (["DoencaCronica", "TipoDoenca"].includes(activeScreen)) {
+    if (["DoencaCronica", "TipoDoenca", "Equipe", "Unidade", "Area", "Microarea"].includes(activeScreen)) {
       setExpandedMenus(["CadastrosBasicos"]);
       setExpandedCategories(["AreaSaude"]);
     } else if (activeScreen === "TipoVeiculo") {
@@ -235,6 +255,30 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({
           key: "TipoDoenca",
           label: "  • Tipo de Doença",
           component: TipoDoencaScreen,
+          parentCategory: "AreaSaude",
+        },
+        {
+          key: "Equipe",
+          label: "  • Equipes de Saúde",
+          component: EquipeScreen,
+          parentCategory: "AreaSaude",
+        },
+        {
+          key: "Unidade",
+          label: "  • Unidades de Saúde",
+          component: UnidadeScreen,
+          parentCategory: "AreaSaude",
+        },
+        {
+          key: "Area",
+          label: "  • Áreas de Cobertura",
+          component: AreaScreen,
+          parentCategory: "AreaSaude",
+        },
+        {
+          key: "Microarea",
+          label: "  • Microáreas",
+          component: MicroareaScreen,
           parentCategory: "AreaSaude",
         },
 

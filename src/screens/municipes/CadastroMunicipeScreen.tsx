@@ -17,6 +17,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { theme } from "../../constants/theme";
 import { Municipe } from "../../types";
 import { authService } from "../../services/auth";
+import { equipeService, type Equipe } from "../../services/equipeService";
+import { unidadeService, type Unidade } from "../../services/unidadeService"; 
+import { areaService, type Area } from "../../services/areaService";
+import { microareaService, type Microarea } from "../../services/microareaService";
+import { HealthDropdown, type HealthDataItem } from "../../components/HealthDropdown";
 import {
   getSupabaseHeadersFoto,
   getSupabaseHeaders,
@@ -45,40 +50,65 @@ import {
   formatBirthDate,
 } from "../../utils";
 
+// 🎯 Interface baseada na estrutura EXATA da tabela municipe do backend
 interface CadastroMunicipeForm {
-  nomeCompleto: string;
+  // ✅ CAMPOS DA TABELA MUNICIPE (CORE)
+  nomeCompleto: string; // nome_completo
   cpf: string;
   rg: string;
-  dataNascimento: string;
-  idade: number; // Campo calculado automaticamente
-  estadoCivil: string;
+  dataNascimento: string; // data_nascimento
+  idade: number; // Campo calculado automaticamente (não na tabela)
+  estadoCivil: string; // estado_civil
   sexo: string;
   email: string;
-  telefone: string;
-  nomeMae: string;
+  telefoneResidencial: string; // telefone_residencial
+  telefoneCelular: string; // telefone_celular
+  telefoneContato: string; // telefone_contato
+  nomeMae: string; // nome_mae
+  nomePai: string; // nome_pai
+  nacionalidade: string; // OBRIGATÓRIO
+  municipioNascimento: string; // municipio_nascimento - OBRIGATÓRIO
+  fotoUrl: string; // foto_url
+  observacoes: string; // observacoes
+  // ✅ CAMPOS DE ENDEREÇO (TABELA ENDERECO)
   cep: string;
   rua: string;
   numero: string;
-  complemento: string; // Campo complemento do endereço
+  complemento: string;
+  complementoLogradouro: string;
+  pontoReferencia: string;
   bairro: string;
   cidade: string;
   estado: string;
-  // Dados de Saúde
-  numeroSus: string;
+  // ✅ CAMPOS DE SAÚDE (TABELA SAUDE)
+  cns: string; // CNS - Cartão Nacional de Saúde
   usoMedicamentoContinuo: string;
-  quaisMedicamentos: string[]; // Array de strings para medicamentos
+  quaisMedicamentos: string[];
   deficiencia: string;
+  usoBebidaAlcoolica: string;
+  usoTabaco: string;
   necessitaAcompanhante: string;
-  doencasCronicas: string[]; // Mudança: agora é array de strings para doenças crônicas
-  observacoesMedicas: string; // Campo para observações médicas
-  // Dados do Acompanhante
+  doencasCronicas: string[];
+  observacoesMedicas: string;
+  // ✅ DADOS DO ACOMPANHANTE
   acompanhanteNome: string;
   acompanhanteCpf: string;
   acompanhanteRg: string;
   acompanhanteDataNascimento: string;
   acompanhanteSexo: string;
   acompanhanteGrauParentesco: string;
-  foto: string; // URL da foto
+  // ✅ INFORMAÇÕES SOCIODEMOGRÁFICAS
+  nis: string;
+  ocupacao: string;
+  orientacaoSexual: string;
+  identidadeGenero: string;
+  escolaridade: string;
+  tipoSanguineo: string;
+  // ✅ EQUIPE RESPONSÁVEL
+  equipeResponsavel: string;
+  unidadeResponsavel: string;
+  area: string;
+  microarea: string;
 }
 
 interface CadastroMunicipeScreenProps {
@@ -86,6 +116,22 @@ interface CadastroMunicipeScreenProps {
   municipeToEdit?: Municipe;
   onSaveSuccess?: () => void; // Callback para invalidar cache após salvamento
 }
+
+// 🆔 Função para validar NIS (11 dígitos)
+const validateNIS = (nis: string): boolean => {
+  if (!nis) return true; // Campo opcional
+  
+  // Remove formatação para validar apenas números
+  const somenteNumeros = nis.replace(/\D/g, "");
+  
+  // Deve ter exatamente 11 dígitos
+  if (somenteNumeros.length !== 11) return false;
+  
+  // Verifica se não são todos números iguais (como 11111111111)
+  if (/^(\d)\1{10}$/.test(somenteNumeros)) return false;
+  
+  return true;
+};
 
 export const CadastroMunicipeScreen = ({
   onBack,
@@ -99,10 +145,12 @@ export const CadastroMunicipeScreen = ({
     municipeId: municipeToEdit?.id
   });
 
-  const [activeTab, setActiveTab] = useState<"pessoais" | "saude">("pessoais");
+  const [activeTab, setActiveTab] = useState<"pessoais" | "saude" | "sociodemograficas" | "equipe">("pessoais");
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [showMedicamentoModal, setShowMedicamentoModal] = useState(false);
   const [showDeficienciaModal, setShowDeficienciaModal] = useState(false);
+  const [showBebidaAlcoolicaModal, setShowBebidaAlcoolicaModal] = useState(false);
+  const [showTabacoModal, setShowTabacoModal] = useState(false);
   const [showAcompanhanteModal, setShowAcompanhanteModal] = useState(false);
   const [showEstadoCivilModal, setShowEstadoCivilModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -111,7 +159,21 @@ export const CadastroMunicipeScreen = ({
   const [showSexoModal, setShowSexoModal] = useState(false);
   const [showAcompanhanteSexoModal, setShowAcompanhanteSexoModal] =
     useState(false);
+  const [showEscolaridadeModal, setShowEscolaridadeModal] = useState(false);
+  const [showOrientacaoSexualModal, setShowOrientacaoSexualModal] = useState(false);
+  const [showIdentidadeGeneroModal, setShowIdentidadeGeneroModal] = useState(false);
+  const [showTipoSanguineoModal, setShowTipoSanguineoModal] = useState(false);
   const [loadingCEP, setLoadingCEP] = useState(false);
+
+  // Estados para dados de saúde
+  const [equipesData, setEquipesData] = useState<Equipe[]>([]);
+  const [unidadesData, setUnidadesData] = useState<Unidade[]>([]);
+  const [areasData, setAreasData] = useState<Area[]>([]);
+  const [microareasData, setMicroareasData] = useState<Microarea[]>([]);
+
+
+
+
 
   // Estados para controle de validação e erros
   const [fieldErrors, setFieldErrors] = useState<{ [key: string]: string }>({});
@@ -128,20 +190,30 @@ export const CadastroMunicipeScreen = ({
     estadoCivil: "",
     sexo: "",
     email: "",
-    telefone: "",
+    // 📞 TELEFONES DESMEMBRADOS
+    telefoneResidencial: "",
+    telefoneCelular: "",
+    telefoneContato: "",
     nomeMae: "",
+    nomePai: "", // ➕ NOVO CAMPO
+    nacionalidade: "", // ➕ NOVO CAMPO OBRIGATÓRIO
+    municipioNascimento: "", // ➕ NOVO CAMPO OBRIGATÓRIO
     cep: "",
     rua: "",
     numero: "",
     complemento: "", // Campo complemento do endereço
+    complementoLogradouro: "", // 🏠 NOVO CAMPO
+    pontoReferencia: "", // 🏠 NOVO CAMPO
     bairro: "",
     cidade: "",
     estado: "",
     // Dados de Saúde
-    numeroSus: "",
+    cns: "", // 🔄 RENOMEADO de numeroSus para cns
     usoMedicamentoContinuo: "",
     quaisMedicamentos: [], // Array vazio para medicamentos
     deficiencia: "",
+    usoBebidaAlcoolica: "", // Novo campo
+    usoTabaco: "", // Novo campo
     necessitaAcompanhante: "",
     doencasCronicas: [], // Mudança: agora é array vazio para doenças crônicas
     observacoesMedicas: "", // Campo para observações médicas
@@ -152,7 +224,20 @@ export const CadastroMunicipeScreen = ({
     acompanhanteDataNascimento: "",
     acompanhanteSexo: "",
     acompanhanteGrauParentesco: "",
-    foto: "", // URL da foto
+    fotoUrl: "", // foto_url - URL da foto
+    observacoes: "", // observacoes - campo da tabela municipe
+    // 👥 NOVA SEÇÃO: INFORMAÇÕES SOCIODEMOGRÁFICAS
+    nis: "", // NIS (PIS/PASEP) - 11 dígitos
+    ocupacao: "",
+    orientacaoSexual: "",
+    identidadeGenero: "",
+    escolaridade: "",
+    tipoSanguineo: "", // 📊 NOVO CAMPO COM ENUM
+    // 🏥 NOVA SEÇÃO: EQUIPE RESPONSÁVEL
+    equipeResponsavel: "",
+    unidadeResponsavel: "",
+    area: "",
+    microarea: "",
   });
 
   // Effect para carregar dados do munícipe quando estiver editando
@@ -280,19 +365,35 @@ export const CadastroMunicipeScreen = ({
         return value || "";
       };
 
+      const estadoCivilConvertido = convertEstadoCivilFromDatabase(
+        municipeToEdit.estado_civil || ""
+      );
+      const sexoConvertido = convertSexoFromDatabase(municipeToEdit.sexo || "");
+
+      const deficienciaConvertida = convertDeficienciaFromDatabase(
+        municipeToEdit.deficiencia ||
+          municipeToEdit.tem_deficiencia_fisica ||
+          municipeToEdit.possui_deficiencia ||
+          false
+      );
+
       setForm({
         nomeCompleto: municipeToEdit.nome_completo || "",
         cpf: municipeToEdit.cpf || "",
         rg: municipeToEdit.rg || "",
         dataNascimento: formatDateForInput(municipeToEdit.data_nascimento),
         idade: calculateAge(municipeToEdit.data_nascimento || ""), // Calcular idade automaticamente
-        estadoCivil: convertEstadoCivilFromDatabase(
-          municipeToEdit.estado_civil || ""
-        ),
-        sexo: convertSexoFromDatabase(municipeToEdit.sexo || ""), // Converte M/F para Masculino/Feminino
+        estadoCivil: estadoCivilConvertido,
+        sexo: sexoConvertido, // Converte M/F para Masculino/Feminino
         email: municipeToEdit.email || "",
-        telefone: municipeToEdit.telefone || "",
+        // 📞 TELEFONES DESMEMBRADOS
+        telefoneResidencial: municipeToEdit.telefone_residencial || "",
+        telefoneCelular: municipeToEdit.telefone_celular || "",
+        telefoneContato: municipeToEdit.telefone_contato || municipeToEdit.telefone || "", // Fallback para telefone existente
         nomeMae: municipeToEdit.nome_mae || "",
+        nomePai: municipeToEdit.nome_pai || "", // ➕ NOVO CAMPO
+        nacionalidade: municipeToEdit.nacionalidade || "", // ➕ NOVO CAMPO OBRIGATÓRIO
+        municipioNascimento: municipeToEdit.municipio_nascimento || "", // ➕ NOVO CAMPO OBRIGATÓRIO
         // Campos de endereço da view vw_municipes_completo
         cep: municipeToEdit.cep || "",
         rua: municipeToEdit.endereco || municipeToEdit.logradouro || "",
@@ -301,11 +402,13 @@ export const CadastroMunicipeScreen = ({
           municipeToEdit.complemento_endereco ||
           municipeToEdit.complemento ||
           "", // Campo complemento
+        complementoLogradouro: municipeToEdit.complemento_logradouro || "", // 🏠 NOVO CAMPO
+        pontoReferencia: municipeToEdit.ponto_referencia || "", // 🏠 NOVO CAMPO
         bairro: municipeToEdit.bairro || "",
         cidade: municipeToEdit.cidade || "",
         estado: municipeToEdit.estado || municipeToEdit.uf || "", // Adicionando fallback para uf
         // Campos de saúde da view vw_municipes_completo
-        numeroSus: municipeToEdit.cartao_sus || "",
+        cns: municipeToEdit.cartao_sus || municipeToEdit.cns || "", // 🔄 RENOMEADO
         usoMedicamentoContinuo: convertBooleanToSimNao(
           municipeToEdit.uso_continuo_medicamentos ||
             municipeToEdit.uso_medicamento_continuo ||
@@ -317,11 +420,12 @@ export const CadastroMunicipeScreen = ({
             municipeToEdit.quais_medicamentos ||
             ""
         ), // Convertendo para array
-        deficiencia: convertDeficienciaFromDatabase(
-          municipeToEdit.deficiencia ||
-            municipeToEdit.tem_deficiencia_fisica ||
-            municipeToEdit.possui_deficiencia ||
-            false
+        deficiencia: deficienciaConvertida,
+        usoBebidaAlcoolica: convertBooleanToSimNao(
+          municipeToEdit.uso_bebida_alcoolica || false
+        ),
+        usoTabaco: convertBooleanToSimNao(
+          municipeToEdit.uso_tabaco || false
         ),
         necessitaAcompanhante: convertAcompanhanteFromDatabase(
           municipeToEdit.necessita_acompanhante || false
@@ -346,16 +450,60 @@ export const CadastroMunicipeScreen = ({
         ),
         acompanhanteGrauParentesco:
           municipeToEdit.acompanhante_grau_parentesco || "",
-        foto: municipeToEdit.foto_url || "", // Campo para foto
+        fotoUrl: municipeToEdit.foto_url || "", // foto_url
+        observacoes: "", // Campo observações gerais independente (sem carregamento automático)
+        // 👥 NOVA SEÇÃO: INFORMAÇÕES SOCIODEMOGRÁFICAS
+        nis: formatNIS(municipeToEdit.nis || ""), // Aplica máscara ao carregar do banco
+        ocupacao: municipeToEdit.ocupacao || "",
+        orientacaoSexual: convertOrientacaoSexualFromDatabase(municipeToEdit.orientacao_sexual || ""),
+        identidadeGenero: convertIdentidadeGeneroFromDatabase(municipeToEdit.identidade_genero || ""),
+        escolaridade: convertEscolaridadeFromDatabase(municipeToEdit.escolaridade || ""),
+        tipoSanguineo: municipeToEdit.tipo_sanguineo || "", // 📊 NOVO CAMPO COM ENUM
+        // 🏥 NOVA SEÇÃO: EQUIPE RESPONSÁVEL
+        equipeResponsavel: municipeToEdit.equipe_responsavel || "",
+        unidadeResponsavel: municipeToEdit.unidade_responsavel || "",
+        area: municipeToEdit.area || "",
+        microarea: municipeToEdit.microarea || "",
       });
     }
   }, [municipeToEdit]);
+
+  // Função para carregar dados de saúde
+  const loadHealthData = async () => {
+    try {
+      setIsLoading(true);
+      
+      const [equipesResponse, unidadesResponse, areasResponse, microareasResponse] = await Promise.all([
+        equipeService.getEquipesAtivas(),
+        unidadeService.getUnidadesAtivas(),
+        areaService.getAreasAtivas(),
+        microareaService.getMicroareasAtivas()
+      ]);
+
+      setEquipesData(equipesResponse || []);
+      setUnidadesData(unidadesResponse || []);
+      setAreasData(areasResponse || []);
+      setMicroareasData(microareasResponse || []);
+    } catch (error) {
+      console.error('Erro ao carregar dados de saúde:', error);
+      Alert.alert('Erro', 'Falha ao carregar dados de saúde');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Carregar dados de saúde quando o componente montar
+  useEffect(() => {
+    loadHealthData();
+  }, []);
 
   const currentTheme = isDarkMode ? theme.dark : theme.light;
 
   // Opções para os selects
   const medicamentoOptions = ["Sim", "Não"];
   const deficienciaOptions = ["Sim", "Não"];
+  const bebidaAlcoolicaOptions = ["Sim", "Não"];
+  const tabacoOptions = ["Sim", "Não"];
   const acompanhanteOptions = ["Sim", "Não"];
   const estadoCivilOptions = [
     "Solteiro",
@@ -363,9 +511,57 @@ export const CadastroMunicipeScreen = ({
     "Divorciado",
     "Viúvo",
     "União Estável",
-    "Separado",
+    // ❌ "Separado" removido - não está no constraint do banco
   ];
   const sexoOptions = ["Feminino", "Masculino"];
+
+  // 🎓 Opções de Escolaridade (alinhadas com constraint do banco)
+  const escolaridadeOptions = [
+    "Sem Escolaridade",
+    "Fundamental Incompleto",
+    "Fundamental Completo",
+    "Médio Incompleto",
+    "Médio Completo",
+    "Superior Incompleto",
+    "Superior Completo",
+    "Pós-graduação",
+    "Mestrado",
+    "Doutorado"
+  ];
+
+  // 🏳️‍🌈 Opções de Orientação Sexual (alinhadas com constraint do banco)
+  const orientacaoSexualOptions = [
+    "Heterossexual",
+    "Homossexual",
+    "Bissexual",
+    "Pansexual",
+    "Assexual",
+    "Outros",
+    "Não Informado"
+  ];
+
+  // 🏳️‍⚧️ Opções de Identidade de Gênero (alinhadas com constraint do banco)
+  const identidadeGeneroOptions = [
+    "Cisgênero",
+    "Transgênero",
+    "Não Binário",
+    "Gênero Fluido",
+    "Agênero",
+    "Outros",
+    "Não Informado"
+  ];
+
+  // 🩸 Opções de Tipo Sanguíneo
+  const tipoSanguineoOptions = [
+    "A+",
+    "A-",
+    "B+",
+    "B-",
+    "AB+",
+    "AB-",
+    "O+",
+    "O-"
+  ];
 
   const updateForm = (
     field: keyof CadastroMunicipeForm,
@@ -431,12 +627,38 @@ export const CadastroMunicipeScreen = ({
 
   const updatePhone = (value: string) => {
     const formatted = formatPhone(value);
-    updateForm("telefone", formatted);
+    updateForm("telefoneContato", formatted);
   };
 
   const updateSUS = (value: string) => {
     const formatted = formatSUS(value);
-    updateForm("numeroSus", formatted);
+    updateForm("cns", formatted);
+  };
+
+  // 🆔 Função para aplicar máscara de NIS (XXX.XXXXX.XX-X)
+  const formatNIS = (value: string): string => {
+    // Remove tudo que não é número
+    const somenteNumeros = value.replace(/\D/g, "");
+    
+    // Limita a 11 dígitos
+    const limitado = somenteNumeros.slice(0, 11);
+    
+    // Aplica a máscara conforme o tamanho
+    if (limitado.length <= 3) {
+      return limitado;
+    } else if (limitado.length <= 8) {
+      return `${limitado.slice(0, 3)}.${limitado.slice(3)}`;
+    } else if (limitado.length <= 10) {
+      return `${limitado.slice(0, 3)}.${limitado.slice(3, 8)}.${limitado.slice(8)}`;
+    } else {
+      return `${limitado.slice(0, 3)}.${limitado.slice(3, 8)}.${limitado.slice(8, 10)}-${limitado.slice(10)}`;
+    }
+  };
+
+  // 🆔 Função para atualizar NIS com máscara
+  const updateNIS = (value: string) => {
+    const formatted = formatNIS(value);
+    updateForm("nis", formatted);
   };
 
   // 🎯 Função para conversão de sexo para banco
@@ -491,17 +713,24 @@ export const CadastroMunicipeScreen = ({
     return acompanhante || "Não";
   };
 
-  // 🎯 Função para conversão de estado civil para banco (formato sem acento)
+  // 🎯 Função para conversão de estado civil para banco (formato EXATO do constraint)
   const convertEstadoCivilToDatabase = (estadoCivil: string): string => {
     const conversions: { [key: string]: string } = {
-      Solteiro: "SOLTEIRO",
-      Casado: "CASADO",
-      Divorciado: "DIVORCIADO",
-      Viúvo: "VIUVO",
+      "Solteiro": "SOLTEIRO",
+      "Casado": "CASADO", 
+      "Divorciado": "DIVORCIADO",
+      "Viúvo": "VIUVO",
       "União Estável": "UNIAO_ESTAVEL",
-      Separado: "SEPARADO",
+      // ❌ Removendo "Separado" - não está no constraint do banco
     };
-    return conversions[estadoCivil] || estadoCivil;
+    
+    // Se o valor já está no formato do banco, retorna como está
+    if (Object.values(conversions).includes(estadoCivil)) {
+      return estadoCivil;
+    }
+    
+    // Converte usando o mapeamento ou retorna valor padrão válido
+    return conversions[estadoCivil] || "SOLTEIRO";
   };
 
   // 🎯 Função para conversão de estado civil do banco para exibição (formato com acento)
@@ -512,7 +741,7 @@ export const CadastroMunicipeScreen = ({
       DIVORCIADO: "Divorciado",
       VIUVO: "Viúvo",
       UNIAO_ESTAVEL: "União Estável",
-      SEPARADO: "Separado",
+      // ❌ Removendo SEPARADO - não está no constraint do banco
     };
     return conversions[estadoCivil] || estadoCivil;
   };
@@ -532,6 +761,96 @@ export const CadastroMunicipeScreen = ({
     if (deficiencia === "true" || deficiencia === "1") return "Sim";
     if (deficiencia === "false" || deficiencia === "0") return "Não";
     return deficiencia || "Não";
+  };
+
+  // 🎯 Função para conversão de escolaridade para banco
+  const convertEscolaridadeToDatabase = (escolaridade: string): string => {
+    const conversions: { [key: string]: string } = {
+      "Sem Escolaridade": "SEM_ESCOLARIDADE",
+      "Fundamental Incompleto": "FUNDAMENTAL_INCOMPLETO",
+      "Fundamental Completo": "FUNDAMENTAL_COMPLETO",
+      "Médio Incompleto": "MEDIO_INCOMPLETO",
+      "Médio Completo": "MEDIO_COMPLETO",
+      "Superior Incompleto": "SUPERIOR_INCOMPLETO",
+      "Superior Completo": "SUPERIOR_COMPLETO",
+      "Pós-graduação": "POS_GRADUACAO",
+      "Mestrado": "MESTRADO",
+      "Doutorado": "DOUTORADO"
+    };
+    return conversions[escolaridade] || escolaridade;
+  };
+
+  // 🎯 Função para conversão de escolaridade do banco para exibição
+  const convertEscolaridadeFromDatabase = (escolaridade: string): string => {
+    const conversions: { [key: string]: string } = {
+      "SEM_ESCOLARIDADE": "Sem Escolaridade",
+      "FUNDAMENTAL_INCOMPLETO": "Fundamental Incompleto",
+      "FUNDAMENTAL_COMPLETO": "Fundamental Completo",
+      "MEDIO_INCOMPLETO": "Médio Incompleto",
+      "MEDIO_COMPLETO": "Médio Completo",
+      "SUPERIOR_INCOMPLETO": "Superior Incompleto",
+      "SUPERIOR_COMPLETO": "Superior Completo",
+      "POS_GRADUACAO": "Pós-graduação",
+      "MESTRADO": "Mestrado",
+      "DOUTORADO": "Doutorado"
+    };
+    return conversions[escolaridade] || escolaridade;
+  };
+
+  // 🎯 Função para conversão de orientação sexual para banco
+  const convertOrientacaoSexualToDatabase = (orientacao: string): string => {
+    const conversions: { [key: string]: string } = {
+      "Heterossexual": "HETEROSSEXUAL",
+      "Homossexual": "HOMOSSEXUAL",
+      "Bissexual": "BISSEXUAL",
+      "Pansexual": "PANSEXUAL",
+      "Assexual": "ASSEXUAL",
+      "Outros": "OUTROS",
+      "Não Informado": "NAO_INFORMADO"
+    };
+    return conversions[orientacao] || orientacao;
+  };
+
+  // 🎯 Função para conversão de orientação sexual do banco para exibição
+  const convertOrientacaoSexualFromDatabase = (orientacao: string): string => {
+    const conversions: { [key: string]: string } = {
+      "HETEROSSEXUAL": "Heterossexual",
+      "HOMOSSEXUAL": "Homossexual",
+      "BISSEXUAL": "Bissexual",
+      "PANSEXUAL": "Pansexual",
+      "ASSEXUAL": "Assexual",
+      "OUTROS": "Outros",
+      "NAO_INFORMADO": "Não Informado"
+    };
+    return conversions[orientacao] || orientacao;
+  };
+
+  // 🎯 Função para conversão de identidade de gênero para banco
+  const convertIdentidadeGeneroToDatabase = (identidade: string): string => {
+    const conversions: { [key: string]: string } = {
+      "Cisgênero": "CISGÊNERO",
+      "Transgênero": "TRANSGÊNERO",
+      "Não Binário": "NÃO_BINÁRIO",
+      "Gênero Fluido": "GÊNERO_FLUIDO",
+      "Agênero": "AGÊNERO",
+      "Outros": "OUTROS",
+      "Não Informado": "NAO_INFORMADO"
+    };
+    return conversions[identidade] || identidade;
+  };
+
+  // 🎯 Função para conversão de identidade de gênero do banco para exibição
+  const convertIdentidadeGeneroFromDatabase = (identidade: string): string => {
+    const conversions: { [key: string]: string } = {
+      "CISGÊNERO": "Cisgênero",
+      "TRANSGÊNERO": "Transgênero",
+      "NÃO_BINÁRIO": "Não Binário",
+      "GÊNERO_FLUIDO": "Gênero Fluido",
+      "AGÊNERO": "Agênero",
+      "OUTROS": "Outros",
+      "NAO_INFORMADO": "Não Informado"
+    };
+    return conversions[identidade] || identidade;
   };
 
   // 💊 Funções para gerenciar medicamentos
@@ -593,10 +912,25 @@ export const CadastroMunicipeScreen = ({
     // Fechar todos os modais
     setShowMedicamentoModal(false);
     setShowDeficienciaModal(false);
+    setShowBebidaAlcoolicaModal(false);
+    setShowTabacoModal(false);
     setShowAcompanhanteModal(false);
     setShowEstadoCivilModal(false);
     setShowSexoModal(false);
     setShowAcompanhanteSexoModal(false);
+    setShowEscolaridadeModal(false);
+    setShowOrientacaoSexualModal(false);
+    setShowIdentidadeGeneroModal(false);
+    setShowTipoSanguineoModal(false);
+  };
+
+  // Função para selecionar itens de saúde
+  const handleSelectHealthItem = (
+    field: keyof CadastroMunicipeForm,
+    item: HealthDataItem
+  ) => {
+    updateForm(field, item.id);
+    clearFieldError(field as string);
   };
 
   // 📍 Função para aplicar máscara de CEP
@@ -695,10 +1029,34 @@ export const CadastroMunicipeScreen = ({
       errors.email = "E-mail inválido. Verifique o formato (exemplo@email.com)";
     }
 
-    if (!form.telefone.trim()) {
-      errors.telefone = "Telefone é obrigatório";
-    } else if (!validatePhone(form.telefone)) {
-      errors.telefone = "Telefone inválido. Use o formato (XX) XXXXX-XXXX";
+    // 📞 VALIDAÇÃO TELEFONES
+    // Pelo menos um telefone é obrigatório
+    if (!form.telefoneResidencial.trim() && !form.telefoneCelular.trim() && !form.telefoneContato.trim()) {
+      errors.telefoneContato = "Pelo menos um telefone é obrigatório";
+    }
+    
+    // Telefone residencial: não obrigatório, mas deve ter formato correto se preenchido
+    if (form.telefoneResidencial.trim() && !validatePhone(form.telefoneResidencial)) {
+      errors.telefoneResidencial = "Telefone residencial deve ter formato válido (ex: (11) 1234-5678)";
+    }
+    
+    // Telefone celular: validação se preenchido
+    if (form.telefoneCelular.trim() && !validatePhone(form.telefoneCelular)) {
+      errors.telefoneCelular = "Telefone celular deve ter formato válido (ex: (11) 98765-4321)";
+    }
+    
+    // Telefone de contato: validação se preenchido
+    if (form.telefoneContato.trim() && !validatePhone(form.telefoneContato)) {
+      errors.telefoneContato = "Telefone de contato deve ter formato válido";
+    }
+
+    // ➕ NOVOS CAMPOS OBRIGATÓRIOS
+    if (!form.nacionalidade.trim()) {
+      errors.nacionalidade = "Nacionalidade é obrigatória";
+    }
+
+    if (!form.municipioNascimento.trim()) {
+      errors.municipioNascimento = "Município de nascimento é obrigatório";
     }
 
     if (!form.nomeMae.trim()) {
@@ -735,10 +1093,10 @@ export const CadastroMunicipeScreen = ({
     }
 
     // ✅ CAMPOS OBRIGATÓRIOS - SAÚDE
-    if (!form.numeroSus.trim()) {
-      errors.numeroSus = "Número do SUS é obrigatório";
-    } else if (!validateSUS(form.numeroSus)) {
-      errors.numeroSus = "Número do SUS inválido. Deve conter 15 dígitos";
+    if (!form.cns.trim()) {
+      errors.cns = "CNS é obrigatório";
+    } else if (!validateSUS(form.cns)) {
+      errors.cns = "CNS inválido. Deve conter 15 dígitos";
     }
 
     if (!form.usoMedicamentoContinuo.trim()) {
@@ -748,6 +1106,14 @@ export const CadastroMunicipeScreen = ({
 
     if (!form.deficiencia.trim()) {
       errors.deficiencia = "Informe se possui deficiência";
+    }
+
+    if (!form.usoBebidaAlcoolica.trim()) {
+      errors.usoBebidaAlcoolica = "Informe se faz uso de bebida alcoólica";
+    }
+
+    if (!form.usoTabaco.trim()) {
+      errors.usoTabaco = "Informe se faz uso de tabaco";
     }
 
     if (!form.necessitaAcompanhante.trim()) {
@@ -799,6 +1165,11 @@ export const CadastroMunicipeScreen = ({
       }
     }
 
+    // 🆔 VALIDAÇÃO NIS (se preenchido, deve ser válido)
+    if (form.nis.trim() && !validateNIS(form.nis)) {
+      errors.nis = "NIS inválido. Deve conter 11 dígitos no formato XXX.XXXXX.XX-X";
+    }
+
     return errors;
   };
 
@@ -835,7 +1206,7 @@ export const CadastroMunicipeScreen = ({
       }
       const newId = uuidv4();
 
-      const dataUrl = form.foto; // sua string
+      const dataUrl = form.fotoUrl; // foto_url da tabela municipe
       if (hasBase64DataUrl(dataUrl)) {
         const match = dataUrl.match(/^data:(.*);base64,/);
         if (!match) throw new Error("Formato de imagem inválido");
@@ -864,54 +1235,77 @@ export const CadastroMunicipeScreen = ({
       }
 
       const parametros = {
+        // 🔴 PARÂMETROS OBRIGATÓRIOS (sem default)
         p_municipe_id: newId,
-        p_bairro: form.bairro || "",
-        p_cartao_sus: form.numeroSus.replace(/\s/g, "") || "", // Remove espaços do SUS
-        p_cep: form.cep.replace(/\D/g, "") || "", // Remove máscara do CEP
-        p_cidade: form.cidade || "",
-        p_complemento: form.complemento || "", // Campo complemento do formulário
-        p_cpf: form.cpf.replace(/\D/g, "") || "", // Remove máscara do CPF
-        p_data_nascimento: convertDateToDatabase(form.dataNascimento) || "",
-        p_doenca_cronica: form.doencasCronicas.join(", ") || "", // Array para string
-        p_email: form.email || "",
-        p_estado_civil: convertEstadoCivilToDatabase(form.estadoCivil) || "",
-        p_foto_url: !form.foto
-          ? ""
-          : `${SUPABASE_ENDPOINTS.storage}/object/public/avatars/municipes/${newId}/avatar.jpg`, // URL da foto após upload
-        p_logradouro: form.rua || "",
-        p_necessita_acompanhante: convertAcompanhanteToDatabase(
-          form.necessitaAcompanhante
-        ), // Converte para true/false
         p_nome_completo: form.nomeCompleto || "",
-        p_nome_mae: form.nomeMae || "",
-        p_numero: form.numero || "",
-        p_observacoes: "", // Campo não presente no form atual
-        p_observacoes_medicas: form.observacoesMedicas || "", // Campo de observações médicas
-        p_quais_medicamentos: form.quaisMedicamentos.join(", ") || "", // Array para string
-        p_ref_zona_rural: false,
+        p_cpf: form.cpf.replace(/\D/g, "") || "", // Remove máscara do CPF
         p_rg: form.rg || "",
+        p_data_nascimento: convertDateToDatabase(form.dataNascimento) || "",
         p_sexo: convertSexoToDatabase(form.sexo), // Converte para M/F
-        p_telefone: form.telefone || "",
-        p_tem_deficiencia_fisica: convertDeficienciaToDatabase(
-          form.deficiencia
-        ),
-        p_tipo_doenca: "",
+        p_nacionalidade: form.nacionalidade || "", // ✅ Campo obrigatório
+        p_municipio_nascimento: form.municipioNascimento || "", // ✅ Campo obrigatório
+        p_logradouro: form.rua || "",
+        p_bairro: form.bairro || "",
+        p_cidade: form.cidade || "",
+        p_cep: form.cep.replace(/\D/g, "") || "", // Remove máscara do CEP
         p_uf: form.estado || "",
-        p_uso_continuo_medicamentos: form.usoMedicamentoContinuo === "Sim",
+        
+        // 🟡 PARÂMETROS OPCIONAIS (com default)
+        p_estado_civil: convertEstadoCivilToDatabase(form.estadoCivil) || null,
+        p_email: form.email || null,
+        p_telefone_residencial: form.telefoneResidencial || null,
+        p_telefone_celular: form.telefoneCelular || null,
+        p_telefone_contato: form.telefoneContato || null,
+        p_nome_mae: form.nomeMae || null,
+        p_nome_pai: form.nomePai || null,
+        p_foto_url: !form.fotoUrl
+          ? null
+          : `${SUPABASE_ENDPOINTS.storage}/object/public/avatars/municipes/${newId}/avatar.jpg`,
+        p_observacoes: form.observacoes || null,
+        p_numero: form.numero || null,
+        p_complemento: form.complemento || null,
+        p_complemento_logradouro: form.complementoLogradouro || null,
+        p_ponto_referencia: form.pontoReferencia || null,
         p_zona_rural: false,
-        // Parâmetros do acompanhante (condicionais)
-        ...(form.necessitaAcompanhante === "Sim" &&
-          form.acompanhanteNome.trim() && {
-            p_acompanhante_nome: form.acompanhanteNome || "",
-            p_acompanhante_cpf: form.acompanhanteCpf.replace(/\D/g, "") || "",
-            p_acompanhante_rg: form.acompanhanteRg || "",
-            p_acompanhante_data_nascimento:
-              convertDateToDatabase(form.acompanhanteDataNascimento) || null,
-            p_acompanhante_sexo:
-              convertSexoToDatabase(form.acompanhanteSexo) || "",
-            p_acompanhante_grau_parentesco:
-              form.acompanhanteGrauParentesco || "",
-          }),
+        p_ref_zona_rural: null,
+        p_cns: form.cns.replace(/\s/g, "") || null,
+        p_uso_continuo_medicamentos: form.usoMedicamentoContinuo === "Sim",
+        p_quais_medicamentos: form.quaisMedicamentos.join(", ") || null,
+        p_tem_deficiencia_fisica: convertDeficienciaToDatabase(form.deficiencia),
+        p_necessita_acompanhante: convertAcompanhanteToDatabase(form.necessitaAcompanhante),
+        p_doenca_cronica: form.doencasCronicas.join(", ") || null,
+        p_tipo_doenca: null,
+        p_uso_bebida_alcoolica: form.usoBebidaAlcoolica === "Sim",
+        p_uso_tabaco: form.usoTabaco === "Sim",
+        p_observacoes_medicas: form.observacoesMedicas || null,
+        
+        // 👥 DADOS DO ACOMPANHANTE (OPCIONAIS)
+        p_acompanhante_nome: (form.necessitaAcompanhante === "Sim" && form.acompanhanteNome.trim()) 
+          ? form.acompanhanteNome : null,
+        p_acompanhante_cpf: (form.necessitaAcompanhante === "Sim" && form.acompanhanteCpf.trim()) 
+          ? form.acompanhanteCpf.replace(/\D/g, "") : null,
+        p_acompanhante_rg: (form.necessitaAcompanhante === "Sim" && form.acompanhanteRg.trim()) 
+          ? form.acompanhanteRg : null,
+        p_acompanhante_data_nascimento: (form.necessitaAcompanhante === "Sim" && form.acompanhanteDataNascimento) 
+          ? convertDateToDatabase(form.acompanhanteDataNascimento) : null,
+        p_acompanhante_sexo: (form.necessitaAcompanhante === "Sim" && form.acompanhanteSexo) 
+          ? convertSexoToDatabase(form.acompanhanteSexo) : null,
+        p_acompanhante_grau_parentesco: (form.necessitaAcompanhante === "Sim" && form.acompanhanteGrauParentesco) 
+          ? form.acompanhanteGrauParentesco : null,
+        
+        // 📊 DADOS SOCIODEMOGRÁFICOS (OPCIONAIS)
+        p_nis: form.nis ? form.nis.replace(/\D/g, "") : null, // Remove máscara antes de salvar
+        p_ocupacao: form.ocupacao || null,
+        p_orientacao_sexual: convertOrientacaoSexualToDatabase(form.orientacaoSexual) || null,
+        p_escolaridade: convertEscolaridadeToDatabase(form.escolaridade) || null,
+        p_identidade_genero: convertIdentidadeGeneroToDatabase(form.identidadeGenero) || null,
+        p_tipo_sanguineo: form.tipoSanguineo || null,
+        
+        // 🏥 DADOS DA EQUIPE RESPONSÁVEL (OPCIONAIS)
+        p_equipe_responsavel: form.equipeResponsavel || null,
+        p_unidade_responsavel: form.unidadeResponsavel || null,
+        p_area: form.area || null,
+        p_microarea: form.microarea || null,
       };
 
       // Fazer chamada direta à API usando fetch com access_token correto
@@ -966,7 +1360,7 @@ export const CadastroMunicipeScreen = ({
 
       console.log("📸 Verificando foto...");
 
-      const dataUrl = form.foto; // sua string
+      const dataUrl = form.fotoUrl; // foto_url da tabela municipe
       if (hasBase64DataUrl(dataUrl)) {
         console.log("📷 Processando upload de foto...");
         const match = dataUrl.match(/^data:(.*);base64,/);
@@ -1004,56 +1398,78 @@ export const CadastroMunicipeScreen = ({
       console.log("📋 Preparando parâmetros para atualização...");
 
       const parametros = {
-        p_bairro: form.bairro || "",
-        p_cartao_sus: form.numeroSus.replace(/\s/g, "") || "", // Remove espaços do SUS
-        p_cep: form.cep.replace(/\D/g, "") || "", // Remove máscara do CEP
-        p_cidade: form.cidade || "",
-        p_complemento: form.complemento || "", // Campo complemento do formulário
-        p_data_nascimento: convertDateToDatabase(form.dataNascimento) || "",
-        p_doenca_cronica: form.doencasCronicas.join(", ") || "", // Array para string
-        p_email: form.email || "",
-        p_estado_civil: convertEstadoCivilToDatabase(form.estadoCivil) || "",
-        p_foto_url: !form.foto
-          ? ""
-          : `${SUPABASE_ENDPOINTS.storage}/object/public/avatars/municipes/${municipeToEdit?.id}/avatar.jpg`, // Campo não presente no form atual // Campo não presente no form atual
-        p_logradouro: form.rua || "",
+        // 🔴 PARÂMETRO OBRIGATÓRIO
         p_municipe_id: municipeToEdit.id, // ID para atualização
-        p_necessita_acompanhante: convertAcompanhanteToDatabase(
-          form.necessitaAcompanhante
-        ), // Converte para true/false
-        p_nome_completo: form.nomeCompleto || "",
-        p_nome_mae: form.nomeMae || "",
-        p_numero: form.numero || "",
-        p_observacoes: "", // Campo não presente no form atual
-        p_observacoes_medicas: form.observacoesMedicas || "", // Campo de observações médicas
-        p_quais_medicamentos: form.quaisMedicamentos.join(", ") || "", // Array para string
-        p_ref_zona_rural: false,
-        p_rg: form.rg || "",
-        p_sexo: convertSexoToDatabase(form.sexo), // Converte para M/F
-        p_telefone: form.telefone || "",
-        p_tem_deficiencia_fisica: convertDeficienciaToDatabase(
-          form.deficiencia
-        ),
-        p_tipo_doenca: "",
-        p_uf: form.estado || "",
-        p_uso_continuo_medicamentos: form.usoMedicamentoContinuo === "Sim",
-        p_zona_rural: false,
-        // Parâmetros do acompanhante
-        ...(form.necessitaAcompanhante === "Sim" && form.acompanhanteNome.trim()
-          ? {
-              p_acompanhante_nome: form.acompanhanteNome || "",
-              p_acompanhante_cpf: form.acompanhanteCpf.replace(/\D/g, "") || "",
-              p_acompanhante_rg: form.acompanhanteRg || "",
-              p_acompanhante_data_nascimento:
-                convertDateToDatabase(form.acompanhanteDataNascimento) || null,
-              p_acompanhante_sexo:
-                convertSexoToDatabase(form.acompanhanteSexo) || "",
-              p_acompanhante_grau_parentesco:
-                form.acompanhanteGrauParentesco || "",
-            }
-          : {
-              p_remover_acompanhante: form.necessitaAcompanhante === "Não",
-            }),
+        
+        // 🟡 TODOS OS DEMAIS SÃO OPCIONAIS (com default NULL)
+        p_nome_completo: form.nomeCompleto || null,
+        // ❌ p_cpf REMOVIDO - não está no contrato real da função de atualizar
+        p_rg: form.rg || null,
+        p_data_nascimento: convertDateToDatabase(form.dataNascimento) || null,
+        p_estado_civil: convertEstadoCivilToDatabase(form.estadoCivil) || null,
+        p_sexo: convertSexoToDatabase(form.sexo) || null,
+        p_email: form.email || null,
+        p_telefone_residencial: form.telefoneResidencial || null,
+        p_telefone_celular: form.telefoneCelular || null,
+        p_telefone_contato: form.telefoneContato || null,
+        p_nome_mae: form.nomeMae || null,
+        p_nome_pai: form.nomePai || null,
+        p_nacionalidade: form.nacionalidade || null,
+        p_municipio_nascimento: form.municipioNascimento || null,
+        p_foto_url: !form.fotoUrl
+          ? null
+          : `${SUPABASE_ENDPOINTS.storage}/object/public/avatars/municipes/${municipeToEdit?.id}/avatar.jpg`,
+        p_observacoes: form.observacoes || null,
+        p_logradouro: form.rua || null,
+        p_numero: form.numero || null,
+        p_complemento: form.complemento || null,
+        p_complemento_logradouro: form.complementoLogradouro || null,
+        p_ponto_referencia: form.pontoReferencia || null,
+        p_bairro: form.bairro || null,
+        p_cidade: form.cidade || null,
+        p_cep: form.cep.replace(/\D/g, "") || null,
+        p_uf: form.estado || null,
+        p_zona_rural: null, // Sempre null conforme contrato
+        p_ref_zona_rural: null,
+        p_cns: form.cns.replace(/\s/g, "") || null,
+        p_uso_continuo_medicamentos: form.usoMedicamentoContinuo === "Sim" ? true : null,
+        p_quais_medicamentos: form.quaisMedicamentos.length > 0 ? form.quaisMedicamentos.join(", ") : null,
+        p_tem_deficiencia_fisica: convertDeficienciaToDatabase(form.deficiencia),
+        p_necessita_acompanhante: convertAcompanhanteToDatabase(form.necessitaAcompanhante),
+        p_doenca_cronica: form.doencasCronicas.length > 0 ? form.doencasCronicas.join(", ") : null,
+        p_tipo_doenca: null,
+        p_uso_bebida_alcoolica: form.usoBebidaAlcoolica === "Sim" ? true : null,
+        p_uso_tabaco: form.usoTabaco === "Sim" ? true : null,
+        p_observacoes_medicas: form.observacoesMedicas || null,
+        
+        // 👥 DADOS DO ACOMPANHANTE (OPCIONAIS)
+        p_acompanhante_nome: (form.necessitaAcompanhante === "Sim" && form.acompanhanteNome.trim()) 
+          ? form.acompanhanteNome : null,
+        p_acompanhante_cpf: (form.necessitaAcompanhante === "Sim" && form.acompanhanteCpf.trim()) 
+          ? form.acompanhanteCpf.replace(/\D/g, "") : null,
+        p_acompanhante_rg: (form.necessitaAcompanhante === "Sim" && form.acompanhanteRg.trim()) 
+          ? form.acompanhanteRg : null,
+        p_acompanhante_data_nascimento: (form.necessitaAcompanhante === "Sim" && form.acompanhanteDataNascimento) 
+          ? convertDateToDatabase(form.acompanhanteDataNascimento) : null,
+        p_acompanhante_sexo: (form.necessitaAcompanhante === "Sim" && form.acompanhanteSexo) 
+          ? convertSexoToDatabase(form.acompanhanteSexo) : null,
+        p_acompanhante_grau_parentesco: (form.necessitaAcompanhante === "Sim" && form.acompanhanteGrauParentesco) 
+          ? form.acompanhanteGrauParentesco : null,
+        p_remover_acompanhante: form.necessitaAcompanhante === "Não",
+        
+        // 📊 DADOS SOCIODEMOGRÁFICOS (OPCIONAIS)
+        p_nis: form.nis ? form.nis.replace(/\D/g, "") : null, // Remove máscara antes de salvar
+        p_ocupacao: form.ocupacao || null,
+        p_orientacao_sexual: convertOrientacaoSexualToDatabase(form.orientacaoSexual) || null,
+        p_escolaridade: convertEscolaridadeToDatabase(form.escolaridade) || null,
+        p_identidade_genero: convertIdentidadeGeneroToDatabase(form.identidadeGenero) || null,
+        p_tipo_sanguineo: form.tipoSanguineo || null,
+        
+        // 🏥 DADOS DA EQUIPE RESPONSÁVEL (OPCIONAIS)
+        p_equipe_responsavel: form.equipeResponsavel || null,
+        p_unidade_responsavel: form.unidadeResponsavel || null,
+        p_area: form.area || null,
+        p_microarea: form.microarea || null,
       };
 
       console.log("🌐 Fazendo chamada à API para atualizar...");
@@ -1318,6 +1734,66 @@ export const CadastroMunicipeScreen = ({
               Dados de Saúde
             </Text>
           </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.tab,
+              activeTab === "sociodemograficas" && styles.activeTab,
+              activeTab === "sociodemograficas" && { borderBottomColor: "#8A9E8E" },
+            ]}
+            onPress={() => setActiveTab("sociodemograficas")}
+          >
+            <Ionicons
+              name="people"
+              size={20}
+              color={
+                activeTab === "sociodemograficas" ? "#8A9E8E" : currentTheme.mutedForeground
+              }
+            />
+            <Text
+              style={[
+                styles.tabText,
+                {
+                  color:
+                    activeTab === "sociodemograficas"
+                      ? "#8A9E8E"
+                      : currentTheme.mutedForeground,
+                },
+              ]}
+            >
+              Sociodemográficas
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.tab,
+              activeTab === "equipe" && styles.activeTab,
+              activeTab === "equipe" && { borderBottomColor: "#8A9E8E" },
+            ]}
+            onPress={() => setActiveTab("equipe")}
+          >
+            <Ionicons
+              name="people-circle"
+              size={20}
+              color={
+                activeTab === "equipe" ? "#8A9E8E" : currentTheme.mutedForeground
+              }
+            />
+            <Text
+              style={[
+                styles.tabText,
+                {
+                  color:
+                    activeTab === "equipe"
+                      ? "#8A9E8E"
+                      : currentTheme.mutedForeground,
+                },
+              ]}
+            >
+              Equipe Responsável
+            </Text>
+          </TouchableOpacity>
         </View>
 
         {/* Form */}
@@ -1328,8 +1804,8 @@ export const CadastroMunicipeScreen = ({
               {/* Foto do Munícipe à esquerda */}
               <View style={styles.photoSection}>
                 <PhotoUpload
-                  currentPhoto={form.foto}
-                  onPhotoSelected={(uri: string) => updateForm("foto", uri)}
+                  currentPhoto={form.fotoUrl}
+                  onPhotoSelected={(uri: string) => updateForm("fotoUrl", uri)}
                   label="Foto do Munícipe"
                 />
               </View>
@@ -1470,34 +1946,52 @@ export const CadastroMunicipeScreen = ({
                 <Text style={[styles.label, { color: currentTheme.text }]}>
                   Sexo *
                 </Text>
-                <TouchableOpacity
-                  style={[
-                    getFieldStyle("sexo", {
-                      ...styles.selectContainer,
+                {Platform.OS === 'web' ? (
+                  <select
+                    value={form.sexo || ''}
+                    onChange={(e: any) => updateFormAndClearError('sexo', e.target.value)}
+                    style={{
+                      ...styles.input,
                       backgroundColor: currentTheme.surface,
                       borderColor: currentTheme.border,
-                    }),
-                  ]}
-                  onPress={() => setShowSexoModal(true)}
-                >
-                  <Text
-                    style={[
-                      styles.selectText,
-                      {
-                        color: form.sexo
-                          ? currentTheme.text
-                          : currentTheme.mutedForeground,
-                      },
-                    ]}
+                      color: currentTheme.text,
+                      cursor: 'pointer'
+                    } as any}
                   >
-                    {form.sexo || "Selecione o sexo"}
-                  </Text>
-                  <Ionicons
-                    name="chevron-down"
-                    size={16}
-                    color={currentTheme.mutedForeground}
-                  />
-                </TouchableOpacity>
+                    <option value="">Selecione o sexo</option>
+                    <option value="Masculino">Masculino</option>
+                    <option value="Feminino">Feminino</option>
+                  </select>
+                ) : (
+                  <TouchableOpacity
+                    style={[
+                      getFieldStyle("sexo", {
+                        ...styles.selectContainer,
+                        backgroundColor: currentTheme.surface,
+                        borderColor: currentTheme.border,
+                      }),
+                    ]}
+                    onPress={() => setShowSexoModal(true)}
+                  >
+                    <Text
+                      style={[
+                        styles.selectText,
+                        {
+                          color: form.sexo
+                            ? currentTheme.text
+                            : currentTheme.mutedForeground,
+                        },
+                      ]}
+                    >
+                      {form.sexo || "Selecione o sexo"}
+                    </Text>
+                    <Ionicons
+                      name="chevron-down"
+                      size={16}
+                      color={currentTheme.mutedForeground}
+                    />
+                  </TouchableOpacity>
+                )}
                 <FieldError error={fieldErrors.sexo} />
               </View>
             </View>
@@ -1533,63 +2027,138 @@ export const CadastroMunicipeScreen = ({
                 <Text style={[styles.label, { color: currentTheme.text }]}>
                   Estado Civil *
                 </Text>
-                <TouchableOpacity
-                  style={[
-                    getFieldStyle("estadoCivil", {
-                      ...styles.selectContainer,
+                {Platform.OS === 'web' ? (
+                  <select
+                    value={form.estadoCivil || ''}
+                    onChange={(e: any) => updateFormAndClearError('estadoCivil', e.target.value)}
+                    style={{
+                      ...styles.input,
                       backgroundColor: currentTheme.surface,
                       borderColor: currentTheme.border,
-                    }),
-                  ]}
-                  onPress={() => setShowEstadoCivilModal(true)}
-                >
-                  <Text
-                    style={[
-                      styles.selectText,
-                      {
-                        color: form.estadoCivil
-                          ? currentTheme.text
-                          : currentTheme.mutedForeground,
-                      },
-                    ]}
+                      color: currentTheme.text,
+                      cursor: 'pointer'
+                    } as any}
                   >
-                    {form.estadoCivil || "Selecione o estado civil"}
-                  </Text>
-                  <Ionicons
-                    name="chevron-down"
-                    size={16}
-                    color={currentTheme.mutedForeground}
-                  />
-                </TouchableOpacity>
+                    <option value="">Selecione o estado civil</option>
+                    <option value="Solteiro">Solteiro(a)</option>
+                    <option value="Casado">Casado(a)</option>
+                    <option value="Divorciado">Divorciado(a)</option>
+                    <option value="Viúvo">Viúvo(a)</option>
+                    <option value="União Estável">União Estável</option>
+                  </select>
+                ) : (
+                  <TouchableOpacity
+                    style={[
+                      getFieldStyle("estadoCivil", {
+                        ...styles.selectContainer,
+                        backgroundColor: currentTheme.surface,
+                        borderColor: currentTheme.border,
+                      }),
+                    ]}
+                    onPress={() => setShowEstadoCivilModal(true)}
+                  >
+                    <Text
+                      style={[
+                        styles.selectText,
+                        {
+                          color: form.estadoCivil
+                            ? currentTheme.text
+                            : currentTheme.mutedForeground,
+                        },
+                      ]}
+                    >
+                      {form.estadoCivil || "Selecione o estado civil"}
+                    </Text>
+                    <Ionicons
+                      name="chevron-down"
+                      size={16}
+                      color={currentTheme.mutedForeground}
+                    />
+                  </TouchableOpacity>
+                )}
                 <FieldError error={fieldErrors.estadoCivil} />
               </View>
             </View>
 
-            {/* Telefone */}
-            <View style={styles.halfWidth}>
-              <Text style={[styles.label, { color: currentTheme.text }]}>
-                Telefone *
-              </Text>
-              <TextInput
-                style={[
-                  getFieldStyle("telefone", {
-                    ...styles.input,
-                    backgroundColor: currentTheme.surface,
-                    borderColor: currentTheme.border,
-                    color: currentTheme.text,
-                  }),
-                ]}
-                placeholder="(XX) XXXXX-XXXX"
-                placeholderTextColor={currentTheme.mutedForeground}
-                value={form.telefone}
-                onChangeText={(value: string) => {
-                  updatePhone(value);
-                  clearFieldError("telefone");
-                }}
-                keyboardType="phone-pad"
-                maxLength={15} // 11 dígitos + 4 caracteres de máscara
-              />
-              <FieldError error={fieldErrors.telefone} />
+            {/* 📞 TELEFONES DESMEMBRADOS */}
+            <View style={styles.row}>
+              <View style={styles.thirdWidth}>
+                <Text style={[styles.label, { color: currentTheme.text }]}>
+                  Telefone Residencial
+                </Text>
+                <TextInput
+                  style={[
+                    styles.input,
+                    {
+                      backgroundColor: currentTheme.surface,
+                      borderColor: currentTheme.border,
+                      color: currentTheme.text,
+                    },
+                  ]}
+                  placeholder="(XX) XXXX-XXXX"
+                  placeholderTextColor={currentTheme.mutedForeground}
+                  value={form.telefoneResidencial}
+                  onChangeText={(value: string) => {
+                    const formatted = formatPhone(value);
+                    updateFormAndClearError("telefoneResidencial", formatted);
+                  }}
+                  keyboardType="phone-pad"
+                  maxLength={14}
+                />
+                <FieldError error={fieldErrors.telefoneResidencial} />
+              </View>
+
+              <View style={styles.thirdWidth}>
+                <Text style={[styles.label, { color: currentTheme.text }]}>
+                  Telefone Celular
+                </Text>
+                <TextInput
+                  style={[
+                    styles.input,
+                    {
+                      backgroundColor: currentTheme.surface,
+                      borderColor: currentTheme.border,
+                      color: currentTheme.text,
+                    },
+                  ]}
+                  placeholder="(XX) XXXXX-XXXX"
+                  placeholderTextColor={currentTheme.mutedForeground}
+                  value={form.telefoneCelular}
+                  onChangeText={(value: string) => {
+                    const formatted = formatPhone(value);
+                    updateFormAndClearError("telefoneCelular", formatted);
+                  }}
+                  keyboardType="phone-pad"
+                  maxLength={15}
+                />
+                <FieldError error={fieldErrors.telefoneCelular} />
+              </View>
+
+              <View style={styles.thirdWidth}>
+                <Text style={[styles.label, { color: currentTheme.text }]}>
+                  Telefone Contato *
+                </Text>
+                <TextInput
+                  style={[
+                    getFieldStyle("telefoneContato", {
+                      ...styles.input,
+                      backgroundColor: currentTheme.surface,
+                      borderColor: currentTheme.border,
+                      color: currentTheme.text,
+                    }),
+                  ]}
+                  placeholder="(XX) XXXXX-XXXX"
+                  placeholderTextColor={currentTheme.mutedForeground}
+                  value={form.telefoneContato}
+                  onChangeText={(value: string) => {
+                    const formatted = formatPhone(value);
+                    updateFormAndClearError("telefoneContato", formatted);
+                  }}
+                  keyboardType="phone-pad"
+                  maxLength={15}
+                />
+                <FieldError error={fieldErrors.telefoneContato} />
+              </View>
             </View>
 
             {/* Nome da Mãe */}
@@ -1614,6 +2183,78 @@ export const CadastroMunicipeScreen = ({
                 }
               />
               <FieldError error={fieldErrors.nomeMae} />
+            </View>
+
+            {/* ➕ Nome do Pai */}
+            <View style={styles.fullWidth}>
+              <Text style={[styles.label, { color: currentTheme.text }]}>
+                Nome do Pai
+              </Text>
+              <TextInput
+                style={[
+                  getFieldStyle("nomePai", {
+                    ...styles.input,
+                    backgroundColor: currentTheme.surface,
+                    borderColor: currentTheme.border,
+                    color: currentTheme.text,
+                  }),
+                ]}
+                placeholder="Digite o nome do pai (opcional)"
+                placeholderTextColor={currentTheme.mutedForeground}
+                value={form.nomePai}
+                onChangeText={(value: string) =>
+                  updateFormAndClearError("nomePai", value)
+                }
+              />
+              <FieldError error={fieldErrors.nomePai} />
+            </View>
+
+            {/* ➕ Nacionalidade (obrigatório) */}
+            <View style={styles.halfWidth}>
+              <Text style={[styles.label, { color: currentTheme.text }]}>
+                Nacionalidade *
+              </Text>
+              <TextInput
+                style={[
+                  getFieldStyle("nacionalidade", {
+                    ...styles.input,
+                    backgroundColor: currentTheme.surface,
+                    borderColor: currentTheme.border,
+                    color: currentTheme.text,
+                  }),
+                ]}
+                placeholder="Ex: Brasileira"
+                placeholderTextColor={currentTheme.mutedForeground}
+                value={form.nacionalidade}
+                onChangeText={(value: string) =>
+                  updateFormAndClearError("nacionalidade", value)
+                }
+              />
+              <FieldError error={fieldErrors.nacionalidade} />
+            </View>
+
+            {/* ➕ Município de Nascimento (obrigatório) */}
+            <View style={styles.halfWidth}>
+              <Text style={[styles.label, { color: currentTheme.text }]}>
+                Município de Nascimento *
+              </Text>
+              <TextInput
+                style={[
+                  getFieldStyle("municipioNascimento", {
+                    ...styles.input,
+                    backgroundColor: currentTheme.surface,
+                    borderColor: currentTheme.border,
+                    color: currentTheme.text,
+                  }),
+                ]}
+                placeholder="Ex: São Paulo"
+                placeholderTextColor={currentTheme.mutedForeground}
+                value={form.municipioNascimento}
+                onChangeText={(value: string) =>
+                  updateFormAndClearError("municipioNascimento", value)
+                }
+              />
+              <FieldError error={fieldErrors.municipioNascimento} />
             </View>
 
             {/* Endereço */}
@@ -1743,6 +2384,29 @@ export const CadastroMunicipeScreen = ({
               />
             </View>
 
+            {/* ➕ Ponto de Referência */}
+            <View style={styles.fullWidth}>
+              <Text style={[styles.label, { color: currentTheme.text }]}>
+                Ponto de Referência
+              </Text>
+              <TextInput
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: currentTheme.surface,
+                    borderColor: currentTheme.border,
+                    color: currentTheme.text,
+                  },
+                ]}
+                placeholder="Ex: Próximo ao mercado, em frente à escola (opcional)"
+                placeholderTextColor={currentTheme.mutedForeground}
+                value={form.pontoReferencia}
+                onChangeText={(value: string) =>
+                  updateForm("pontoReferencia", value)
+                }
+              />
+            </View>
+
             {/* Bairro, Cidade e Estado */}
             <View style={styles.row}>
               <View style={styles.thirdWidth}>
@@ -1823,11 +2487,11 @@ export const CadastroMunicipeScreen = ({
             {/* Número SUS */}
             <View style={styles.fullWidth}>
               <Text style={[styles.label, { color: currentTheme.text }]}>
-                Número SUS *
+                CNS (Cartão Nacional de Saúde) *
               </Text>
               <TextInput
                 style={[
-                  getFieldStyle("numeroSus", {
+                  getFieldStyle("cns", {
                     ...styles.input,
                     backgroundColor: currentTheme.surface,
                     borderColor: currentTheme.border,
@@ -1836,15 +2500,15 @@ export const CadastroMunicipeScreen = ({
                 ]}
                 placeholder="000 0000 0000 0000"
                 placeholderTextColor={currentTheme.mutedForeground}
-                value={form.numeroSus}
+                value={form.cns}
                 onChangeText={(value: string) => {
                   updateSUS(value);
-                  clearFieldError("numeroSus");
+                  clearFieldError("cns");
                 }}
                 keyboardType="numeric"
                 maxLength={18} // 15 dígitos + 3 espaços
               />
-              <FieldError error={fieldErrors.numeroSus} />
+              <FieldError error={fieldErrors.cns} />
             </View>
 
             {/* Uso contínuo de medicamentos e Deficiência */}
@@ -1888,35 +2552,162 @@ export const CadastroMunicipeScreen = ({
                 <Text style={[styles.label, { color: currentTheme.text }]}>
                   Deficiência *
                 </Text>
-                <TouchableOpacity
-                  style={[
-                    getFieldStyle("deficiencia", {
-                      ...styles.selectContainer,
+                {Platform.OS === 'web' ? (
+                  <select
+                    value={form.deficiencia || ''}
+                    onChange={(e: any) => updateFormAndClearError('deficiencia', e.target.value)}
+                    style={{
+                      ...styles.input,
                       backgroundColor: currentTheme.surface,
                       borderColor: currentTheme.border,
-                    }),
-                  ]}
-                  onPress={() => setShowDeficienciaModal(true)}
-                >
-                  <Text
-                    style={[
-                      styles.selectText,
-                      {
-                        color: form.deficiencia
-                          ? currentTheme.text
-                          : currentTheme.mutedForeground,
-                      },
-                    ]}
+                      color: currentTheme.text,
+                      cursor: 'pointer'
+                    } as any}
                   >
-                    {form.deficiencia || "Selecione uma opção"}
-                  </Text>
-                  <Ionicons
-                    name="chevron-down"
-                    size={16}
-                    color={currentTheme.mutedForeground}
-                  />
-                </TouchableOpacity>
+                    <option value="">Selecione uma opção</option>
+                    <option value="Sim">Sim</option>
+                    <option value="Não">Não</option>
+                  </select>
+                ) : (
+                  <TouchableOpacity
+                    style={[
+                      getFieldStyle("deficiencia", {
+                        ...styles.selectContainer,
+                        backgroundColor: currentTheme.surface,
+                        borderColor: currentTheme.border,
+                      }),
+                    ]}
+                    onPress={() => setShowDeficienciaModal(true)}
+                  >
+                    <Text
+                      style={[
+                        styles.selectText,
+                        {
+                          color: form.deficiencia
+                            ? currentTheme.text
+                            : currentTheme.mutedForeground,
+                        },
+                      ]}
+                    >
+                      {form.deficiencia || "Selecione uma opção"}
+                    </Text>
+                    <Ionicons
+                      name="chevron-down"
+                      size={16}
+                      color={currentTheme.mutedForeground}
+                    />
+                  </TouchableOpacity>
+                )}
                 <FieldError error={fieldErrors.deficiencia} />
+              </View>
+            </View>
+
+            {/* Uso de Bebida Alcoólica e Uso de Tabaco */}
+            <View style={styles.rowContainer}>
+              <View style={styles.halfWidth}>
+                <Text style={[styles.label, { color: currentTheme.text }]}>
+                  Faz uso de bebida alcoólica? *
+                </Text>
+                {Platform.OS === 'web' ? (
+                  <select
+                    value={form.usoBebidaAlcoolica || ''}
+                    onChange={(e: any) => updateFormAndClearError('usoBebidaAlcoolica', e.target.value)}
+                    style={{
+                      ...styles.input,
+                      backgroundColor: currentTheme.surface,
+                      borderColor: currentTheme.border,
+                      color: currentTheme.text,
+                      cursor: 'pointer'
+                    } as any}
+                  >
+                    <option value="">Selecione uma opção</option>
+                    <option value="Sim">Sim</option>
+                    <option value="Não">Não</option>
+                  </select>
+                ) : (
+                  <TouchableOpacity
+                    style={[
+                      getFieldStyle("usoBebidaAlcoolica", {
+                        ...styles.selectContainer,
+                        backgroundColor: currentTheme.surface,
+                        borderColor: currentTheme.border,
+                      }),
+                    ]}
+                    onPress={() => setShowBebidaAlcoolicaModal(true)}
+                  >
+                    <Text
+                      style={[
+                        styles.selectText,
+                        {
+                          color: form.usoBebidaAlcoolica
+                            ? currentTheme.text
+                            : currentTheme.mutedForeground,
+                        },
+                      ]}
+                    >
+                      {form.usoBebidaAlcoolica || "Selecione uma opção"}
+                    </Text>
+                    <Ionicons
+                      name="chevron-down"
+                      size={16}
+                      color={currentTheme.mutedForeground}
+                    />
+                  </TouchableOpacity>
+                )}
+                <FieldError error={fieldErrors.usoBebidaAlcoolica} />
+              </View>
+
+              <View style={styles.halfWidth}>
+                <Text style={[styles.label, { color: currentTheme.text }]}>
+                  Faz uso de tabaco? *
+                </Text>
+                {Platform.OS === 'web' ? (
+                  <select
+                    value={form.usoTabaco || ''}
+                    onChange={(e: any) => updateFormAndClearError('usoTabaco', e.target.value)}
+                    style={{
+                      ...styles.input,
+                      backgroundColor: currentTheme.surface,
+                      borderColor: currentTheme.border,
+                      color: currentTheme.text,
+                      cursor: 'pointer'
+                    } as any}
+                  >
+                    <option value="">Selecione uma opção</option>
+                    <option value="Sim">Sim</option>
+                    <option value="Não">Não</option>
+                  </select>
+                ) : (
+                  <TouchableOpacity
+                    style={[
+                      getFieldStyle("usoTabaco", {
+                        ...styles.selectContainer,
+                        backgroundColor: currentTheme.surface,
+                        borderColor: currentTheme.border,
+                      }),
+                    ]}
+                    onPress={() => setShowTabacoModal(true)}
+                  >
+                    <Text
+                      style={[
+                        styles.selectText,
+                        {
+                          color: form.usoTabaco
+                            ? currentTheme.text
+                            : currentTheme.mutedForeground,
+                        },
+                      ]}
+                    >
+                      {form.usoTabaco || "Selecione uma opção"}
+                    </Text>
+                    <Ionicons
+                      name="chevron-down"
+                      size={16}
+                      color={currentTheme.mutedForeground}
+                    />
+                  </TouchableOpacity>
+                )}
+                <FieldError error={fieldErrors.usoTabaco} />
               </View>
             </View>
 
@@ -2238,8 +3029,342 @@ export const CadastroMunicipeScreen = ({
                 }
                 multiline
                 numberOfLines={4}
-                textAlignVertical="top"
               />
+            </View>
+
+          </View>
+        )}
+
+        {/* Aba Sociodemográficas */}
+        {activeTab === "sociodemograficas" && (
+          <View style={styles.formContainer}>
+            {/* Orientação Sexual e Identidade de Gênero */}
+            <View style={styles.rowContainer}>
+              <View style={styles.halfWidth}>
+                <Text style={[styles.label, { color: currentTheme.text }]}>
+                  Orientação Sexual
+                </Text>
+                {Platform.OS === 'web' ? (
+                  <select
+                    value={form.orientacaoSexual || ''}
+                    onChange={(e: any) => updateFormAndClearError('orientacaoSexual', e.target.value)}
+                    style={{
+                      ...styles.input,
+                      backgroundColor: currentTheme.surface,
+                      borderColor: currentTheme.border,
+                      color: currentTheme.text,
+                      cursor: 'pointer'
+                    } as any}
+                  >
+                    <option value="">Selecione a orientação sexual</option>
+                    {orientacaoSexualOptions.map((option) => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <TouchableOpacity
+                    style={[
+                      styles.selectContainer,
+                      {
+                        backgroundColor: currentTheme.surface,
+                        borderColor: currentTheme.border,
+                      },
+                    ]}
+                    onPress={() => setShowOrientacaoSexualModal(true)}
+                  >
+                    <Text
+                      style={[
+                        styles.selectText,
+                        {
+                          color: form.orientacaoSexual
+                            ? currentTheme.text
+                            : currentTheme.mutedForeground,
+                        },
+                      ]}
+                    >
+                      {form.orientacaoSexual || "Selecione a orientação sexual"}
+                    </Text>
+                    <Ionicons
+                      name="chevron-down"
+                      size={16}
+                      color={currentTheme.mutedForeground}
+                    />
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              <View style={styles.halfWidth}>
+                <Text style={[styles.label, { color: currentTheme.text }]}>
+                  Identidade de Gênero
+                </Text>
+                {Platform.OS === 'web' ? (
+                  <select
+                    value={form.identidadeGenero || ''}
+                    onChange={(e: any) => updateFormAndClearError('identidadeGenero', e.target.value)}
+                    style={{
+                      ...styles.input,
+                      backgroundColor: currentTheme.surface,
+                      borderColor: currentTheme.border,
+                      color: currentTheme.text,
+                      cursor: 'pointer'
+                    } as any}
+                  >
+                    <option value="">Selecione a identidade de gênero</option>
+                    {identidadeGeneroOptions.map((option) => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <TouchableOpacity
+                    style={[
+                      styles.selectContainer,
+                      {
+                        backgroundColor: currentTheme.surface,
+                        borderColor: currentTheme.border,
+                      },
+                    ]}
+                    onPress={() => setShowIdentidadeGeneroModal(true)}
+                  >
+                    <Text
+                      style={[
+                        styles.selectText,
+                        {
+                          color: form.identidadeGenero
+                            ? currentTheme.text
+                            : currentTheme.mutedForeground,
+                        },
+                      ]}
+                    >
+                      {form.identidadeGenero || "Selecione a identidade de gênero"}
+                    </Text>
+                    <Ionicons
+                      name="chevron-down"
+                      size={16}
+                      color={currentTheme.mutedForeground}
+                    />
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
+
+            {/* Escolaridade e Profissão */}
+            <View style={styles.rowContainer}>
+              <View style={styles.halfWidth}>
+                <Text style={[styles.label, { color: currentTheme.text }]}>
+                  Escolaridade
+                </Text>
+                {Platform.OS === 'web' ? (
+                  <select
+                    value={form.escolaridade || ''}
+                    onChange={(e: any) => updateFormAndClearError('escolaridade', e.target.value)}
+                    style={{
+                      ...styles.input,
+                      backgroundColor: currentTheme.surface,
+                      borderColor: currentTheme.border,
+                      color: currentTheme.text,
+                      cursor: 'pointer'
+                    } as any}
+                  >
+                    <option value="">Selecione a escolaridade</option>
+                    {escolaridadeOptions.map((option) => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <TouchableOpacity
+                    style={[
+                      styles.selectContainer,
+                      {
+                        backgroundColor: currentTheme.surface,
+                        borderColor: currentTheme.border,
+                      },
+                    ]}
+                    onPress={() => setShowEscolaridadeModal(true)}
+                  >
+                    <Text
+                      style={[
+                        styles.selectText,
+                        {
+                          color: form.escolaridade
+                            ? currentTheme.text
+                            : currentTheme.mutedForeground,
+                        },
+                      ]}
+                    >
+                      {form.escolaridade || "Selecione a escolaridade"}
+                    </Text>
+                    <Ionicons
+                      name="chevron-down"
+                      size={16}
+                      color={currentTheme.mutedForeground}
+                    />
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              <View style={styles.halfWidth}>
+                <Text style={[styles.label, { color: currentTheme.text }]}>
+                  Ocupação
+                </Text>
+                <TextInput
+                  style={[
+                    styles.input,
+                    {
+                      backgroundColor: currentTheme.surface,
+                      borderColor: currentTheme.border,
+                      color: currentTheme.text,
+                    },
+                  ]}
+                  placeholder="Digite a ocupação"
+                  placeholderTextColor={currentTheme.mutedForeground}
+                  value={form.ocupacao}
+                  onChangeText={(value: string) =>
+                    updateForm("ocupacao", value)
+                  }
+                />
+              </View>
+            </View>
+
+            {/* NIS e Tipo Sanguíneo */}
+            <View style={styles.rowContainer}>
+              <View style={styles.halfWidth}>
+                <Text style={[styles.label, { color: currentTheme.text }]}>
+                  Nº NIS (PIS/PASEP)
+                </Text>
+                <TextInput
+                  style={[
+                    getFieldStyle("nis", styles.input),
+                    {
+                      backgroundColor: currentTheme.surface,
+                      borderColor: currentTheme.border,
+                      color: currentTheme.text,
+                    },
+                  ]}
+                  placeholder="Digite o NIS (XXX.XXXXX.XX-X)"
+                  placeholderTextColor={currentTheme.mutedForeground}
+                  value={form.nis}
+                  onChangeText={updateNIS}
+                  keyboardType="numeric"
+                  maxLength={14} // Comprimento máximo com máscara XXX.XXXXX.XX-X
+                />
+                <FieldError error={fieldErrors.nis} />
+              </View>
+
+              <View style={styles.halfWidth}>
+                <Text style={[styles.label, { color: currentTheme.text }]}>
+                  Tipo Sanguíneo
+                </Text>
+                {Platform.OS === 'web' ? (
+                  <select
+                    value={form.tipoSanguineo || ''}
+                    onChange={(e: any) => updateFormAndClearError('tipoSanguineo', e.target.value)}
+                    style={{
+                      ...styles.input,
+                      backgroundColor: currentTheme.surface,
+                      borderColor: currentTheme.border,
+                      color: currentTheme.text,
+                      cursor: 'pointer'
+                    } as any}
+                  >
+                    <option value="">Selecione o tipo sanguíneo</option>
+                    {tipoSanguineoOptions.map((option) => (
+                      <option key={option} value={option}>{option}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <TouchableOpacity
+                    style={[
+                      styles.selectContainer,
+                      {
+                        backgroundColor: currentTheme.surface,
+                        borderColor: currentTheme.border,
+                      },
+                    ]}
+                    onPress={() => setShowTipoSanguineoModal(true)}
+                  >
+                    <Text
+                      style={[
+                        styles.selectText,
+                        {
+                          color: form.tipoSanguineo
+                            ? currentTheme.text
+                            : currentTheme.mutedForeground,
+                        },
+                      ]}
+                    >
+                      {form.tipoSanguineo || "Selecione o tipo sanguíneo"}
+                    </Text>
+                    <Ionicons
+                      name="chevron-down"
+                      size={16}
+                      color={currentTheme.mutedForeground}
+                    />
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
+          </View>
+        )}
+
+        {/* Aba Equipe Responsável */}
+        {activeTab === "equipe" && (
+          <View style={styles.formContainer}>
+            {/* Tipo de Equipe e Nome da Equipe */}
+            <View style={styles.rowContainer}>
+              <View style={styles.halfWidth}>
+                <Text style={[styles.label, { color: currentTheme.text }]}>
+                  Equipe Responsável
+                </Text>
+                <HealthDropdown
+                  data={equipesData}
+                  selectedValue={form.equipeResponsavel}
+                  onSelect={(item) => handleSelectHealthItem("equipeResponsavel", item)}
+                  placeholder="Selecione a equipe responsável"
+                  iconName="people"
+                />
+              </View>
+
+              <View style={styles.halfWidth}>
+                <Text style={[styles.label, { color: currentTheme.text }]}>
+                  Unidade Responsável
+                </Text>
+                <HealthDropdown
+                  data={unidadesData}
+                  selectedValue={form.unidadeResponsavel}
+                  onSelect={(item) => handleSelectHealthItem("unidadeResponsavel", item)}
+                  placeholder="Selecione a unidade responsável"
+                  iconName="business"
+                />
+              </View>
+            </View>
+
+            {/* Área e Microárea */}
+            <View style={styles.rowContainer}>
+              <View style={styles.halfWidth}>
+                <Text style={[styles.label, { color: currentTheme.text }]}>
+                  Área
+                </Text>
+                <HealthDropdown
+                  data={areasData}
+                  selectedValue={form.area}
+                  onSelect={(item) => handleSelectHealthItem("area", item)}
+                  placeholder="Selecione a área"
+                  iconName="location"
+                />
+              </View>
+
+              <View style={styles.halfWidth}>
+                <Text style={[styles.label, { color: currentTheme.text }]}>
+                  Microárea
+                </Text>
+                <HealthDropdown
+                  data={microareasData}
+                  selectedValue={form.microarea}
+                  onSelect={(item) => handleSelectHealthItem("microarea", item)}
+                  placeholder="Selecione a microárea"
+                  iconName="map"
+                />
+              </View>
             </View>
           </View>
         )}
@@ -2314,6 +3439,88 @@ export const CadastroMunicipeScreen = ({
                   key={option}
                   style={styles.modalOption}
                   onPress={() => handleSelectOption("deficiencia", option)}
+                >
+                  <Text
+                    style={[
+                      styles.modalOptionText,
+                      { color: currentTheme.text },
+                    ]}
+                  >
+                    {option}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </TouchableOpacity>
+        </Modal>
+
+        {/* Modal Bebida Alcoólica */}
+        <Modal
+          visible={showBebidaAlcoolicaModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowBebidaAlcoolicaModal(false)}
+        >
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={() => setShowBebidaAlcoolicaModal(false)}
+          >
+            <View
+              style={[
+                styles.modalContent,
+                { backgroundColor: currentTheme.surface },
+              ]}
+            >
+              <Text style={[styles.modalTitle, { color: currentTheme.text }]}>
+                Uso de bebida alcoólica
+              </Text>
+              {bebidaAlcoolicaOptions.map((option) => (
+                <TouchableOpacity
+                  key={option}
+                  style={styles.modalOption}
+                  onPress={() => handleSelectOption("usoBebidaAlcoolica", option)}
+                >
+                  <Text
+                    style={[
+                      styles.modalOptionText,
+                      { color: currentTheme.text },
+                    ]}
+                  >
+                    {option}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </TouchableOpacity>
+        </Modal>
+
+        {/* Modal Tabaco */}
+        <Modal
+          visible={showTabacoModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowTabacoModal(false)}
+        >
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={() => setShowTabacoModal(false)}
+          >
+            <View
+              style={[
+                styles.modalContent,
+                { backgroundColor: currentTheme.surface },
+              ]}
+            >
+              <Text style={[styles.modalTitle, { color: currentTheme.text }]}>
+                Uso de tabaco
+              </Text>
+              {tabacoOptions.map((option) => (
+                <TouchableOpacity
+                  key={option}
+                  style={styles.modalOption}
+                  onPress={() => handleSelectOption("usoTabaco", option)}
                 >
                   <Text
                     style={[
@@ -2487,6 +3694,146 @@ export const CadastroMunicipeScreen = ({
                       { color: currentTheme.text },
                     ]}
                   >
+                    {option}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </TouchableOpacity>
+        </Modal>
+
+        {/* Modal Escolaridade */}
+        <Modal
+          visible={showEscolaridadeModal}
+          transparent={true}
+          animationType="slide"
+        >
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={() => setShowEscolaridadeModal(false)}
+          >
+            <View
+              style={[
+                styles.modalContent,
+                { backgroundColor: currentTheme.surface },
+              ]}
+            >
+              <Text style={[styles.modalTitle, { color: currentTheme.text }]}>
+                Escolaridade
+              </Text>
+              {escolaridadeOptions.map((option) => (
+                <TouchableOpacity
+                  key={option}
+                  style={styles.modalOption}
+                  onPress={() => handleSelectOption("escolaridade", option)}
+                >
+                  <Text style={[styles.modalOptionText, { color: currentTheme.text }]}>
+                    {option}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </TouchableOpacity>
+        </Modal>
+
+        {/* Modal Orientação Sexual */}
+        <Modal
+          visible={showOrientacaoSexualModal}
+          transparent={true}
+          animationType="slide"
+        >
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={() => setShowOrientacaoSexualModal(false)}
+          >
+            <View
+              style={[
+                styles.modalContent,
+                { backgroundColor: currentTheme.surface },
+              ]}
+            >
+              <Text style={[styles.modalTitle, { color: currentTheme.text }]}>
+                Orientação Sexual
+              </Text>
+              {orientacaoSexualOptions.map((option) => (
+                <TouchableOpacity
+                  key={option}
+                  style={styles.modalOption}
+                  onPress={() => handleSelectOption("orientacaoSexual", option)}
+                >
+                  <Text style={[styles.modalOptionText, { color: currentTheme.text }]}>
+                    {option}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </TouchableOpacity>
+        </Modal>
+
+        {/* Modal Identidade de Gênero */}
+        <Modal
+          visible={showIdentidadeGeneroModal}
+          transparent={true}
+          animationType="slide"
+        >
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={() => setShowIdentidadeGeneroModal(false)}
+          >
+            <View
+              style={[
+                styles.modalContent,
+                { backgroundColor: currentTheme.surface },
+              ]}
+            >
+              <Text style={[styles.modalTitle, { color: currentTheme.text }]}>
+                Identidade de Gênero
+              </Text>
+              {identidadeGeneroOptions.map((option) => (
+                <TouchableOpacity
+                  key={option}
+                  style={styles.modalOption}
+                  onPress={() => handleSelectOption("identidadeGenero", option)}
+                >
+                  <Text style={[styles.modalOptionText, { color: currentTheme.text }]}>
+                    {option}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </TouchableOpacity>
+        </Modal>
+
+        {/* Modal Tipo Sanguíneo */}
+        <Modal
+          visible={showTipoSanguineoModal}
+          transparent={true}
+          animationType="slide"
+        >
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={() => setShowTipoSanguineoModal(false)}
+          >
+            <View
+              style={[
+                styles.modalContent,
+                { backgroundColor: currentTheme.surface },
+              ]}
+            >
+              <Text style={[styles.modalTitle, { color: currentTheme.text }]}>
+                Tipo Sanguíneo
+              </Text>
+              {tipoSanguineoOptions.map((option) => (
+                <TouchableOpacity
+                  key={option}
+                  style={styles.modalOption}
+                  onPress={() => handleSelectOption("tipoSanguineo", option)}
+                >
+                  <Text style={[styles.modalOptionText, { color: currentTheme.text }]}>
                     {option}
                   </Text>
                 </TouchableOpacity>

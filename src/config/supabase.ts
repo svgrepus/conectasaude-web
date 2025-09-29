@@ -1,5 +1,4 @@
 import Constants from 'expo-constants';
-import { SUPABASE_MASTER_CONFIG } from '../../supabase.master.config.js';
 
 /**
  * Configuração centralizada e segura do Supabase
@@ -7,16 +6,22 @@ import { SUPABASE_MASTER_CONFIG } from '../../supabase.master.config.js';
  * Implementa as melhores práticas de segurança para React Native:
  * 1. Prioriza variáveis de ambiente
  * 2. Fallback para configuração do Expo
- * 3. Usa MASTER CONFIG como último recurso (nunca hardcode)
+ * 3. Usa configuração padrão como último recurso
  * 4. Validação de configurações obrigatórias
  */
+
+// Configuração padrão (fallback)
+const DEFAULT_SUPABASE_CONFIG = {
+  URL: 'https://neqkqjpynrinlsodfrkf.supabase.co',
+  ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5lcWtxanB5bnJpbmxzb2RmcmtmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxMTg2MDcsImV4cCI6MjA3MjY5NDYwN30.-xJL2HTvxU0HPWLqtFAT3HQu-cTBPUqu4lzK0k8bCQM'
+};
 
 // Função para validar e obter configurações
 const getSupabaseUrl = (): string => {
   const url = Constants.expoConfig?.extra?.EXPO_PUBLIC_SUPABASE_URL || 
               process.env.EXPO_PUBLIC_SUPABASE_URL ||
               process.env.REACT_APP_SUPABASE_URL ||
-              SUPABASE_MASTER_CONFIG.URL; // ← USA MASTER CONFIG, NÃO HARDCODE
+              DEFAULT_SUPABASE_CONFIG.URL;
   
   if (!url || !url.includes('.supabase.co')) {
     console.warn('⚠️ URL do Supabase pode estar incorreta:', url);
@@ -29,7 +34,7 @@ const getSupabaseAnonKey = (): string => {
   const key = Constants.expoConfig?.extra?.EXPO_PUBLIC_SUPABASE_ANON_KEY || 
               process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ||
               process.env.REACT_APP_SUPABASE_ANON_KEY ||
-              SUPABASE_MASTER_CONFIG.ANON_KEY; // ← USA MASTER CONFIG, NÃO HARDCODE
+              DEFAULT_SUPABASE_CONFIG.ANON_KEY;
   
   if (!key || !key.startsWith('eyJ')) {
     console.warn('⚠️ Chave do Supabase pode estar incorreta');

@@ -27,6 +27,10 @@ import {
   TipoDoencaScreen,
   TipoVeiculoScreen,
   CargoScreen,
+  EquipeScreen,
+  UnidadeScreen,
+  AreaScreen,
+  MicroareaScreen,
 } from "../screens/cadastros";
 
 // Type definitions
@@ -50,6 +54,10 @@ export type MainStackParamList = {
   TipoDoenca: undefined;
   TipoVeiculo: undefined;
   Cargo: undefined;
+  Equipes: undefined;
+  Unidades: undefined;
+  Areas: undefined;
+  Microareas: undefined;
 };
 
 const RootStack = createStackNavigator<RootStackParamList>();
@@ -135,6 +143,28 @@ function MainStackNavigator() {
         name="Cargo"
         component={CargoScreen}
         options={{ title: "Cargos" }}
+      />
+      
+      {/* Área da Saúde */}
+      <MainStack.Screen
+        name="Equipes"
+        component={EquipeScreen}
+        options={{ title: "Equipes de Saúde" }}
+      />
+      <MainStack.Screen
+        name="Unidades"
+        component={UnidadeScreen}
+        options={{ title: "Unidades de Saúde" }}
+      />
+      <MainStack.Screen
+        name="Areas"
+        component={AreaScreen}
+        options={{ title: "Áreas de Cobertura" }}
+      />
+      <MainStack.Screen
+        name="Microareas"
+        component={MicroareaScreen}
+        options={{ title: "Microáreas" }}
       />
     </MainStack.Navigator>
   );
@@ -249,6 +279,46 @@ function MainNavigator() {
             title: "Cargos",
             drawerIcon: ({ color }) => (
               <Ionicons name="briefcase-outline" size={22} color={color} />
+            ),
+          }}
+        />
+        <Drawer.Screen
+          name="Equipes"
+          component={EquipeScreen}
+          options={{
+            title: "Equipes de Saúde",
+            drawerIcon: ({ color }) => (
+              <Ionicons name="people-outline" size={22} color={color} />
+            ),
+          }}
+        />
+        <Drawer.Screen
+          name="Unidades"
+          component={UnidadeScreen}
+          options={{
+            title: "Unidades de Saúde",
+            drawerIcon: ({ color }) => (
+              <Ionicons name="business-outline" size={22} color={color} />
+            ),
+          }}
+        />
+        <Drawer.Screen
+          name="Areas"
+          component={AreaScreen}
+          options={{
+            title: "Áreas de Cobertura",
+            drawerIcon: ({ color }) => (
+              <Ionicons name="map-outline" size={22} color={color} />
+            ),
+          }}
+        />
+        <Drawer.Screen
+          name="Microareas"
+          component={MicroareaScreen}
+          options={{
+            title: "Microáreas",
+            drawerIcon: ({ color }) => (
+              <Ionicons name="location-outline" size={22} color={color} />
             ),
           }}
         />

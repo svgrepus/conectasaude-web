@@ -1,5 +1,101 @@
 // Database entity types based on the ConectaSaúde system
 
+// ===== ENUMS E CONSTANTES =====
+
+// Orientação Sexual
+export const ORIENTACAO_SEXUAL_OPTIONS = [
+  'HETEROSSEXUAL',
+  'HOMOSSEXUAL', 
+  'BISSEXUAL',
+  'PANSEXUAL',
+  'ASSEXUAL',
+  'OUTROS',
+  'NAO_INFORMADO'
+] as const;
+
+export type OrientacaoSexual = typeof ORIENTACAO_SEXUAL_OPTIONS[number];
+
+// Escolaridade
+export const ESCOLARIDADE_OPTIONS = [
+  'SEM_ESCOLARIDADE',
+  'FUNDAMENTAL_INCOMPLETO',
+  'FUNDAMENTAL_COMPLETO',
+  'MEDIO_INCOMPLETO', 
+  'MEDIO_COMPLETO',
+  'SUPERIOR_INCOMPLETO',
+  'SUPERIOR_COMPLETO',
+  'POS_GRADUACAO',
+  'MESTRADO',
+  'DOUTORADO'
+] as const;
+
+export type Escolaridade = typeof ESCOLARIDADE_OPTIONS[number];
+
+// Identidade de Gênero
+export const IDENTIDADE_GENERO_OPTIONS = [
+  'CISGÊNERO',
+  'TRANSGÊNERO', 
+  'NÃO_BINÁRIO',
+  'GÊNERO_FLUIDO',
+  'AGÊNERO',
+  'OUTROS',
+  'NAO_INFORMADO'
+] as const;
+
+export type IdentidadeGenero = typeof IDENTIDADE_GENERO_OPTIONS[number];
+
+// Tipo Sanguíneo
+export const TIPO_SANGUINEO_OPTIONS = [
+  'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'
+] as const;
+
+export type TipoSanguineo = typeof TIPO_SANGUINEO_OPTIONS[number];
+
+// Labels para exibição
+export const ORIENTACAO_SEXUAL_LABELS: Record<OrientacaoSexual, string> = {
+  'HETEROSSEXUAL': 'Heterossexual',
+  'HOMOSSEXUAL': 'Homossexual',
+  'BISSEXUAL': 'Bissexual',
+  'PANSEXUAL': 'Pansexual',
+  'ASSEXUAL': 'Assexual',
+  'OUTROS': 'Outros',
+  'NAO_INFORMADO': 'Não informado'
+};
+
+export const ESCOLARIDADE_LABELS: Record<Escolaridade, string> = {
+  'SEM_ESCOLARIDADE': 'Sem escolaridade',
+  'FUNDAMENTAL_INCOMPLETO': 'Fundamental incompleto',
+  'FUNDAMENTAL_COMPLETO': 'Fundamental completo',
+  'MEDIO_INCOMPLETO': 'Médio incompleto',
+  'MEDIO_COMPLETO': 'Médio completo',
+  'SUPERIOR_INCOMPLETO': 'Superior incompleto',
+  'SUPERIOR_COMPLETO': 'Superior completo',
+  'POS_GRADUACAO': 'Pós-graduação',
+  'MESTRADO': 'Mestrado',
+  'DOUTORADO': 'Doutorado'
+};
+
+export const IDENTIDADE_GENERO_LABELS: Record<IdentidadeGenero, string> = {
+  'CISGÊNERO': 'Cisgênero',
+  'TRANSGÊNERO': 'Transgênero',
+  'NÃO_BINÁRIO': 'Não-binário',
+  'GÊNERO_FLUIDO': 'Gênero fluido',
+  'AGÊNERO': 'Agênero',
+  'OUTROS': 'Outros',
+  'NAO_INFORMADO': 'Não informado'
+};
+
+export const TIPO_SANGUINEO_LABELS: Record<TipoSanguineo, string> = {
+  'A+': 'A+',
+  'A-': 'A-',
+  'B+': 'B+', 
+  'B-': 'B-',
+  'AB+': 'AB+',
+  'AB-': 'AB-',
+  'O+': 'O+',
+  'O-': 'O-'
+};
+
 export interface User {
   id: string;
   email: string;
@@ -15,13 +111,21 @@ export interface Municipe {
   cpf: string;
   data_nascimento: string;
   sexo: 'M' | 'F' | 'O';
+  // Telefones desmembrados
+  telefone_residencial?: string;
+  telefone_celular?: string;
+  telefone_contato?: string;
+  // Campo legacy para compatibilidade
   telefone?: string;
   email?: string;
   
   // Campos básicos adicionais
   nome_mae?: string;
+  nome_pai?: string; // NOVO
   rg?: string;
   estado_civil?: string;
+  nacionalidade?: string; // NOVO OBRIGATÓRIO
+  municipio_nascimento?: string; // NOVO OBRIGATÓRIO
   
   // Campos de endereço (da view vw_municipes_completo)
   endereco?: string;
@@ -30,6 +134,8 @@ export interface Municipe {
   numero?: string; // campo alternativo da view
   complemento_endereco?: string;
   complemento?: string; // campo alternativo da view
+  complemento_logradouro?: string; // NOVO
+  ponto_referencia?: string; // NOVO
   bairro?: string;
   cep?: string;
   cidade?: string;
@@ -43,7 +149,8 @@ export interface Municipe {
   endereco_updated_at?: string;
   
   // Campos de saúde (da view vw_municipes_completo)
-  cartao_sus?: string;
+  cns?: string; // ALTERADO de cartao_sus para cns
+  cartao_sus?: string; // Campo legacy para compatibilidade
   usoMedicamentoContinuo?: string;
   uso_medicamento_continuo?: string; // campo alternativo
   uso_continuo_medicamentos?: string; // campo alternativo da view
@@ -61,6 +168,11 @@ export interface Municipe {
   doenca_cronica?: string; // campo alternativo da view
   tipo_doenca?: string; // campo alternativo da view
   observacoes_medicas?: string; // campo da view
+  // NOVOS campos de saúde
+  uso_bebida_alcoolica?: boolean;
+  uso_tabaco?: boolean;
+  consome_bebida_alcoolica?: string; // campo calculado
+  consome_tabaco?: string; // campo calculado
   saude_id?: string;
   saude_created_at?: string;
   saude_updated_at?: string;
@@ -77,6 +189,24 @@ export interface Municipe {
   acompanhante_created_at?: string;
   acompanhante_updated_at?: string;
   tem_acompanhante_cadastrado?: string;
+  
+  // NOVA SEÇÃO: Informações Sociodemográficas
+  sociodemografico_id?: string;
+  nis?: string; // 11 dígitos
+  ocupacao?: string;
+  orientacao_sexual?: OrientacaoSexual;
+  escolaridade?: Escolaridade;
+  identidade_genero?: IdentidadeGenero;
+  tipo_sanguineo?: TipoSanguineo;
+  tem_dados_sociodemograficos?: string;
+  
+  // NOVA SEÇÃO: Equipe Responsável
+  equipe_responsavel_id?: string;
+  equipe_responsavel?: string;
+  unidade_responsavel?: string;
+  area?: string;
+  microarea?: string;
+  tem_equipe_responsavel?: string;
   
   // Campos calculados da view
   idade?: number;
