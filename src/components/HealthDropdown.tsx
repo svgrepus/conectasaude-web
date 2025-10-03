@@ -40,7 +40,9 @@ export const HealthDropdown = ({
   // Encontrar o item selecionado quando selectedValue muda
   useEffect(() => {
     if (selectedValue) {
-      const item = data.find(d => d.id === selectedValue);
+      // Procurar por ID primeiro, depois por nome (para compatibilidade)
+      const item = data.find(d => d.id === selectedValue) || 
+                   data.find(d => d.nome === selectedValue);
       setSelectedItem(item || null);
     } else {
       setSelectedItem(null);

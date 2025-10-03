@@ -563,6 +563,58 @@ export const CadastroMunicipeScreen = ({
     "O-"
   ];
 
+  // 💼 Opções de Ocupação
+  const ocupacaoOptions = [
+    "Advogado especializado (Tributário, Contratual, Compliance, Proteção de Dados)",
+    "Agricultor Familiar",
+    "Analista de Dados / Cientista de Dados",
+    "Arquiteto de Soluções / Arquiteto de Nuvem (Cloud Architect)",
+    "Arquitetura / Design de Interiores / Designer em geral",
+    "Assistente de Eventos",
+    "Assistente de Patologia",
+    "Assistente Social",
+    "Auxiliar Administrativo",
+    "Auxiliar de Serviços Gerais",
+    "Carpinteiro / Marceneiro",
+    "Comerciário / Vendedor de Loja",
+    "Controller / Profissional de Controladoria / Finanças Corporativas",
+    "Cozinheiro / Auxiliar de Cozinha",
+    "Desenvolvedor / Programador de Software / Aplicativos",
+    "Diretor(a) de Receita (Revenue Director)",
+    "Eletricista",
+    "Enfermeiro(a)",
+    "Engenheiro (Industrial, Automação, Mecânica etc.)",
+    "Engenheiro de Dados / Engenheiro de Dados em tempo real",
+    "Engenheiro de FinTech / Especialista Financeiro Tecnológico",
+    "Engenheiro de Segurança Cibernética",
+    "Engenheiro de Segurança de Processos",
+    "Especialista em Geração de Leads / Marketing Digital",
+    "Especialista em Inteligência Artificial / Machine Learning",
+    "Especialista em Sustentabilidade / ESG / Responsabilidade Ambiental",
+    "Garçom / Atendente de Bar",
+    "Gerente de Projetos / Gestor de Projetos",
+    "Gerente de TI / Diretor de TI",
+    "Mecânico de Automóveis / Motocicletas",
+    "Mecânico Industrial / Manutenção",
+    "Motorista (Ônibus, Caminhão, Transporte Escolar)",
+    "Neuropsicólogo(a)",
+    "Pedreiro",
+    "Produtor Rural / Pecuarista",
+    "Psicólogo(a) Pediátrico(a)",
+    "Professor da Educação Básica (Ensino Fundamental / Médio)",
+    "Profissional de Cibersegurança / Segurança da Informação",
+    "Técnico Agrícola / Técnico em Agropecuária",
+    "Técnico em Enfermagem",
+    "Técnico em Informática / Suporte de TI",
+    "Trabalhador Rural / Bóia-fria"
+  ];
+
+  // 💼 Opções de Ocupação convertidas para HealthDataItem
+  const ocupacaoData: HealthDataItem[] = ocupacaoOptions.map((ocupacao, index) => ({
+    id: index.toString(),
+    nome: ocupacao,
+  }));
+
   const updateForm = (
     field: keyof CadastroMunicipeForm,
     value: string | string[]
@@ -931,6 +983,12 @@ export const CadastroMunicipeScreen = ({
   ) => {
     updateForm(field, item.id);
     clearFieldError(field as string);
+  };
+
+  // Função para selecionar ocupação
+  const handleSelectOcupacao = (item: HealthDataItem) => {
+    updateForm("ocupacao", item.nome); // Para ocupação, salvamos o nome em vez do ID
+    clearFieldError("ocupacao");
   };
 
   // 📍 Função para aplicar máscara de CEP
@@ -3206,22 +3264,14 @@ export const CadastroMunicipeScreen = ({
                 <Text style={[styles.label, { color: currentTheme.text }]}>
                   Ocupação
                 </Text>
-                <TextInput
-                  style={[
-                    styles.input,
-                    {
-                      backgroundColor: currentTheme.surface,
-                      borderColor: currentTheme.border,
-                      color: currentTheme.text,
-                    },
-                  ]}
-                  placeholder="Digite a ocupação"
-                  placeholderTextColor={currentTheme.mutedForeground}
-                  value={form.ocupacao}
-                  onChangeText={(value: string) =>
-                    updateForm("ocupacao", value)
-                  }
+                <HealthDropdown
+                  data={ocupacaoData}
+                  selectedValue={form.ocupacao}
+                  onSelect={handleSelectOcupacao}
+                  placeholder="Selecione a ocupação"
+                  iconName="briefcase"
                 />
+                <FieldError error={fieldErrors.ocupacao} />
               </View>
             </View>
 
