@@ -32,7 +32,7 @@ class EstoquesService {
         .from('estoque_movimentos')
         .select(`
           *,
-          medicamento:medicamentos!inner(dcb_dci, codigo_interno),
+          medicamento:medicamentos!inner(nome_dcb, codigo_interno),
           unidade_origem:stock_units!estoque_movimentos_unidade_origem_id_fkey(nome),
           unidade_destino:stock_units!estoque_movimentos_unidade_destino_id_fkey(nome)
         `)
@@ -119,7 +119,7 @@ class EstoquesService {
           executed_at,
           tipo,
           quantidade,
-          medicamento:medicamentos!inner(dcb_dci),
+          medicamento:medicamentos!inner(nome_dcb),
           unidade_destino:stock_units!estoque_movimentos_unidade_destino_id_fkey(nome)
         `)
         .eq('deleted_at', null)
@@ -150,7 +150,7 @@ class EstoquesService {
         .from('medicamentos_estoque')
         .select(`
           *,
-          medicamento:medicamentos!inner(dcb_dci, codigo_interno),
+          medicamento:medicamentos!inner(nome_dcb, codigo_interno),
           unidade:stock_units!inner(nome)
         `)
         .filter('quantidade', 'lte', 'minimo_alerta');

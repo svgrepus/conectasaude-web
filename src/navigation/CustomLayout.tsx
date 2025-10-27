@@ -33,6 +33,8 @@ import {
   UnidadeScreen,
   AreaScreen,
   MicroareaScreen,
+  CadastroMedicamentosScreen,
+  EstoqueMedicamentosScreen,
 } from "../screens/cadastros";
 import { MunicipeDetailScreen } from "../screens/municipes/MunicipeDetailScreen";
 import { MunicipeDetailScreenWrapper } from "../screens/municipes/MunicipeDetailScreenWrapper";
@@ -48,6 +50,8 @@ const getScreenComponent = (screenName: string) => {
   const screenComponents: { [key: string]: React.ComponentType<any> } = {
     Dashboard: DashboardScreen,
     Medicamentos: MedicamentosScreen,
+    CadastroMedicamentos: CadastroMedicamentosScreen,
+    EstoqueMedicamentos: EstoqueMedicamentosScreen,
     Motoristas: MotoristasScreen,
     Veículos: VeiculosScreen,
     Munícipes: MunicipesContainer,
@@ -78,6 +82,8 @@ function MainStackNavigator() {
     >
       <Stack.Screen name="Dashboard" component={DashboardScreen} />
       <Stack.Screen name="Medicamentos" component={MedicamentosScreen} />
+      <Stack.Screen name="CadastroMedicamentos" component={CadastroMedicamentosScreen} />
+      <Stack.Screen name="EstoqueMedicamentos" component={EstoqueMedicamentosScreen} />
       <Stack.Screen name="Motoristas" component={MotoristasScreen} />
       <Stack.Screen name="Veiculos" component={VeiculosScreen} />
       <Stack.Screen name="Municipes" component={MunicipesContainer} />
@@ -104,6 +110,8 @@ function MainStackNavigator() {
 const navigationScreenMap: { [key: string]: string } = {
   Dashboard: "Dashboard",
   Medicamentos: "Medicamentos",
+  CadastroMedicamentos: "CadastroMedicamentos",
+  EstoqueMedicamentos: "EstoqueMedicamentos",
   Motoristas: "Motoristas",
   Veiculos: "Veículos",
   Municipes: "Munícipes",
@@ -122,6 +130,8 @@ const navigationScreenMap: { [key: string]: string } = {
 const screenToNavigation: { [key: string]: string } = {
   Dashboard: "Dashboard",
   Medicamentos: "Medicamentos",
+  CadastroMedicamentos: "CadastroMedicamentos",
+  EstoqueMedicamentos: "EstoqueMedicamentos",
   Motoristas: "Motoristas",
   Veículos: "Veiculos",
   Munícipes: "Municipes",
@@ -213,6 +223,19 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({
       label: "Medicamentos",
       icon: "medical",
       component: MedicamentosScreen,
+      hasSubmenu: true,
+      submenu: [
+        {
+          key: "CadastroMedicamentos",
+          label: "  • Cadastro de Medicamentos",
+          component: CadastroMedicamentosScreen,
+        },
+        {
+          key: "EstoqueMedicamentos",
+          label: "  • Estoque de Medicamentos",
+          component: EstoqueMedicamentosScreen,
+        },
+      ],
     },
     {
       key: "Motoristas",
@@ -312,11 +335,19 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({
   ];
 
   const toggleSubmenu = (menuKey: string) => {
-    setExpandedMenus((prev) =>
-      prev.includes(menuKey)
+    console.log('🔄 toggleSubmenu MEDICAMENTOS:', menuKey);
+    console.log('📋 expandedMenus antes:', expandedMenus);
+    
+    setExpandedMenus((prev) => {
+      const isCurrentlyExpanded = prev.includes(menuKey);
+      const newExpanded = isCurrentlyExpanded
         ? prev.filter((key) => key !== menuKey)
-        : [...prev, menuKey]
-    );
+        : [...prev, menuKey];
+      
+      console.log('📋 expandedMenus depois:', newExpanded);
+      console.log('🔄 Menu foi expandido?', !isCurrentlyExpanded);
+      return newExpanded;
+    });
   };
 
   const toggleCategory = (categoryKey: string) => {
@@ -328,20 +359,24 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({
   };
 
   const handleMenuClick = (item: any, submenuItem?: any) => {
-    if (submenuItem && submenuItem.isCategory) {
-      // Clique em categoria - alterna a categoria
+    // Debug específico para Medicamentos
+    if (item.key === 'Medicamentos') {
+      console.log('🧪 MEDICAMENTOS CLICKED!');
+      console.log('Item:', item);
+      console.log('HasSubmenu:', item.hasSubmenu);
+      console.log('ExpandedMenus antes:', expandedMenus);
+    }
+    
+    if (submenuItem && (submenuItem as any).isCategory) {
       toggleCategory(submenuItem.key);
-    } else if (submenuItem && !submenuItem.isCategory) {
-      // Clique em item de submenu - navega para a tela usando React Navigation
+    } else if (submenuItem && !(submenuItem as any).isCategory) {
       const navigationScreen = screenToNavigation[submenuItem.key];
       if (navigationScreen) {
         navigate(navigationScreen);
       }
     } else if (item.hasSubmenu && !submenuItem) {
-      // Clique no menu principal com submenu - alterna o menu
       toggleSubmenu(item.key);
     } else if (!item.hasSubmenu) {
-      // Clique em menu sem submenu - navega para a tela usando React Navigation
       const navigationScreen = screenToNavigation[item.key];
       if (navigationScreen) {
         navigate(navigationScreen);
@@ -360,7 +395,7 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({
     for (const item of menuItems) {
       if (item.submenu) {
         const submenuItem = item.submenu.find(
-          (sub) => sub.key === activeScreen && !sub.isCategory
+          (sub) => sub.key === activeScreen && !(sub as any).isCategory
         );
         if (submenuItem) {
           return submenuItem.component;
@@ -602,7 +637,10 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({
                       item.submenu.some((sub) => sub.key === activeScreen))) &&
                     styles.menuItemActive,
                 ]}
-                onPress={() => handleMenuClick(item)}
+                onPress={() => {
+                  console.log('🔄 Menu clicado:', item.key, 'hasSubmenu:', item.hasSubmenu);
+                  handleMenuClick(item);
+                }}
               >
                 <Ionicons
                   name={item.icon as any}
@@ -651,8 +689,11 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({
                 expandedMenus.includes(item.key) && (
                   <View style={styles.submenuContainer}>
                     {item.submenu.map((submenuItem: any) => {
+                      // Log para debug
+                      console.log('🔧 Renderizando item submenu:', submenuItem.key, submenuItem.label);
+                      
                       // Se é uma categoria, sempre mostra
-                      if (submenuItem.isCategory) {
+                      if ((submenuItem as any).isCategory) {
                         return (
                           <TouchableOpacity
                             key={submenuItem.key}
@@ -676,14 +717,17 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({
                         );
                       }
 
-                      // Se é um item de submenu, só mostra se a categoria pai estiver expandida
-                      const shouldShowItem = expandedCategories.includes(
-                        submenuItem.parentCategory
-                      );
-                      if (!shouldShowItem) {
-                        return null;
+                      // Se tem parentCategory (submenu categorizado), só mostra se a categoria estiver expandida
+                      if (submenuItem.parentCategory) {
+                        const shouldShowItem = expandedCategories.includes(
+                          submenuItem.parentCategory
+                        );
+                        if (!shouldShowItem) {
+                          return null;
+                        }
                       }
 
+                      // Para submenus simples (sem parentCategory), sempre mostra
                       return (
                         <TouchableOpacity
                           key={submenuItem.key}

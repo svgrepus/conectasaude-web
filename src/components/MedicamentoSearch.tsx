@@ -19,7 +19,7 @@ interface MedicamentoSearchProps {
 
 interface MedicamentoOption {
   id: string;
-  dcb_dci: string;
+  nome_dcb: string;
 }
 
 export const MedicamentoSearch = ({
@@ -53,7 +53,7 @@ export const MedicamentoSearch = ({
       
       // Filtrar medicamentos já selecionados
       const filteredResults = results.filter(
-        med => !selectedMedicamentos.includes(med.dcb_dci)
+        med => !selectedMedicamentos.includes(med.nome_dcb)
       );
       
       setSearchResults(filteredResults);
@@ -68,7 +68,7 @@ export const MedicamentoSearch = ({
   };
 
   const handleSelectMedicamento = (medicamento: MedicamentoOption) => {
-    onSelectMedicamento(medicamento.dcb_dci);
+    onSelectMedicamento(medicamento.nome_dcb);
     setSearchQuery('');
     setSearchResults([]);
     setShowResults(false);
@@ -88,7 +88,7 @@ export const MedicamentoSearch = ({
       <View style={styles.resultItemContent}>
         <Ionicons name="medical" size={20} color="#1976D2" />
         <Text style={styles.resultItemText} numberOfLines={2}>
-          {item.dcb_dci}
+          {item.nome_dcb}
         </Text>
       </View>
     </TouchableOpacity>
