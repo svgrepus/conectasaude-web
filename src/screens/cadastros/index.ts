@@ -9,4 +9,4 @@ export { MicroareaScreen } from './MicroareaScreen';
 
 // Medicamentos
 export { CadastroMedicamentosScreen } from '../medicamentos/CadastroMedicamentosScreen';
-export { EstoqueMedicamentosScreen } from '../medicamentos/EstoqueMedicamentosScreen';
+export { default as EstoqueMedicamentosScreen } from '../medicamentos/EstoqueMedicamentosScreen';

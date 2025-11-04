@@ -11,28 +11,9 @@ async function authenticate() {
   console.log('\n🔐 === FAZENDO LOGIN ===');
   
   try {
-    const response = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=password`, {
-      method: 'POST',
-      headers: {
-        'apikey': apiKey,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        email: 'abilio.constantino@gmail.com',
-        password: 'admin123'
-      })
-    });
-
-    const data = await response.json();
-    
-    if (response.ok && data.access_token) {
-      accessToken = data.access_token;
-      console.log('✅ Login realizado com sucesso!');
-      return true;
-    } else {
-      console.log('❌ Falha no login:', data.error || data.message);
-      return false;
-    }
+    // ❌ CREDENCIAIS REMOVIDAS POR SEGURANÇA
+    console.log('❌ Authentication disabled - use proper login flow');
+    return false;
   } catch (error) {
     console.log('❌ Erro na autenticação:', error.message);
     return false;

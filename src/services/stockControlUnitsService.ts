@@ -3,6 +3,7 @@ import supabase from './supabase';
 export interface StockControlUnit {
   id: string;
   nome: string;
+  abreviacao?: string;
   sigla?: string;
   descricao?: string;
   created_at?: string;

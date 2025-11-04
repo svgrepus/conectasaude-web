@@ -88,7 +88,9 @@ class AuthService {
 
       // Determinar role baseado no email ou resposta da API
       let role: 'admin' | 'funcionario' | 'municipe' = 'municipe';
-      if (email.includes('admin') || email === 'abilio.constantinoo@gmail.com') {
+      const adminEmails = (process.env.EXPO_PUBLIC_ADMIN_EMAILS || process.env.REACT_APP_ADMIN_EMAILS || '').split(',').map(e => e.trim());
+      
+      if (email.includes('admin') || adminEmails.includes(email)) {
         role = 'admin';
       } else if (email.includes('funcionario') || email.includes('medico') || email.includes('enferm')) {
         role = 'funcionario';

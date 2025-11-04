@@ -319,14 +319,10 @@ class MedicamentosService {
   async getEstoqueBaixo(): Promise<MedicamentoEstoque[]> {
     try {
       const { data, error } = await supabase
-        .from('medicamentos_estoque')
-        .select(`
-          *,
-          medicamento:medicamentos!inner(*),
-          unidade:stock_units!inner(id, nome)
-        `)
-        .filter('quantidade', 'lte', 'minimo_alerta')
-        .eq('medicamento.deleted_at', null);
+        .from('vw_estoque_medicamentos')
+        .select('*')
+        .eq('status_quantidade', 'ESTOQUE_BAIXO')
+        .order('quantidade_atual', { ascending: true });
 
       if (error) throw error;
       return data || [];
