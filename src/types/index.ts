@@ -303,6 +303,56 @@ export interface Medicamento {
   deleted_at?: string;
 }
 
+export interface Motorista {
+  id: string;
+  nome: string;
+  cpf: string;
+  rg: string;
+  data_nascimento: string;
+  estado_civil?: string;
+  sexo: 'M' | 'F';
+  email?: string;
+  telefone: string;
+  cargo_id: number;
+  possui_acesso?: boolean;
+  perfil_acesso_id?: string;
+  foto_url?: string;
+  observacoes?: string;
+  created_at: string;
+  updated_at: string;
+  deleted_at?: string;
+}
+
+export interface MotoristaEndereco {
+  id: string;
+  motorista_id: string;
+  logradouro: string;
+  numero?: string;
+  complemento?: string;
+  uf: string;
+  bairro: string;
+  cidade: string;
+  cep: string;
+  zona_rural?: boolean;
+  ref_zona_rural?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MotoristaEscala {
+  id: string;
+  motorista_id: string;
+  dia_semana: number; // 0=Domingo, 1=Segunda, ..., 6=Sábado
+  periodos: string[]; // ['MANHA', 'TARDE', 'NOITE', 'PLANTAO']
+  observacoes?: string;
+  created_at: string;
+  updated_at: string;
+}
+  created_at: string;
+  updated_at: string;
+  deleted_at?: string;
+}
+
 export interface EstoqueMedicamento {
   id: string;
   medicamento_id: string;

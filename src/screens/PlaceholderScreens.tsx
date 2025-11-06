@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, SafeAreaView } from 'react-native';
 import { theme } from '../constants/theme';
+import { MotoristasContainer } from './motoristas';
 
 export const MedicamentosScreen: React.FC = () => {
   return (
@@ -14,14 +15,7 @@ export const MedicamentosScreen: React.FC = () => {
 };
 
 export const MotoristasScreen: React.FC = () => {
-  return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <Text style={styles.title}>Motoristas</Text>
-        <Text style={styles.subtitle}>Tela em desenvolvimento</Text>
-      </View>
-    </SafeAreaView>
-  );
+  return <MotoristasContainer />;
 };
 
 export const VeiculosScreen: React.FC = () => {

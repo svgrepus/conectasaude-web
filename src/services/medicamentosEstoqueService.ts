@@ -279,6 +279,53 @@ class MedicamentosEstoqueService {
     }
   }
 
+  // Excluir estoque usando RPC específico
+  async excluirEstoque(estoqueId: string, motivo: string): Promise<{
+    success: boolean;
+    message?: string;
+    medicamento?: string;
+    lote?: string;
+    quantidade_excluida?: number;
+    motivo?: string;
+    executed_by?: string;
+    error?: string;
+  }> {
+    try {
+      console.log('🎯 excluirEstoque iniciado - ID:', estoqueId, 'Motivo:', motivo);
+      
+      const { data, error } = await supabase.rpc('excluir_estoque_medicamento', {
+        p_estoque_id: estoqueId,
+        p_motivo: motivo
+      });
+
+      if (error) {
+        console.error('❌ Erro ao excluir estoque:', error);
+        return {
+          success: false,
+          error: error.message || 'Erro ao excluir estoque'
+        };
+      }
+
+      console.log('✅ Estoque excluído com sucesso:', data);
+      return {
+        success: true,
+        message: data?.message || 'Estoque excluído com sucesso',
+        medicamento: data?.medicamento,
+        lote: data?.lote,
+        quantidade_excluida: data?.quantidade_excluida,
+        motivo: data?.motivo,
+        executed_by: data?.executed_by
+      };
+      
+    } catch (error: any) {
+      console.error('❌ Erro no MedicamentosEstoqueService.excluirEstoque:', error);
+      return {
+        success: false,
+        error: error.message || 'Erro inesperado ao excluir estoque'
+      };
+    }
+  }
+
   // Buscar medicamentos com estoque baixo
   async getEstoqueBaixo(): Promise<MedicamentoEstoque[]> {
     try {

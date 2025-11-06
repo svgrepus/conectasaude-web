@@ -242,26 +242,17 @@ const EstoqueMedicamentosScreen: React.FC = () => {
     try {
       console.log('⏳ Iniciando processo de exclusão...');
       setLoading(true);
-      console.log('🗑️ Excluindo estoque com soft delete:', itemId, 'Motivo:', motivo);
+      console.log('🗑️ Excluindo estoque:', itemId, 'Motivo:', motivo);
       
-      console.log('📞 Chamando medicamentosEstoqueService.softDelete...');
-      console.log('🔍 Verificando serviço:', typeof medicamentosEstoqueService, typeof medicamentosEstoqueService.softDelete);
+      console.log('📞 Chamando medicamentosEstoqueService.excluirEstoque...');
       
-      if (!medicamentosEstoqueService.softDelete) {
-        console.error('❌ Função softDelete não encontrada no serviço!');
-        Alert.alert('Erro', 'Função de exclusão não disponível');
-        return;
-      }
-      
-      const result = await medicamentosEstoqueService.softDelete(itemId, motivo);
-      console.log('📞 Resultado do softDelete recebido:', result);
-      console.log('📞 Tipo do resultado:', typeof result);
-      console.log('📞 Success:', result?.success);
-      console.log('📞 Error:', result?.error);
+      const result = await medicamentosEstoqueService.excluirEstoque(itemId, motivo);
+      console.log('📞 Resultado da exclusão recebido:', result);
       
       if (result.success) {
         console.log('✅ Estoque excluído com sucesso!');
-        setSuccessMessage('Estoque excluído com sucesso!');
+        const mensagem = `Estoque excluído com sucesso!\n\nMedicamento: ${result.medicamento}\nLote: ${result.lote}\nQuantidade: ${result.quantidade_excluida}`;
+        setSuccessMessage(mensagem);
         await fetchEstoques();
         setSuccessVisible(true);
       } else {
@@ -276,7 +267,7 @@ const EstoqueMedicamentosScreen: React.FC = () => {
       console.log('🔄 Finalizando processo...');
       setLoading(false);
       setShowExcluirModal(false);
-      setItemToDelete(null); // Limpar apenas após operação completa
+      setItemToDelete(null);
       setItemParaExcluir(null);
     }
   };
