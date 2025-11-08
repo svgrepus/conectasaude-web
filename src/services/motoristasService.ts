@@ -198,6 +198,9 @@ class MotoristasService {
         const errorMsg = result?.error || result?.message || 'Erro desconhecido ao criar motorista';
         throw new Error(errorMsg);
       }
+      
+      // Fallback - nunca deveria chegar aqui
+      throw new Error('Resposta inesperada do servidor');
     } catch (error) {
       console.error('❌ Erro no serviço de criação de motorista:', error);
       throw error;

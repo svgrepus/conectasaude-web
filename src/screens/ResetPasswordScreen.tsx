@@ -11,147 +11,90 @@ import {
 import { TextInput, Button } from "react-native-paper";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../hooks";
-import { validateEmail } from "../utils";
 import { authService } from "../services/auth-simple";
 import { BrasaoJambeiro } from "../components/BrasaoJambeiro";
-import { ForgotPasswordScreen } from "./ForgotPasswordScreen";
-import { ResetPasswordScreen } from "./ResetPasswordScreen";
-import { ResetPasswordSuccessScreen } from "./ResetPasswordSuccessScreen";
 
 const { width, height } = Dimensions.get("window");
 
-interface LoginScreenProps {
-  onLoginSuccess: () => void;
+interface ResetPasswordScreenProps {
+  onSuccess: () => void;
+  accessToken?: string; // Token de acesso do email
 }
 
-export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
-  const [email, setEmail] = useState("");
+export const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({ 
+  onSuccess,
+  accessToken 
+}) => {
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
-  const [showForgotPassword, setShowForgotPassword] = useState(false);
-  const [showResetPassword, setShowResetPassword] = useState(false);
-  const [showResetSuccess, setShowResetSuccess] = useState(false);
-  const [resetToken, setResetToken] = useState<string | undefined>();
 
-  const passwordInputRef = useRef<any>(null);
+  const confirmPasswordInputRef = useRef<any>(null);
 
   const { theme, isDark, toggleTheme } = useTheme();
-
-  // Log dos estados atuais para debug
-  console.log('🎛️ LoginScreen estados:', { 
-    showResetPassword, 
-    showResetSuccess, 
-    showForgotPassword, 
-    resetToken: resetToken ? 'Presente' : 'Ausente' 
-  });
 
   // Fix document title for web
   useEffect(() => {
     if (Platform.OS === "web") {
-      document.title = "Login - ConectaSaúde - Jambeiro";
-      
-      // Verificar se há um token de reset na URL (query parameters ou hash fragment)
-      let access_token = null;
-      let type = null;
-      
-      // Primeiro, tentar query parameters
-      const urlParams = new URLSearchParams(window.location.search);
-      access_token = urlParams.get('access_token');
-      type = urlParams.get('type');
-      
-      // Se não encontrou, tentar hash fragment
-      if (!access_token && window.location.hash) {
-        const hashParams = new URLSearchParams(window.location.hash.substring(1));
-        access_token = hashParams.get('access_token');
-        type = hashParams.get('type');
-      }
-      
-      console.log('🔍 Verificando tokens na URL:', { 
-        access_token: access_token ? 'Encontrado' : 'Não encontrado', 
-        type,
-        url: window.location.href,
-        hash: window.location.hash,
-        search: window.location.search
-      });
-      
-      if (access_token && type === 'recovery') {
-        console.log('✅ Token de recovery encontrado, abrindo tela de reset');
-        console.log('🔧 Estado antes:', { showResetPassword, resetToken });
-        
-        setResetToken(access_token);
-        setShowResetPassword(true);
-        
-        console.log('🔧 Estados definidos, limpando URL...');
-        
-        // Limpar a URL removendo os parâmetros
-        window.history.replaceState({}, document.title, window.location.pathname);
-        
-        console.log('✅ URL limpa, tela de reset deve aparecer');
-      } else {
-        console.log('❌ Condições não atendidas:', { 
-          hasToken: !!access_token, 
-          isRecovery: type === 'recovery',
-          type 
-        });
-      }
+      document.title = "Nova Senha - ConectaSaúde - Jambeiro";
     }
   }, []);
 
-  // Monitorar mudanças no estado showResetPassword
-  useEffect(() => {
-    console.log('👀 showResetPassword mudou para:', showResetPassword);
-  }, [showResetPassword]);
-
-  // Monitorar mudanças no resetToken
-  useEffect(() => {
-    console.log('🔑 resetToken mudou para:', resetToken);
-  }, [resetToken]);
-
-  const handleForgotPasswordSuccess = () => {
-    setShowForgotPassword(false);
+  const validatePassword = (password: string): string | null => {
+    if (!password) {
+      return "A senha é obrigatória";
+    }
+    if (password.length < 8) {
+      return "A senha deve ter pelo menos 8 caracteres";
+    }
+    if (!/(?=.*[a-z])/.test(password)) {
+      return "A senha deve conter pelo menos uma letra minúscula";
+    }
+    if (!/(?=.*[A-Z])/.test(password)) {
+      return "A senha deve conter pelo menos uma letra maiúscula";
+    }
+    if (!/(?=.*\d)/.test(password)) {
+      return "A senha deve conter pelo menos um número";
+    }
+    return null;
   };
 
-  const handleResetPasswordSuccess = () => {
-    setShowResetPassword(false);
-    setShowResetSuccess(true);
-  };
-
-  const handleGoToLogin = () => {
-    setShowResetSuccess(false);
-    setShowForgotPassword(false);
-    setShowResetPassword(false);
-    setResetToken(undefined);
-  };
-
-  const handleLogin = async () => {
+  const handleUpdatePassword = async () => {
     // Limpar mensagens anteriores
     setErrorMessage("");
     setSuccessMessage("");
 
-    if (!email || !password) {
-      setErrorMessage("Por favor, preencha todos os campos");
+    // Validações
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      setErrorMessage(passwordError);
       return;
     }
 
-    if (!validateEmail(email)) {
-      setErrorMessage("Por favor, insira um email válido");
+    if (password !== confirmPassword) {
+      setErrorMessage("As senhas não coincidem");
       return;
     }
 
-    console.log("Iniciando login para:", email);
+    console.log("Atualizando senha do usuário");
     setLoading(true);
 
     try {
-      const user = await authService.signIn(email, password);
-      console.log("Login realizado com sucesso!", user);
-      setSuccessMessage("Login realizado com sucesso!");
-      onLoginSuccess();
+      await authService.updatePassword(password, accessToken);
+      setSuccessMessage("Senha atualizada com sucesso!");
+      
+      // Após 2 segundos, redirecionar para sucesso
+      setTimeout(() => {
+        onSuccess();
+      }, 2000);
+      
     } catch (error: any) {
-      console.error("Erro no login:", error);
-      setErrorMessage(error.message || "Erro desconhecido");
+      console.error("Erro ao atualizar senha:", error);
+      setErrorMessage(error.message || "Erro ao atualizar senha");
     } finally {
       setLoading(false);
     }
@@ -222,6 +165,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
       marginBottom: 32,
       fontFamily: "Arial, Helvetica, sans-serif",
     },
+    instructionText: {
+      fontSize: 16,
+      color: isDark ? "#B6B9B7" : "#666666",
+      textAlign: "center",
+      marginBottom: 24,
+      lineHeight: 24,
+      fontFamily: "Arial, Helvetica, sans-serif",
+    },
     inputContainer: {
       marginBottom: 16,
     },
@@ -245,15 +196,22 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
       top: 12,
       zIndex: 1,
     },
-    forgotPassword: {
-      alignSelf: "flex-end",
-      marginBottom: 24,
+    passwordRequirements: {
+      backgroundColor: isDark ? "#3a3a3a" : "#f8f9fa",
+      padding: 12,
+      borderRadius: 6,
+      marginBottom: 16,
     },
-    forgotPasswordText: {
+    requirementsTitle: {
       fontSize: 14,
-      color: "#8A9E8E",
-      fontWeight: "500",
-      fontFamily: "Arial, Helvetica, sans-serif",
+      fontWeight: "600",
+      color: isDark ? "#FFFFFF" : "#333333",
+      marginBottom: 8,
+    },
+    requirementItem: {
+      fontSize: 12,
+      color: isDark ? "#B6B9B7" : "#666666",
+      marginBottom: 4,
     },
     messageContainer: {
       marginBottom: 16,
@@ -282,58 +240,21 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
     successText: {
       color: isDark ? "#86efac" : "#16a34a",
     },
-    loginButton: {
+    updateButton: {
       backgroundColor: "#8A9E8E",
       height: 48,
       borderRadius: 6,
       justifyContent: "center",
       marginBottom: 16,
     },
-    loginButtonText: {
+    updateButtonText: {
       color: "#FFFFFF",
       fontSize: 16,
       fontWeight: "600",
       fontFamily: "Arial, Helvetica, sans-serif",
       textTransform: "uppercase",
     },
-
   });
-
-  // Se estiver na tela de recuperação de senha, mostrar ela
-  if (showForgotPassword) {
-    return (
-      <ForgotPasswordScreen onBack={() => setShowForgotPassword(false)} />
-    );
-  }
-
-  // Se deve mostrar tela de reset de senha, renderizar apenas ela
-  if (showResetPassword) {
-    console.log('🎯 Renderizando ResetPasswordScreen com token:', resetToken);
-    return (
-      <ResetPasswordScreen
-        onSuccess={handleResetPasswordSuccess}
-        accessToken={resetToken}
-      />
-    );
-  }
-
-  // Se deve mostrar tela de sucesso, renderizar apenas ela
-  if (showResetSuccess) {
-    return (
-      <ResetPasswordSuccessScreen
-        onGoToLogin={handleGoToLogin}
-      />
-    );
-  }
-
-  // Se deve mostrar tela de esqueci senha, renderizar apenas ela
-  if (showForgotPassword) {
-    return (
-      <ForgotPasswordScreen
-        onBack={handleForgotPasswordSuccess}
-      />
-    );
-  }
 
   return (
     <View style={styles.container}>
@@ -351,39 +272,22 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
           {/* Logo and Title */}
           <View style={styles.logoContainer}>
             <BrasaoJambeiro size={48} />
-            <Text style={styles.title}>ConectaSaúde</Text>
-            <Text style={styles.subtitle}>Prefeitura de Jambeiro</Text>
+            <Text style={styles.title}>Nova Senha</Text>
+            <Text style={styles.subtitle}>ConectaSaúde - Jambeiro</Text>
           </View>
 
-          {/* Email Input */}
-          <View style={styles.inputContainer}>
-            <View style={styles.inputWrapper}>
-              <Ionicons
-                name="mail-outline"
-                size={20}
-                color="#9ca3af"
-                style={styles.inputIcon}
-              />
-              <TextInput
-                value={email}
-                onChangeText={setEmail}
-                placeholder="E-mail"
-                placeholderTextColor="#9ca3af"
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoComplete="email"
-                style={styles.input}
-                mode="flat"
-                underlineStyle={{ height: 0 }}
-                contentStyle={{ paddingLeft: 28 }}
-                onSubmitEditing={() => {
-                  // Focus on password field when Enter is pressed on email
-                  passwordInputRef.current?.focus();
-                }}
-                returnKeyType="next"
-                blurOnSubmit={false}
-              />
-            </View>
+          {/* Instruction Text */}
+          <Text style={styles.instructionText}>
+            Crie uma nova senha segura para sua conta.
+          </Text>
+
+          {/* Password Requirements */}
+          <View style={styles.passwordRequirements}>
+            <Text style={styles.requirementsTitle}>Requisitos da senha:</Text>
+            <Text style={styles.requirementItem}>• Pelo menos 8 caracteres</Text>
+            <Text style={styles.requirementItem}>• Uma letra maiúscula</Text>
+            <Text style={styles.requirementItem}>• Uma letra minúscula</Text>
+            <Text style={styles.requirementItem}>• Um número</Text>
           </View>
 
           {/* Password Input */}
@@ -396,18 +300,20 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
                 style={styles.inputIcon}
               />
               <TextInput
-                ref={passwordInputRef}
                 value={password}
                 onChangeText={setPassword}
-                placeholder="Senha"
+                placeholder="Nova senha"
                 placeholderTextColor="#9ca3af"
                 secureTextEntry={!showPassword}
                 style={styles.input}
                 mode="flat"
                 underlineStyle={{ height: 0 }}
                 contentStyle={{ paddingLeft: 28 }}
-                onSubmitEditing={handleLogin}
-                returnKeyType="send"
+                onSubmitEditing={() => {
+                  confirmPasswordInputRef.current?.focus();
+                }}
+                returnKeyType="next"
+                blurOnSubmit={false}
                 right={
                   <TextInput.Icon
                     icon={showPassword ? "eye-off" : "eye"}
@@ -418,13 +324,37 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
             </View>
           </View>
 
-          {/* Forgot Password Link */}
-          <TouchableOpacity 
-            style={styles.forgotPassword}
-            onPress={() => setShowForgotPassword(true)}
-          >
-            <Text style={styles.forgotPasswordText}>Esqueceu sua senha?</Text>
-          </TouchableOpacity>
+          {/* Confirm Password Input */}
+          <View style={styles.inputContainer}>
+            <View style={styles.inputWrapper}>
+              <Ionicons
+                name="lock-closed-outline"
+                size={20}
+                color="#9ca3af"
+                style={styles.inputIcon}
+              />
+              <TextInput
+                ref={confirmPasswordInputRef}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                placeholder="Confirmar nova senha"
+                placeholderTextColor="#9ca3af"
+                secureTextEntry={!showConfirmPassword}
+                style={styles.input}
+                mode="flat"
+                underlineStyle={{ height: 0 }}
+                contentStyle={{ paddingLeft: 28 }}
+                onSubmitEditing={handleUpdatePassword}
+                returnKeyType="send"
+                right={
+                  <TextInput.Icon
+                    icon={showConfirmPassword ? "eye-off" : "eye"}
+                    onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                  />
+                }
+              />
+            </View>
+          </View>
 
           {/* Error Message */}
           {errorMessage ? (
@@ -444,20 +374,18 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
             </View>
           ) : null}
 
-          {/* Login Button */}
+          {/* Update Password Button */}
           <Button
             mode="contained"
-            onPress={handleLogin}
+            onPress={handleUpdatePassword}
             loading={loading}
             disabled={loading}
-            style={styles.loginButton}
-            labelStyle={styles.loginButtonText}
+            style={styles.updateButton}
+            labelStyle={styles.updateButtonText}
             buttonColor="#8A9E8E"
           >
-            ENTRAR
+            ATUALIZAR SENHA
           </Button>
-
-
         </View>
       </ScrollView>
     </View>

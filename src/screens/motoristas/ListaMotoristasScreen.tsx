@@ -14,8 +14,8 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { theme } from "../../constants/theme";
-import { 
-  motoristasService, 
+import {
+  motoristasService,
   type Motorista,
   type MotoristaCompleto
 } from "../../services/motoristasService";
@@ -29,7 +29,7 @@ export interface ListaMotoristasScreenRef {
   reloadData: () => void;
 }
 
-export const ListaMotoristasScreen = forwardRef<ListaMotoristasScreenRef, ListaMotoristasScreenProps>(({ 
+export const ListaMotoristasScreen = forwardRef<ListaMotoristasScreenRef, ListaMotoristasScreenProps>(({
   onNavigateToCadastro,
   onNavigateToEdit
 }, ref) => {
@@ -39,7 +39,7 @@ export const ListaMotoristasScreen = forwardRef<ListaMotoristasScreenRef, ListaM
   const [motoristas, setMotoristas] = useState<MotoristaCompleto[]>([]);
   const [loading, setLoading] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
-  
+
   // Estados para o modal de confirmação
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [motoristaToDelete, setMotoristaToDelete] = useState<MotoristaCompleto | null>(null);
@@ -55,21 +55,21 @@ export const ListaMotoristasScreen = forwardRef<ListaMotoristasScreenRef, ListaM
 
       const response = await motoristasService.listarMotoristas();
       let filteredData = response || [];
-      
+
       // Aplicar filtro de busca se necessário
       if (search && search.trim()) {
         const searchTerm = search.toLowerCase().trim();
-        filteredData = response.filter((item: MotoristaCompleto) => 
+        filteredData = response.filter((item: MotoristaCompleto) =>
           item.motorista.nome.toLowerCase().includes(searchTerm) ||
           item.motorista.cpf.includes(searchTerm) ||
           (item.motorista.email && item.motorista.email.toLowerCase().includes(searchTerm)) ||
           item.motorista.telefone.includes(searchTerm)
         );
       }
-      
+
       setMotoristas(filteredData);
       setTotalCount(filteredData.length);
-      
+
       console.log('📦 ListaMotoristasScreen: Resposta recebida:', filteredData.length);
     } catch (error) {
       console.error('❌ Erro ao carregar motoristas:', error);
@@ -137,7 +137,7 @@ export const ListaMotoristasScreen = forwardRef<ListaMotoristasScreenRef, ListaM
 
   const confirmarExclusao = async () => {
     if (!motoristaToDelete) return;
-    
+
     try {
       await motoristasService.excluirMotorista(motoristaToDelete.motorista.id!, "Exclusão via aplicativo");
       setDeleteModalVisible(false);
@@ -194,7 +194,7 @@ export const ListaMotoristasScreen = forwardRef<ListaMotoristasScreenRef, ListaM
         </Text>
       </View>
       <View style={styles.actionCell}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.editButton}
           onPress={() => handleEdit(item)}
         >
@@ -202,7 +202,7 @@ export const ListaMotoristasScreen = forwardRef<ListaMotoristasScreenRef, ListaM
             Editar
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.deleteButton}
           onPress={() => handleDelete(item)}
         >
@@ -234,7 +234,7 @@ export const ListaMotoristasScreen = forwardRef<ListaMotoristasScreenRef, ListaM
           <Text style={[styles.title, { color: currentTheme.text }]}>
             Motoristas
           </Text>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.addButton}
             onPress={onNavigateToCadastro}
           >
@@ -269,9 +269,9 @@ export const ListaMotoristasScreen = forwardRef<ListaMotoristasScreenRef, ListaM
 
         {/* Tabela */}
         {!loading || motoristas.length > 0 ? (
-          <View style={[styles.tableContainer, { 
-            backgroundColor: currentTheme.card, 
-            borderColor: currentTheme.border 
+          <View style={[styles.tableContainer, {
+            backgroundColor: currentTheme.card,
+            borderColor: currentTheme.border
           }]}>
             {/* Table Header */}
             <View style={[styles.tableHeader, { backgroundColor: currentTheme.muted }]}>
@@ -301,7 +301,7 @@ export const ListaMotoristasScreen = forwardRef<ListaMotoristasScreenRef, ListaM
             <FlatList
               data={motoristas}
               renderItem={renderMotoristaItem}
-              keyExtractor={(item) => item.id!}
+              keyExtractor={(item) => item.motorista.id}
               ListEmptyComponent={renderEmptyList}
               showsVerticalScrollIndicator={false}
               style={{ maxHeight: 400 }}

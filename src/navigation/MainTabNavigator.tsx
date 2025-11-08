@@ -5,6 +5,7 @@ import { theme } from '../constants/theme';
 
 // Screens
 import { DashboardScreen } from '../screens/DashboardScreen';
+import LogoutScreen from '../screens/LogoutScreen';
 import { 
   MedicamentosScreen, 
   MotoristasScreen, 
@@ -42,6 +43,9 @@ export const MainTabNavigator: React.FC<MainTabNavigatorProps> = ({ isDarkMode =
               break;
             case 'Munícipes':
               iconName = focused ? 'person' : 'person-outline';
+              break;
+            case 'Sair':
+              iconName = focused ? 'log-out' : 'log-out-outline';
               break;
             default:
               iconName = 'grid-outline';
@@ -97,6 +101,14 @@ export const MainTabNavigator: React.FC<MainTabNavigatorProps> = ({ isDarkMode =
         component={MunicipesScreen}
         options={{
           tabBarLabel: 'Munícipes',
+        }}
+      />
+      <Tab.Screen
+        name="Sair"
+        component={LogoutScreen}
+        options={{
+          tabBarLabel: 'Sair',
+          tabBarActiveTintColor: '#dc2626',
         }}
       />
     </Tab.Navigator>

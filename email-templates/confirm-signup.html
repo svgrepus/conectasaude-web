@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirme seu cadastro - ConectaSaúde</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header {
+            background-color: #8A9E8E;
+            color: #ffffff;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+        
+        .brasao {
+            width: 48px;
+            height: 48px;
+            background-color: rgba(255, 255, 255, 0.15);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            font-family: Arial Black, Helvetica, sans-serif;
+            margin-bottom: 5px;
+        }
+        
+        .subtitle {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .content {
+            padding: 40px 30px;
+            text-align: center;
+        }
+        
+        .welcome-title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #333333;
+            margin-bottom: 10px;
+        }
+        
+        .welcome-subtitle {
+            font-size: 16px;
+            color: #666666;
+            margin-bottom: 30px;
+        }
+        
+        .message {
+            font-size: 16px;
+            color: #333333;
+            margin-bottom: 30px;
+            line-height: 1.7;
+        }
+        
+        .confirm-button {
+            display: inline-block;
+            background-color: #8A9E8E;
+            color: #ffffff;
+            padding: 15px 40px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: background-color 0.3s ease;
+            margin-bottom: 30px;
+        }
+        
+        .confirm-button:hover {
+            background-color: #5F7161;
+        }
+        
+        .info-box {
+            background-color: #E6EAE7;
+            border-left: 4px solid #8A9E8E;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .info-box h3 {
+            color: #8A9E8E;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        
+        .info-box p {
+            color: #333333;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        .footer {
+            background-color: #E6EAE7;
+            color: #666666;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #d1d5db;
+        }
+        
+        .footer-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #8A9E8E;
+            margin-bottom: 10px;
+        }
+        
+        .footer-text {
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        
+        .contact-info {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #d1d5db;
+        }
+        
+        .contact-info p {
+            font-size: 12px;
+            color: #999999;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                margin: 0;
+                border-radius: 0;
+            }
+            
+            .content {
+                padding: 30px 20px;
+            }
+            
+            .welcome-title {
+                font-size: 24px;
+            }
+            
+            .confirm-button {
+                padding: 12px 30px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header com logo -->
+        <div class="header">
+            <div class="logo">
+                <div class="brasao">J</div>
+                <div>
+                    <div class="title">ConectaSaúde</div>
+                    <div class="subtitle">Prefeitura de Jambeiro</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Conteúdo principal -->
+        <div class="content">
+            <h1 class="welcome-title">Bem-vindo ao ConectaSaúde!</h1>
+            <p class="welcome-subtitle">Confirme seu cadastro para começar a usar o sistema</p>
+            
+            <p class="message">
+                Olá! Você está quase pronto para acessar o sistema municipal de saúde de Jambeiro. 
+                Para completar seu cadastro e garantir a segurança da sua conta, clique no botão abaixo:
+            </p>
+            
+            <a href="{{ .ConfirmationURL }}" class="confirm-button">
+                Confirmar Cadastro
+            </a>
+            
+            <div class="info-box">
+                <h3>Importante:</h3>
+                <p>
+                    • Este link de confirmação é válido por 24 horas<br>
+                    • Após confirmar, você poderá acessar todos os serviços de saúde<br>
+                    • Mantenha seus dados sempre atualizados no sistema
+                </p>
+            </div>
+            
+            <p style="font-size: 14px; color: #666666; margin-top: 30px;">
+                Se você não conseguir clicar no botão acima, copie e cole este link no seu navegador:<br>
+                <span style="color: #8A9E8E; word-break: break-all;">{{ .ConfirmationURL }}</span>
+            </p>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <div class="footer-title">ConectaSaúde - Jambeiro</div>
+            <p class="footer-text">Sistema Municipal de Gestão em Saúde</p>
+            <p class="footer-text">Conectando você aos serviços de saúde do município</p>
+            
+            <div class="contact-info">
+                <p>Se você não solicitou este cadastro, pode ignorar este email com segurança.</p>
+                <p>Para dúvidas ou suporte, entre em contato conosco através dos canais oficiais da prefeitura.</p>
+                <p>© 2025 Prefeitura Municipal de Jambeiro - Todos os direitos reservados</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

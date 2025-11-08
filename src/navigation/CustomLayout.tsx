@@ -8,12 +8,14 @@ import {
   Dimensions,
   Image,
   Platform,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../hooks";
 import { BrasaoJambeiro } from "../components/BrasaoJambeiro";
 import { createStackNavigator } from "@react-navigation/stack";
 import { navigate, onRouteChange, getCurrentRoute } from "./navigationService";
+import { authService } from "../services/auth-simple";
 
 // Screens
 import { DashboardScreen } from "../screens/DashboardScreen";
@@ -335,18 +337,11 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({
   ];
 
   const toggleSubmenu = (menuKey: string) => {
-    console.log('🔄 toggleSubmenu MEDICAMENTOS:', menuKey);
-    console.log('📋 expandedMenus antes:', expandedMenus);
-    
     setExpandedMenus((prev) => {
       const isCurrentlyExpanded = prev.includes(menuKey);
-      const newExpanded = isCurrentlyExpanded
+      return isCurrentlyExpanded
         ? prev.filter((key) => key !== menuKey)
         : [...prev, menuKey];
-      
-      console.log('📋 expandedMenus depois:', newExpanded);
-      console.log('🔄 Menu foi expandido?', !isCurrentlyExpanded);
-      return newExpanded;
     });
   };
 
@@ -359,14 +354,6 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({
   };
 
   const handleMenuClick = (item: any, submenuItem?: any) => {
-    // Debug específico para Medicamentos
-    if (item.key === 'Medicamentos') {
-      console.log('🧪 MEDICAMENTOS CLICKED!');
-      console.log('Item:', item);
-      console.log('HasSubmenu:', item.hasSubmenu);
-      console.log('ExpandedMenus antes:', expandedMenus);
-    }
-    
     if (submenuItem && (submenuItem as any).isCategory) {
       toggleCategory(submenuItem.key);
     } else if (submenuItem && !(submenuItem as any).isCategory) {
@@ -380,6 +367,66 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({
       const navigationScreen = screenToNavigation[item.key];
       if (navigationScreen) {
         navigate(navigationScreen);
+      }
+    }
+  };
+
+  const handleLogout = async () => {
+    console.log('🚪 handleLogout chamado!');
+    
+    try {
+      // Para web, usar window.confirm em vez de Alert.alert
+      if (Platform.OS === 'web') {
+        const confirmed = window.confirm('Tem certeza que deseja sair do sistema?');
+        if (!confirmed) {
+          console.log('❌ Logout cancelado pelo usuário');
+          return;
+        }
+      } else {
+        // Para mobile, usar Alert.alert
+        return new Promise((resolve) => {
+          Alert.alert(
+            'Sair do Sistema',
+            'Tem certeza que deseja sair do sistema?',
+            [
+              {
+                text: 'Cancelar',
+                style: 'cancel',
+                onPress: () => {
+                  console.log('❌ Logout cancelado');
+                  resolve(false);
+                }
+              },
+              {
+                text: 'Sair',
+                style: 'destructive',
+                onPress: () => resolve(true),
+              },
+            ]
+          );
+        }).then(async (confirmed) => {
+          if (!confirmed) return;
+        });
+      }
+
+      console.log('🔓 Fazendo logout...');
+      
+      // Fazer logout no serviço
+      await authService.signOut();
+      console.log('✅ Logout realizado com sucesso');
+      
+      // Forçar recarregamento completo da página
+      if (Platform.OS === 'web') {
+        console.log('🔄 Recarregando página...');
+        window.location.reload();
+      }
+      
+    } catch (error) {
+      console.error('❌ Erro ao fazer logout:', error);
+      if (Platform.OS === 'web') {
+        window.alert('Ocorreu um erro ao sair do sistema');
+      } else {
+        Alert.alert('Erro', 'Ocorreu um erro ao sair do sistema');
       }
     }
   };
@@ -607,6 +654,25 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({
       flex: 1,
       backgroundColor: isDark ? "#1a1a1a" : "#FFFFFF",
     },
+    logoutContainer: {
+      padding: 20,
+      borderTopWidth: 1,
+      borderTopColor: isDark ? "#3a3a3a" : "#E6EAE7",
+    },
+    logoutButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 20,
+      paddingVertical: 15,
+      borderRadius: 8,
+      backgroundColor: isDark ? "rgba(138, 158, 142, 0.1)" : "rgba(138, 158, 142, 0.1)",
+    },
+    logoutText: {
+      fontSize: 16,
+      fontWeight: "500",
+      color: "#8A9E8E",
+      fontFamily: "Arial, Helvetica, sans-serif",
+    },
   });
 
   return (
@@ -638,7 +704,6 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({
                     styles.menuItemActive,
                 ]}
                 onPress={() => {
-                  console.log('🔄 Menu clicado:', item.key, 'hasSubmenu:', item.hasSubmenu);
                   handleMenuClick(item);
                 }}
               >
@@ -690,8 +755,6 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({
                   <View style={styles.submenuContainer}>
                     {item.submenu.map((submenuItem: any) => {
                       // Log para debug
-                      console.log('🔧 Renderizando item submenu:', submenuItem.key, submenuItem.label);
-                      
                       // Se é uma categoria, sempre mostra
                       if ((submenuItem as any).isCategory) {
                         return (
@@ -755,6 +818,27 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({
             </View>
           ))}
         </ScrollView>
+        
+        {/* Logout Button */}
+        <View style={styles.logoutContainer}>
+          <TouchableOpacity
+            style={styles.logoutButton}
+            onPress={() => {
+              console.log('👆 Botão de logout clicado!');
+              handleLogout();
+            }}
+          >
+            <Ionicons
+              name="log-out"
+              size={20}
+              color="#8A9E8E"
+              style={styles.menuIcon}
+            />
+            <Text style={styles.logoutText}>
+              Sair do Sistema
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Main Content */}

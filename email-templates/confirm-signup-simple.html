@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirme seu cadastro - ConectaSaúde</title>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background-color: #8A9E8E;
+            color: #ffffff;
+            padding: 20px;
+            text-align: center;
+        }
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 30px;
+            text-align: center;
+        }
+        .button {
+            display: inline-block;
+            background-color: #8A9E8E;
+            color: #ffffff;
+            padding: 12px 30px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            margin: 20px 0;
+        }
+        .footer {
+            background-color: #E6EAE7;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #666666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="title">ConectaSaúde</div>
+            <div class="subtitle">Prefeitura de Jambeiro</div>
+        </div>
+        
+        <div class="content">
+            <h2>Confirme seu cadastro</h2>
+            <p>Clique no botão abaixo para confirmar seu cadastro no ConectaSaúde:</p>
+            
+            <a href="{{ .ConfirmationURL }}" class="button">Confirmar Cadastro</a>
+            
+            <p style="font-size: 14px; color: #666;">
+                Se não conseguir clicar no botão, acesse: {{ .ConfirmationURL }}
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p>© 2025 Prefeitura Municipal de Jambeiro</p>
+            <p>Se você não solicitou este cadastro, pode ignorar este email.</p>
+        </div>
+    </div>
+</body>
+</html>

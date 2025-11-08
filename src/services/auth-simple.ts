@@ -201,6 +201,81 @@ class AuthService {
     }
   }
 
+  async resetPassword(email: string): Promise<void> {
+    try {
+      console.log('🔑 AuthService: Solicitando recuperação de senha para:', email);
+      
+      // URL base da aplicação
+      const baseUrl = window.location.origin;
+      
+      const response = await fetch(`${SUPABASE_CONFIG.url}/auth/v1/recover`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_CONFIG.anonKey,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email: email,
+          redirect_to: `${baseUrl}/` // Redirecionamento para nossa aplicação
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.log('❌ AuthService: Erro na recuperação de senha:', errorData);
+        throw new Error(errorData.error_description || errorData.msg || 'Erro ao enviar email de recuperação');
+      }
+
+      console.log('✅ AuthService: Email de recuperação enviado com sucesso');
+    } catch (error) {
+      console.error('❌ AuthService: Erro na recuperação de senha:', error);
+      throw error;
+    }
+  }
+
+  async updatePassword(newPassword: string, accessToken?: string): Promise<void> {
+    try {
+      console.log('🔑 AuthService: Atualizando senha do usuário');
+      
+      // Usar o token fornecido ou o token atual
+      const token = accessToken || this.accessToken;
+      
+      if (!token) {
+        throw new Error('Token de acesso necessário para atualizar a senha');
+      }
+
+      const response = await fetch(`${SUPABASE_CONFIG.url}/auth/v1/user`, {
+        method: 'PUT',
+        headers: {
+          'apikey': SUPABASE_CONFIG.anonKey,
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          password: newPassword
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.log('❌ AuthService: Erro na atualização de senha:', errorData);
+        throw new Error(errorData.error_description || errorData.msg || 'Erro ao atualizar senha');
+      }
+
+      const responseData = await response.json();
+      console.log('✅ AuthService: Senha atualizada com sucesso:', responseData);
+
+      // Se temos um novo token na resposta, atualizar
+      if (responseData.access_token && this.currentUser) {
+        this.saveToSession(this.currentUser, responseData.access_token);
+      }
+      
+    } catch (error) {
+      console.error('❌ AuthService: Erro na atualização de senha:', error);
+      throw error;
+    }
+  }
+
   async getCurrentUser(): Promise<User | null> {
     return this.currentUser;
   }

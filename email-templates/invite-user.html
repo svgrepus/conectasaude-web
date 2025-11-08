@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convite para o ConectaSaúde</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 1.6;
+            color: #333333;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header {
+            background-color: #8A9E8E;
+            color: #ffffff;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+        
+        .brasao {
+            width: 48px;
+            height: 48px;
+            background-color: rgba(255, 255, 255, 0.15);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            font-family: Arial Black, Helvetica, sans-serif;
+            margin-bottom: 5px;
+        }
+        
+        .subtitle {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .content {
+            padding: 40px 30px;
+            text-align: center;
+        }
+        
+        .welcome-title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #333333;
+            margin-bottom: 10px;
+        }
+        
+        .welcome-subtitle {
+            font-size: 16px;
+            color: #666666;
+            margin-bottom: 30px;
+        }
+        
+        .message {
+            font-size: 16px;
+            color: #333333;
+            margin-bottom: 30px;
+            line-height: 1.7;
+            text-align: left;
+        }
+        
+        .invite-button {
+            display: inline-block;
+            background-color: #8A9E8E;
+            color: #ffffff;
+            padding: 15px 40px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: background-color 0.3s ease;
+            margin-bottom: 30px;
+        }
+        
+        .invite-button:hover {
+            background-color: #5F7161;
+        }
+        
+        .credentials-box {
+            background-color: #E6EAE7;
+            border-left: 4px solid #8A9E8E;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 0 8px 8px 0;
+            text-align: left;
+        }
+        
+        .credentials-box h3 {
+            color: #8A9E8E;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+        
+        .credentials-box p {
+            color: #333333;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+        
+        .credential-item {
+            background-color: rgba(138, 158, 142, 0.1);
+            padding: 10px;
+            border-radius: 4px;
+            margin: 8px 0;
+            font-family: monospace;
+            font-size: 14px;
+            word-break: break-all;
+        }
+        
+        .info-box {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .info-box h3 {
+            color: #856404;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        
+        .info-box p {
+            color: #333333;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        .footer {
+            background-color: #E6EAE7;
+            color: #666666;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #d1d5db;
+        }
+        
+        .footer-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #8A9E8E;
+            margin-bottom: 10px;
+        }
+        
+        .footer-text {
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        
+        .contact-info {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #d1d5db;
+        }
+        
+        .contact-info p {
+            font-size: 12px;
+            color: #999999;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                margin: 0;
+                border-radius: 0;
+            }
+            
+            .content {
+                padding: 30px 20px;
+            }
+            
+            .welcome-title {
+                font-size: 24px;
+            }
+            
+            .invite-button {
+                padding: 12px 30px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header com logo -->
+        <div class="header">
+            <div class="logo">
+                <div class="brasao">J</div>
+                <div>
+                    <div class="title">ConectaSaúde</div>
+                    <div class="subtitle">Prefeitura de Jambeiro</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Conteúdo principal -->
+        <div class="content">
+            <h1 class="welcome-title">Você foi convidado!</h1>
+            <p class="welcome-subtitle">Acesse o sistema municipal de saúde de Jambeiro</p>
+            
+            <div class="message">
+                <p>Olá!</p>
+                <p>Você foi convidado para fazer parte do ConectaSaúde, o sistema municipal de gestão em saúde de Jambeiro.</p>
+                <p>Para começar a usar o sistema, clique no botão abaixo para criar sua conta:</p>
+            </div>
+            
+            <a href="{{ .InviteURL }}" class="invite-button">
+                Aceitar Convite
+            </a>
+            
+            <div class="credentials-box">
+                <h3>Informações de Acesso:</h3>
+                <p><strong>Email:</strong></p>
+                <div class="credential-item">{{ .Email }}</div>
+                
+                <p style="margin-top: 15px;"><strong>Perfil de Acesso:</strong></p>
+                <div class="credential-item">{{ .Role }}</div>
+            </div>
+            
+            <div class="info-box">
+                <h3>Importante:</h3>
+                <p>
+                    • Este convite é válido por 7 dias<br>
+                    • Você precisará criar uma senha na primeira vez que acessar<br>
+                    • Mantenha suas credenciais de acesso seguras<br>
+                    • Em caso de dúvidas, entre em contato com o administrador do sistema
+                </p>
+            </div>
+            
+            <p style="font-size: 14px; color: #666666; margin-top: 30px;">
+                Se você não conseguir clicar no botão acima, copie e cole este link no seu navegador:<br>
+                <span style="color: #8A9E8E; word-break: break-all;">{{ .InviteURL }}</span>
+            </p>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <div class="footer-title">ConectaSaúde - Jambeiro</div>
+            <p class="footer-text">Sistema Municipal de Gestão em Saúde</p>
+            <p class="footer-text">Conectando você aos serviços de saúde do município</p>
+            
+            <div class="contact-info">
+                <p>Se você não esperava receber este convite, pode ignorar este email com segurança.</p>
+                <p>Para dúvidas ou suporte, entre em contato conosco através dos canais oficiais da prefeitura.</p>
+                <p>© 2025 Prefeitura Municipal de Jambeiro - Todos os direitos reservados</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
