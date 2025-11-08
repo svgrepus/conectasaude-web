@@ -100,7 +100,7 @@ export interface User {
   id: string;
   email: string;
   name?: string;
-  role: 'admin' | 'funcionario' | 'municipe';
+  role: string; // Usar exatamente a role que vem do Supabase
   created_at?: string;
   updated_at?: string;
 }

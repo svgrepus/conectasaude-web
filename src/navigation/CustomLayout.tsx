@@ -41,6 +41,7 @@ import {
 import { MunicipeDetailScreen } from "../screens/municipes/MunicipeDetailScreen";
 import { MunicipeDetailScreenWrapper } from "../screens/municipes/MunicipeDetailScreenWrapper";
 import { LoginScreen } from "../screens/LoginScreen";
+import AdministradoresContainer from "../screens/administradores/AdministradoresContainer";
 
 const Stack = createStackNavigator();
 
@@ -57,6 +58,7 @@ const getScreenComponent = (screenName: string) => {
     Motoristas: MotoristasScreen,
     Veículos: VeiculosScreen,
     Munícipes: MunicipesContainer,
+    Administradores: AdministradoresContainer,
     DoencaCronica: DoencaCronicaScreen,
     TipoDoenca: TipoDoencaScreen,
     TipoVeiculo: TipoVeiculoScreen,
@@ -89,6 +91,15 @@ function MainStackNavigator() {
       <Stack.Screen name="Motoristas" component={MotoristasScreen} />
       <Stack.Screen name="Veiculos" component={VeiculosScreen} />
       <Stack.Screen name="Municipes" component={MunicipesContainer} />
+      <Stack.Screen 
+        name="Administradores" 
+        component={AdministradoresContainer}
+        options={{
+          headerShown: false,
+          // Força a remontagem do componente a cada navegação
+          animationEnabled: true,
+        }}
+      />
       <Stack.Screen
         name="MunicipeDetail"
         component={MunicipeDetailScreenWrapper}
@@ -117,6 +128,7 @@ const navigationScreenMap: { [key: string]: string } = {
   Motoristas: "Motoristas",
   Veiculos: "Veículos",
   Municipes: "Munícipes",
+  Administradores: "Administradores",
   MunicipeDetail: "Munícipes",
   DoencasCronicas: "DoencaCronica",
   TipoDoenca: "TipoDoenca",
@@ -137,6 +149,7 @@ const screenToNavigation: { [key: string]: string } = {
   Motoristas: "Motoristas",
   Veículos: "Veiculos",
   Munícipes: "Municipes",
+  Administradores: "Administradores",
   DoencaCronica: "DoencasCronicas",
   TipoDoenca: "TipoDoenca",
   TipoVeiculo: "TipoVeiculo",
@@ -152,9 +165,26 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({
   children,
 }) => {
   const { isDark, toggleTheme } = useTheme();
+  
+  // Estado do usuário atual para verificar permissões
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
   // Track current route
   const [currentRoute, setCurrentRoute] = useState<any>(null);
+
+  // Carregar usuário atual
+  useEffect(() => {
+    const loadCurrentUser = async () => {
+      try {
+        const user = await authService.getCurrentUser();
+        setCurrentUser(user);
+      } catch (error) {
+        console.error("❌ Erro ao carregar usuário:", error);
+      }
+    };
+
+    loadCurrentUser();
+  }, []);
 
   useEffect(() => {
     // Set initial route
@@ -213,7 +243,41 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({
     }
   }, [activeScreen]);
 
-  const menuItems = [
+  // Verificação SIMPLES de admin - salvar na sessão
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  // Verificar e salvar role de admin quando currentUser mudar
+  useEffect(() => {
+    if (currentUser) {
+      const realAdminRole = currentUser?.app_metadata?.role === 'admin' || 
+                           currentUser?.user_metadata?.role === 'admin';
+      
+
+      
+      // Salvar no localStorage E no state APENAS se realmente for admin
+      localStorage.setItem('conectasaude_is_admin', realAdminRole.toString());
+      setIsAdmin(realAdminRole);
+    } else {
+      // Usuário deslogado - limpar tudo
+      localStorage.removeItem('conectasaude_is_admin');
+      setIsAdmin(false);
+    }
+  }, [currentUser]);
+
+  // Ao carregar o componente, verificar se já tem admin salvo
+  useEffect(() => {
+    const savedAdminRole = localStorage.getItem('conectasaude_is_admin');
+    if (savedAdminRole === 'true') {
+      setIsAdmin(true);
+    }
+  }, []);
+
+
+
+  // Log do usuário completo para debug
+
+
+  const allMenuItems = [
     {
       key: "Dashboard",
       label: "Dashboard",
@@ -256,6 +320,12 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({
       label: "Munícipes",
       icon: "person",
       component: MunicipesContainer,
+    },
+    {
+      key: "Administradores",
+      label: "Administradores",
+      icon: "shield-checkmark",
+      component: AdministradoresContainer,
     },
     {
       key: "CadastrosBasicos",
@@ -336,6 +406,11 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({
     },
   ];
 
+  // Mostrar todos os menus
+  const menuItems = allMenuItems;
+
+
+
   const toggleSubmenu = (menuKey: string) => {
     setExpandedMenus((prev) => {
       const isCurrentlyExpanded = prev.includes(menuKey);
@@ -372,14 +447,14 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({
   };
 
   const handleLogout = async () => {
-    console.log('🚪 handleLogout chamado!');
+
     
     try {
       // Para web, usar window.confirm em vez de Alert.alert
       if (Platform.OS === 'web') {
         const confirmed = window.confirm('Tem certeza que deseja sair do sistema?');
         if (!confirmed) {
-          console.log('❌ Logout cancelado pelo usuário');
+
           return;
         }
       } else {
@@ -393,7 +468,7 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({
                 text: 'Cancelar',
                 style: 'cancel',
                 onPress: () => {
-                  console.log('❌ Logout cancelado');
+
                   resolve(false);
                 }
               },
@@ -409,16 +484,24 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({
         });
       }
 
-      console.log('🔓 Fazendo logout...');
+
+      
+      // Limpar dados da sessão local PRIMEIRO
+      localStorage.removeItem('conectasaude_is_admin');
+      setIsAdmin(false);
+      setCurrentUser(null);
       
       // Fazer logout no serviço
       await authService.signOut();
-      console.log('✅ Logout realizado com sucesso');
+
       
-      // Forçar recarregamento completo da página
+      // Limpar URL de qualquer token e navegar para login
       if (Platform.OS === 'web') {
-        console.log('🔄 Recarregando página...');
-        window.location.reload();
+
+        // Limpar a URL de qualquer parâmetro
+        const cleanUrl = window.location.origin + '/login';
+        window.history.replaceState({}, document.title, cleanUrl);
+        // Não recarregar a página, deixar o React gerenciar o estado
       }
       
     } catch (error) {
@@ -824,7 +907,7 @@ export const CustomLayout: React.FC<CustomLayoutProps> = ({
           <TouchableOpacity
             style={styles.logoutButton}
             onPress={() => {
-              console.log('👆 Botão de logout clicado!');
+
               handleLogout();
             }}
           >

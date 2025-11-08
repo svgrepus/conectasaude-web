@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { NavigationContainer } from "@react-navigation/native";
 import { PaperProvider } from "react-native-paper";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { ActivityIndicator, View, StyleSheet } from "react-native";
+import { ActivityIndicator, View, StyleSheet, Platform } from "react-native";
 import { createStackNavigator } from "@react-navigation/stack";
 
 import { useTheme } from "./src/hooks";
@@ -26,6 +26,7 @@ import {
   TipoVeiculoScreen,
   CargoScreen,
 } from "./src/screens/cadastros";
+import MagicLinkCallbackScreen from "./src/screens/auth/MagicLinkCallbackScreen";
 
 import { authService } from "./src/services/auth-simple";
 import { theme as customTheme } from "./src/constants/theme";
@@ -59,6 +60,11 @@ function MainStackNavigator() {
       <Stack.Screen name="TipoDoenca" component={TipoDoencaScreen} />
       <Stack.Screen name="TipoVeiculo" component={TipoVeiculoScreen} />
       <Stack.Screen name="Cargo" component={CargoScreen} />
+      <Stack.Screen 
+        name="AuthCallback" 
+        component={MagicLinkCallbackScreen}
+        options={{ headerShown: true, title: "Processando acesso..." }}
+      />
     </Stack.Navigator>
   );
 }
@@ -66,7 +72,8 @@ function MainStackNavigator() {
 // Configure deep linking
 const linking = {
   prefixes: [
-    "http://localhost:19006",
+    "http://localhost:8082",
+    "http://localhost:19006", 
     "http://localhost:19007",
     "https://your-domain.com",
   ],
@@ -77,12 +84,14 @@ const linking = {
       Motoristas: "/motoristas",
       Veiculos: "/veiculos",
       Municipes: "/municipes",
+      Administradores: "/administradores",
       MunicipeDetail: "/municipes/:id",
       DoencasCronicas: "/basicos/saude/doencas-cronicas",
       TipoDoenca: "/basicos/saude/tipo-doenca",
       TipoVeiculo: "/basicos/logistica/tipo-veiculo",
       Cargo: "/basicos/admin/cargo",
       Login: "/login",
+      AuthCallback: "/auth/callback",
     },
   },
 };
@@ -112,8 +121,17 @@ export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
   const [useNewDashboard, setUseNewDashboard] = useState(true); // Toggle for new dashboard
+  const [showCallbackScreen, setShowCallbackScreen] = useState(false);
 
   useEffect(() => {
+    // Verificar se é uma URL de callback do Magic Link
+    const currentUrl = window.location.href;
+    if (currentUrl.includes('access_token=') && currentUrl.includes('refresh_token=')) {
+      setShowCallbackScreen(true);
+      setLoading(false);
+      return;
+    }
+
     if (useNewDashboard) {
       checkAuthStatus();
       setupAuthListener();
@@ -164,6 +182,24 @@ export default function App() {
     dark: isDark,
   };
 
+  const handleCallbackSuccess = () => {
+    setShowCallbackScreen(false);
+    setIsAuthenticated(true);
+    
+    // Limpar a URL dos tokens após o processamento bem-sucedido
+    if (Platform.OS === 'web' && window.history && window.history.replaceState) {
+      // Remove todos os parâmetros da URL e redireciona para a raiz
+      const cleanUrl = window.location.origin + '/';
+      window.history.replaceState({}, document.title, cleanUrl);
+      console.log('🧹 URL limpa após callback bem-sucedido:', cleanUrl);
+    }
+  };
+
+  const handleCallbackError = () => {
+    setShowCallbackScreen(false);
+    setIsAuthenticated(false);
+  };
+
   // New Dashboard Flow
   if (useNewDashboard) {
     if (loading) {
@@ -172,6 +208,23 @@ export default function App() {
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={customTheme.light.primary} />
           </View>
+        </SafeAreaProvider>
+      );
+    }
+
+    // Mostrar tela de callback do Magic Link
+    if (showCallbackScreen) {
+      return (
+        <SafeAreaProvider>
+          <QueryClientProvider client={queryClient}>
+            <PaperProvider theme={paperTheme}>
+              <MagicLinkCallbackScreen 
+                onSuccess={handleCallbackSuccess}
+                onError={handleCallbackError}
+              />
+              <StatusBar style={isDark ? "light" : "dark"} />
+            </PaperProvider>
+          </QueryClientProvider>
         </SafeAreaProvider>
       );
     }

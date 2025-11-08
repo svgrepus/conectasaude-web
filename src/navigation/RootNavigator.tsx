@@ -32,6 +32,7 @@ import {
   AreaScreen,
   MicroareaScreen,
 } from "../screens/cadastros";
+import AdministradoresContainer from "../screens/administradores/AdministradoresContainer_simple";
 
 // Type definitions
 export type RootStackParamList = {
@@ -58,6 +59,7 @@ export type MainStackParamList = {
   Unidades: undefined;
   Areas: undefined;
   Microareas: undefined;
+  Administradores: undefined;
 };
 
 const RootStack = createStackNavigator<RootStackParamList>();
@@ -319,6 +321,16 @@ function MainNavigator() {
             title: "Microáreas",
             drawerIcon: ({ color }) => (
               <Ionicons name="location-outline" size={22} color={color} />
+            ),
+          }}
+        />
+        <Drawer.Screen
+          name="Administradores"
+          component={AdministradoresContainer}
+          options={{
+            title: "Administradores",
+            drawerIcon: ({ color }) => (
+              <Ionicons name="shield-checkmark-outline" size={22} color={color} />
             ),
           }}
         />

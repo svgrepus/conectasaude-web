@@ -12,6 +12,7 @@ import {
   VeiculosScreen, 
   MunicipesScreen 
 } from '../screens/PlaceholderScreens';
+import AdministradoresContainer from '../screens/administradores/AdministradoresContainer_simple';
 
 const Drawer = createDrawerNavigator();
 
@@ -115,6 +116,16 @@ export const DrawerNavigator: React.FC<DrawerNavigatorProps> = ({ isDarkMode = f
           title: 'Munícipes',
           drawerIcon: ({ color }: { color: string }) => (
             <Ionicons name="person" size={20} color={color} />
+          ),
+        }}
+      />
+      <Drawer.Screen
+        name="Administradores"
+        component={AdministradoresContainer}
+        options={{
+          title: 'Administradores',
+          drawerIcon: ({ color }: { color: string }) => (
+            <Ionicons name="shield-checkmark" size={20} color={color} />
           ),
         }}
       />

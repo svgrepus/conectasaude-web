@@ -86,21 +86,32 @@ class AuthService {
         throw new Error('Token de acesso não recebido');
       }
 
-      // Determinar role baseado no email ou resposta da API
-      let role: 'admin' | 'funcionario' | 'municipe' = 'municipe';
-      const adminEmails = (process.env.EXPO_PUBLIC_ADMIN_EMAILS || process.env.REACT_APP_ADMIN_EMAILS || '').split(',').map(e => e.trim());
+      // Extrair role EXATAMENTE como vem do Supabase
+      let role: string;
       
-      if (email.includes('admin') || adminEmails.includes(email)) {
-        role = 'admin';
-      } else if (email.includes('funcionario') || email.includes('medico') || email.includes('enferm')) {
-        role = 'funcionario';
+      console.log('🔍 AuthService: Dados do usuário recebidos:', JSON.stringify(data.user, null, 2));
+      
+      // Verificar user_metadata primeiro (onde está a role no seu token)
+      if (data.user?.user_metadata?.role) {
+        role = data.user.user_metadata.role;
+        console.log('✅ Role extraída do user_metadata:', role);
+      }
+      // Se não encontrar no user_metadata, verificar app_metadata
+      else if (data.user?.app_metadata?.role) {
+        role = data.user.app_metadata.role;
+        console.log('✅ Role extraída do app_metadata:', role);
+      }
+      // Se não encontrar role em nenhum lugar, erro
+      else {
+        console.error('❌ Nenhuma role encontrada no token do usuário');
+        throw new Error('Usuário sem role definida no sistema');
       }
 
       // Criar objeto de usuário a partir da resposta
       const user: User = {
         id: data.user?.id || `user_${Date.now()}`,
         email: data.user?.email || email,
-        name: data.user?.user_metadata?.name || email.split('@')[0],
+        name: data.user?.user_metadata?.name || data.user?.user_metadata?.full_name || email.split('@')[0],
         role,
         created_at: data.user?.created_at || new Date().toISOString(),
       };
@@ -157,7 +168,7 @@ class AuthService {
         id: data.user?.id || `user_${Date.now()}`,
         email: data.user?.email || email,
         name: userData.nome || email.split('@')[0],
-        role: 'municipe',
+        role: data.user?.user_metadata?.role || data.user?.app_metadata?.role || 'user', // Usar role do token ou fallback
         created_at: data.user?.created_at || new Date().toISOString(),
       };
 

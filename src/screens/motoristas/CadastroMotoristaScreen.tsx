@@ -210,9 +210,11 @@ const CadastroMotoristaScreen: React.FC<CadastroMotoristaScreenProps> = ({
     setFormData((prev) => {
       const newData = { ...prev, dataNascimento: date };
       
+      // Calcular idade se a data estiver completa (apenas para validação)
       if (date.length === 10) {
         const age = calculateAge(date);
-        newData.idade = age;
+        // Idade calculada mas não armazenada no form
+        console.log("Idade calculada:", age);
       }
       
       return newData;

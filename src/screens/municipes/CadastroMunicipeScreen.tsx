@@ -515,40 +515,62 @@ export const CadastroMunicipeScreen = ({
   ];
   const sexoOptions = ["Feminino", "Masculino"];
 
-  // 🎓 Opções de Escolaridade (alinhadas com constraint do banco)
+  // 🎓 Opções de Escolaridade (atualizadas conforme solicitação)
   const escolaridadeOptions = [
-    "Sem Escolaridade",
-    "Fundamental Incompleto",
-    "Fundamental Completo",
-    "Médio Incompleto",
-    "Médio Completo",
-    "Superior Incompleto",
-    "Superior Completo",
-    "Pós-graduação",
-    "Mestrado",
-    "Doutorado"
+    "Sem instrução",
+    "Ensino Fundamental Incompleto",
+    "Ensino Fundamental Completo",
+    "Ensino Médio Incompleto",
+    "Ensino Médio Completo",
+    "Ensino Técnico",
+    "Ensino Superior Incompleto",
+    "Ensino Superior Completo",
+    "Pós-graduação Lato Sensu (Especialização / MBA)",
+    "Pós-graduação Stricto Sensu (Mestrado)",
+    "Doutorado",
+    "Pós-doutorado",
+    "Outro (especificar)",
+    "Prefere não informar"
   ];
 
-  // 🏳️‍🌈 Opções de Orientação Sexual (alinhadas com constraint do banco)
+  // 🏳️‍🌈 Opções de Orientação Sexual (atualizadas conforme solicitação)
   const orientacaoSexualOptions = [
     "Heterossexual",
-    "Homossexual",
+    "Gay",
+    "Lésbica",
     "Bissexual",
     "Pansexual",
+    "Polissexual",
+    "Omnisexual",
     "Assexual",
-    "Outros",
-    "Não Informado"
+    "Graysexual",
+    "Demissexual",
+    "Aromântico",
+    "Queer",
+    "Sapiossexual",
+    "Androssexual",
+    "Ginessexual",
+    "Prefere não informar"
   ];
 
-  // 🏳️‍⚧️ Opções de Identidade de Gênero (alinhadas com constraint do banco)
+  // 🏳️‍⚧️ Opções de Identidade de Gênero (atualizadas conforme solicitação)
   const identidadeGeneroOptions = [
-    "Cisgênero",
-    "Transgênero",
-    "Não Binário",
-    "Gênero Fluido",
+    "Homem cisgênero",
+    "Mulher cisgênero",
+    "Homem trans",
+    "Mulher trans",
+    "Não-binário",
     "Agênero",
-    "Outros",
-    "Não Informado"
+    "Bigênero",
+    "Gênero-fluido",
+    "Demigênero",
+    "Neutrois",
+    "Travesti",
+    "Two-Spirit",
+    "Gênero queer",
+    "Andrógine",
+    "Outro (especificar)",
+    "Prefere não informar"
   ];
 
   // 🩸 Opções de Tipo Sanguíneo
@@ -563,50 +585,26 @@ export const CadastroMunicipeScreen = ({
     "O-"
   ];
 
-  // 💼 Opções de Ocupação
+  // 💼 Opções de Ocupação (atualizadas conforme solicitação)
   const ocupacaoOptions = [
-    "Advogado especializado (Tributário, Contratual, Compliance, Proteção de Dados)",
-    "Agricultor Familiar",
-    "Analista de Dados / Cientista de Dados",
-    "Arquiteto de Soluções / Arquiteto de Nuvem (Cloud Architect)",
-    "Arquitetura / Design de Interiores / Designer em geral",
-    "Assistente de Eventos",
-    "Assistente de Patologia",
-    "Assistente Social",
-    "Auxiliar Administrativo",
-    "Auxiliar de Serviços Gerais",
-    "Carpinteiro / Marceneiro",
-    "Comerciário / Vendedor de Loja",
-    "Controller / Profissional de Controladoria / Finanças Corporativas",
-    "Cozinheiro / Auxiliar de Cozinha",
-    "Desenvolvedor / Programador de Software / Aplicativos",
-    "Diretor(a) de Receita (Revenue Director)",
-    "Eletricista",
-    "Enfermeiro(a)",
-    "Engenheiro (Industrial, Automação, Mecânica etc.)",
-    "Engenheiro de Dados / Engenheiro de Dados em tempo real",
-    "Engenheiro de FinTech / Especialista Financeiro Tecnológico",
-    "Engenheiro de Segurança Cibernética",
-    "Engenheiro de Segurança de Processos",
-    "Especialista em Geração de Leads / Marketing Digital",
-    "Especialista em Inteligência Artificial / Machine Learning",
-    "Especialista em Sustentabilidade / ESG / Responsabilidade Ambiental",
-    "Garçom / Atendente de Bar",
-    "Gerente de Projetos / Gestor de Projetos",
-    "Gerente de TI / Diretor de TI",
-    "Mecânico de Automóveis / Motocicletas",
-    "Mecânico Industrial / Manutenção",
-    "Motorista (Ônibus, Caminhão, Transporte Escolar)",
-    "Neuropsicólogo(a)",
-    "Pedreiro",
-    "Produtor Rural / Pecuarista",
-    "Psicólogo(a) Pediátrico(a)",
-    "Professor da Educação Básica (Ensino Fundamental / Médio)",
-    "Profissional de Cibersegurança / Segurança da Informação",
-    "Técnico Agrícola / Técnico em Agropecuária",
-    "Técnico em Enfermagem",
-    "Técnico em Informática / Suporte de TI",
-    "Trabalhador Rural / Bóia-fria"
+    "Desempregado(a)",
+    "Estudante",
+    "Aposentado(a) / Pensionista",
+    "Autônomo(a)",
+    "Empregado(a) com carteira assinada (CLT)",
+    "Empregado(a) sem carteira assinada",
+    "Servidor(a) público(a)",
+    "Empresário(a) / Empreendedor(a)",
+    "Profissional liberal (ex.: advogado, médico, engenheiro)",
+    "Trabalhador(a) rural / agrícola",
+    "Trabalhador(a) doméstico(a)",
+    "Militar / Forças Armadas",
+    "Profissional de saúde",
+    "Profissional de educação",
+    "Profissional de tecnologia",
+    "Artista / Atleta",
+    "Outro (especificar)",
+    "Prefere não informar"
   ];
 
   // 💼 Opções de Ocupação convertidas para HealthDataItem
@@ -818,16 +816,20 @@ export const CadastroMunicipeScreen = ({
   // 🎯 Função para conversão de escolaridade para banco
   const convertEscolaridadeToDatabase = (escolaridade: string): string => {
     const conversions: { [key: string]: string } = {
-      "Sem Escolaridade": "SEM_ESCOLARIDADE",
-      "Fundamental Incompleto": "FUNDAMENTAL_INCOMPLETO",
-      "Fundamental Completo": "FUNDAMENTAL_COMPLETO",
-      "Médio Incompleto": "MEDIO_INCOMPLETO",
-      "Médio Completo": "MEDIO_COMPLETO",
-      "Superior Incompleto": "SUPERIOR_INCOMPLETO",
-      "Superior Completo": "SUPERIOR_COMPLETO",
-      "Pós-graduação": "POS_GRADUACAO",
-      "Mestrado": "MESTRADO",
-      "Doutorado": "DOUTORADO"
+      "Sem instrução": "SEM_INSTRUCAO",
+      "Ensino Fundamental Incompleto": "FUNDAMENTAL_INCOMPLETO",
+      "Ensino Fundamental Completo": "FUNDAMENTAL_COMPLETO",
+      "Ensino Médio Incompleto": "MEDIO_INCOMPLETO",
+      "Ensino Médio Completo": "MEDIO_COMPLETO",
+      "Ensino Técnico": "ENSINO_TECNICO",
+      "Ensino Superior Incompleto": "SUPERIOR_INCOMPLETO",
+      "Ensino Superior Completo": "SUPERIOR_COMPLETO",
+      "Pós-graduação Lato Sensu (Especialização / MBA)": "POS_GRADUACAO_LATO_SENSU",
+      "Pós-graduação Stricto Sensu (Mestrado)": "MESTRADO",
+      "Doutorado": "DOUTORADO",
+      "Pós-doutorado": "POS_DOUTORADO",
+      "Outro (especificar)": "OUTRO",
+      "Prefere não informar": "PREFERE_NAO_INFORMAR"
     };
     return conversions[escolaridade] || escolaridade;
   };
@@ -835,16 +837,20 @@ export const CadastroMunicipeScreen = ({
   // 🎯 Função para conversão de escolaridade do banco para exibição
   const convertEscolaridadeFromDatabase = (escolaridade: string): string => {
     const conversions: { [key: string]: string } = {
-      "SEM_ESCOLARIDADE": "Sem Escolaridade",
-      "FUNDAMENTAL_INCOMPLETO": "Fundamental Incompleto",
-      "FUNDAMENTAL_COMPLETO": "Fundamental Completo",
-      "MEDIO_INCOMPLETO": "Médio Incompleto",
-      "MEDIO_COMPLETO": "Médio Completo",
-      "SUPERIOR_INCOMPLETO": "Superior Incompleto",
-      "SUPERIOR_COMPLETO": "Superior Completo",
-      "POS_GRADUACAO": "Pós-graduação",
-      "MESTRADO": "Mestrado",
-      "DOUTORADO": "Doutorado"
+      "SEM_INSTRUCAO": "Sem instrução",
+      "FUNDAMENTAL_INCOMPLETO": "Ensino Fundamental Incompleto",
+      "FUNDAMENTAL_COMPLETO": "Ensino Fundamental Completo",
+      "MEDIO_INCOMPLETO": "Ensino Médio Incompleto",
+      "MEDIO_COMPLETO": "Ensino Médio Completo",
+      "ENSINO_TECNICO": "Ensino Técnico",
+      "SUPERIOR_INCOMPLETO": "Ensino Superior Incompleto",
+      "SUPERIOR_COMPLETO": "Ensino Superior Completo",
+      "POS_GRADUACAO_LATO_SENSU": "Pós-graduação Lato Sensu (Especialização / MBA)",
+      "MESTRADO": "Pós-graduação Stricto Sensu (Mestrado)",
+      "DOUTORADO": "Doutorado",
+      "POS_DOUTORADO": "Pós-doutorado",
+      "OUTRO": "Outro (especificar)",
+      "PREFERE_NAO_INFORMAR": "Prefere não informar"
     };
     return conversions[escolaridade] || escolaridade;
   };
@@ -853,12 +859,21 @@ export const CadastroMunicipeScreen = ({
   const convertOrientacaoSexualToDatabase = (orientacao: string): string => {
     const conversions: { [key: string]: string } = {
       "Heterossexual": "HETEROSSEXUAL",
-      "Homossexual": "HOMOSSEXUAL",
+      "Gay": "GAY",
+      "Lésbica": "LESBICA",
       "Bissexual": "BISSEXUAL",
       "Pansexual": "PANSEXUAL",
+      "Polissexual": "POLISSEXUAL",
+      "Omnisexual": "OMNISEXUAL",
       "Assexual": "ASSEXUAL",
-      "Outros": "OUTROS",
-      "Não Informado": "NAO_INFORMADO"
+      "Graysexual": "GRAYSEXUAL",
+      "Demissexual": "DEMISSEXUAL",
+      "Aromântico": "AROMANTICO",
+      "Queer": "QUEER",
+      "Sapiossexual": "SAPIOSSEXUAL",
+      "Androssexual": "ANDROSSEXUAL",
+      "Ginessexual": "GINESSEXUAL",
+      "Prefere não informar": "PREFERE_NAO_INFORMAR"
     };
     return conversions[orientacao] || orientacao;
   };
@@ -867,12 +882,21 @@ export const CadastroMunicipeScreen = ({
   const convertOrientacaoSexualFromDatabase = (orientacao: string): string => {
     const conversions: { [key: string]: string } = {
       "HETEROSSEXUAL": "Heterossexual",
-      "HOMOSSEXUAL": "Homossexual",
+      "GAY": "Gay",
+      "LESBICA": "Lésbica",
       "BISSEXUAL": "Bissexual",
       "PANSEXUAL": "Pansexual",
+      "POLISSEXUAL": "Polissexual",
+      "OMNISEXUAL": "Omnisexual",
       "ASSEXUAL": "Assexual",
-      "OUTROS": "Outros",
-      "NAO_INFORMADO": "Não Informado"
+      "GRAYSEXUAL": "Graysexual",
+      "DEMISSEXUAL": "Demissexual",
+      "AROMANTICO": "Aromântico",
+      "QUEER": "Queer",
+      "SAPIOSSEXUAL": "Sapiossexual",
+      "ANDROSSEXUAL": "Androssexual",
+      "GINESSEXUAL": "Ginessexual",
+      "PREFERE_NAO_INFORMAR": "Prefere não informar"
     };
     return conversions[orientacao] || orientacao;
   };
@@ -880,13 +904,22 @@ export const CadastroMunicipeScreen = ({
   // 🎯 Função para conversão de identidade de gênero para banco
   const convertIdentidadeGeneroToDatabase = (identidade: string): string => {
     const conversions: { [key: string]: string } = {
-      "Cisgênero": "CISGÊNERO",
-      "Transgênero": "TRANSGÊNERO",
-      "Não Binário": "NÃO_BINÁRIO",
-      "Gênero Fluido": "GÊNERO_FLUIDO",
-      "Agênero": "AGÊNERO",
-      "Outros": "OUTROS",
-      "Não Informado": "NAO_INFORMADO"
+      "Homem cisgênero": "HOMEM_CISGENERO",
+      "Mulher cisgênero": "MULHER_CISGENERO",
+      "Homem trans": "HOMEM_TRANS",
+      "Mulher trans": "MULHER_TRANS",
+      "Não-binário": "NAO_BINARIO",
+      "Agênero": "AGENERO",
+      "Bigênero": "BIGENERO",
+      "Gênero-fluido": "GENERO_FLUIDO",
+      "Demigênero": "DEMIGENERO",
+      "Neutrois": "NEUTROIS",
+      "Travesti": "TRAVESTI",
+      "Two-Spirit": "TWO_SPIRIT",
+      "Gênero queer": "GENERO_QUEER",
+      "Andrógine": "ANDROGINE",
+      "Outro (especificar)": "OUTRO",
+      "Prefere não informar": "PREFERE_NAO_INFORMAR"
     };
     return conversions[identidade] || identidade;
   };
@@ -894,13 +927,22 @@ export const CadastroMunicipeScreen = ({
   // 🎯 Função para conversão de identidade de gênero do banco para exibição
   const convertIdentidadeGeneroFromDatabase = (identidade: string): string => {
     const conversions: { [key: string]: string } = {
-      "CISGÊNERO": "Cisgênero",
-      "TRANSGÊNERO": "Transgênero",
-      "NÃO_BINÁRIO": "Não Binário",
-      "GÊNERO_FLUIDO": "Gênero Fluido",
-      "AGÊNERO": "Agênero",
-      "OUTROS": "Outros",
-      "NAO_INFORMADO": "Não Informado"
+      "HOMEM_CISGENERO": "Homem cisgênero",
+      "MULHER_CISGENERO": "Mulher cisgênero",
+      "HOMEM_TRANS": "Homem trans",
+      "MULHER_TRANS": "Mulher trans",
+      "NAO_BINARIO": "Não-binário",
+      "AGENERO": "Agênero",
+      "BIGENERO": "Bigênero",
+      "GENERO_FLUIDO": "Gênero-fluido",
+      "DEMIGENERO": "Demigênero",
+      "NEUTROIS": "Neutrois",
+      "TRAVESTI": "Travesti",
+      "TWO_SPIRIT": "Two-Spirit",
+      "GENERO_QUEER": "Gênero queer",
+      "ANDROGINE": "Andrógine",
+      "OUTRO": "Outro (especificar)",
+      "PREFERE_NAO_INFORMAR": "Prefere não informar"
     };
     return conversions[identidade] || identidade;
   };

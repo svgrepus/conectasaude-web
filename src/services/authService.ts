@@ -21,6 +21,9 @@ export interface SignUpCredentials {
 }
 
 class AuthService {
+  // Chave para armazenar a role no localStorage
+  private readonly ADMIN_ROLE_KEY = 'conectasaude_is_admin';
+
   async signIn({ email, password }: LoginCredentials) {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -29,11 +32,42 @@ class AuthService {
       });
 
       if (error) throw error;
+      
+      // Após login bem-sucedido, verificar e salvar se é admin
+      if (data.user) {
+        await this.checkAndSaveAdminRole(data.user);
+      }
+      
       return data;
     } catch (error) {
       console.error('Erro ao fazer login:', error);
       throw error;
     }
+  }
+
+  // Verifica se o usuário é admin e salva na sessão
+  private async checkAndSaveAdminRole(user: any) {
+    try {
+      const isAdmin = user?.app_metadata?.role === 'admin' || user?.user_metadata?.role === 'admin';
+      console.log('🔍 Verificando role do usuário:', {
+        email: user?.email,
+        appMetadataRole: user?.app_metadata?.role,
+        userMetadataRole: user?.user_metadata?.role,
+        isAdmin
+      });
+      
+      // Salva no localStorage
+      localStorage.setItem(this.ADMIN_ROLE_KEY, isAdmin.toString());
+    } catch (error) {
+      console.error('Erro ao verificar role de admin:', error);
+      localStorage.setItem(this.ADMIN_ROLE_KEY, 'false');
+    }
+  }
+
+  // Verifica se o usuário atual é admin (da sessão)
+  public isAdmin(): boolean {
+    const adminRole = localStorage.getItem(this.ADMIN_ROLE_KEY);
+    return adminRole === 'true';
   }
 
   async signUp({ email, password, fullName }: SignUpCredentials) {
@@ -58,6 +92,9 @@ class AuthService {
 
   async signOut() {
     try {
+      // Limpar dados da sessão local
+      localStorage.removeItem(this.ADMIN_ROLE_KEY);
+      
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
     } catch (error) {
@@ -70,6 +107,12 @@ class AuthService {
     try {
       const { data: { user }, error } = await supabase.auth.getUser();
       if (error) throw error;
+      
+      // Se temos um usuário e ainda não verificamos a role, verificar agora
+      if (user && !localStorage.getItem(this.ADMIN_ROLE_KEY)) {
+        await this.checkAndSaveAdminRole(user);
+      }
+      
       return user;
     } catch (error) {
       console.error('Erro ao obter usuário atual:', error);
@@ -108,7 +151,17 @@ class AuthService {
   }
 
   onAuthStateChange(callback: (event: string, session: any) => void) {
-    return supabase.auth.onAuthStateChange(callback);
+    return supabase.auth.onAuthStateChange(async (event, session) => {
+      // Verificar role quando há mudanças na autenticação
+      if (event === 'SIGNED_IN' && session?.user) {
+        await this.checkAndSaveAdminRole(session.user);
+      } else if (event === 'SIGNED_OUT') {
+        localStorage.removeItem(this.ADMIN_ROLE_KEY);
+      }
+      
+      // Chamar callback original
+      callback(event, session);
+    });
   }
 }
 
