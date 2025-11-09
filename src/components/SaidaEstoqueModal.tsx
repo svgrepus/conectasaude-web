@@ -48,13 +48,37 @@ export const SaidaEstoqueModal: React.FC<SaidaEstoqueModalProps> = ({
   const [quantidade, setQuantidade] = useState('');
   const [motivo, setMotivo] = useState('');
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<{quantidade?: string; motivo?: string}>({});
 
   const currentTheme = isDarkMode ? theme.dark : theme.light;
 
   const handleClose = () => {
     setQuantidade('');
     setMotivo('');
+    setErrors({});
     onClose();
+  };
+
+  const validateForm = () => {
+    const newErrors: {quantidade?: string; motivo?: string} = {};
+    
+    if (!quantidade.trim()) {
+      newErrors.quantidade = 'Quantidade é obrigatória';
+    } else {
+      const quantidadeNum = parseFloat(quantidade.replace(',', '.'));
+      if (isNaN(quantidadeNum) || quantidadeNum <= 0) {
+        newErrors.quantidade = 'Quantidade deve ser um número válido maior que zero';
+      } else if (quantidadeNum > (estoque?.quantidade_atual || 0)) {
+        newErrors.quantidade = `Quantidade não pode ser maior que o estoque disponível (${formatQuantity(estoque?.quantidade_atual || 0)})`;
+      }
+    }
+    
+    if (!motivo.trim()) {
+      newErrors.motivo = 'Motivo é obrigatório';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async () => {
@@ -66,29 +90,12 @@ export const SaidaEstoqueModal: React.FC<SaidaEstoqueModalProps> = ({
       return;
     }
 
-    if (!quantidade || !motivo.trim()) {
-      console.log('❌ Campos obrigatórios não preenchidos');
-      Alert.alert('Erro', 'Por favor, preencha todos os campos obrigatórios');
+    if (!validateForm()) {
+      console.log('❌ Formulário com erros de validação');
       return;
     }
 
     const quantidadeNum = parseFloat(quantidade.replace(',', '.'));
-    console.log('📊 Quantidade convertida:', quantidadeNum);
-    
-    if (isNaN(quantidadeNum) || quantidadeNum <= 0) {
-      console.log('❌ Quantidade inválida:', quantidadeNum);
-      Alert.alert('Erro', 'Quantidade deve ser um número válido maior que zero');
-      return;
-    }
-
-    if (quantidadeNum > (estoque.quantidade_atual || 0)) {
-      console.log('❌ Quantidade maior que estoque disponível');
-      Alert.alert(
-        'Erro', 
-        `Quantidade solicitada (${formatQuantity(quantidadeNum)}) é maior que o estoque disponível (${formatQuantity(estoque.quantidade_atual || 0)})`
-      );
-      return;
-    }
 
     try {
       setLoading(true);
@@ -204,14 +211,29 @@ export const SaidaEstoqueModal: React.FC<SaidaEstoqueModalProps> = ({
                   Quantidade <Text style={[styles.required, { color: theme.colors.jambeiro.green }]}>*</Text>
                 </Text>
                 <TextInput
-                  style={[styles.input, { backgroundColor: currentTheme.input, borderColor: currentTheme.border, color: currentTheme.text }]}
+                  style={[
+                    styles.input, 
+                    { 
+                      backgroundColor: currentTheme.input, 
+                      borderColor: errors.quantidade ? '#ef4444' : currentTheme.border, 
+                      color: currentTheme.text 
+                    }
+                  ]}
                   value={quantidade}
-                  onChangeText={setQuantidade}
+                  onChangeText={(value) => {
+                    setQuantidade(value);
+                    if (errors.quantidade) {
+                      setErrors(prev => ({ ...prev, quantidade: undefined }));
+                    }
+                  }}
                   placeholder="Digite a quantidade"
                   placeholderTextColor={currentTheme.textMuted}
                   keyboardType="numeric"
                   editable={!loading}
                 />
+                {errors.quantidade && (
+                  <Text style={styles.errorText}>{errors.quantidade}</Text>
+                )}
               </View>
 
               <View style={styles.inputGroup}>
@@ -219,9 +241,22 @@ export const SaidaEstoqueModal: React.FC<SaidaEstoqueModalProps> = ({
                   Motivo <Text style={[styles.required, { color: theme.colors.jambeiro.green }]}>*</Text>
                 </Text>
                 <TextInput
-                  style={[styles.input, styles.textArea, { backgroundColor: currentTheme.input, borderColor: currentTheme.border, color: currentTheme.text }]}
+                  style={[
+                    styles.input, 
+                    styles.textArea, 
+                    { 
+                      backgroundColor: currentTheme.input, 
+                      borderColor: errors.motivo ? '#ef4444' : currentTheme.border, 
+                      color: currentTheme.text 
+                    }
+                  ]}
                   value={motivo}
-                  onChangeText={setMotivo}
+                  onChangeText={(value) => {
+                    setMotivo(value);
+                    if (errors.motivo) {
+                      setErrors(prev => ({ ...prev, motivo: undefined }));
+                    }
+                  }}
                   placeholder="Ex: Dispensação para paciente João Silva"
                   placeholderTextColor={currentTheme.textMuted}
                   multiline
@@ -229,6 +264,9 @@ export const SaidaEstoqueModal: React.FC<SaidaEstoqueModalProps> = ({
                   textAlignVertical="top"
                   editable={!loading}
                 />
+                {errors.motivo && (
+                  <Text style={styles.errorText}>{errors.motivo}</Text>
+                )}
               </View>
             </View>
           </ScrollView>
@@ -391,6 +429,11 @@ const styles = StyleSheet.create({
   submitButtonText: {
     fontSize: 14,
     fontWeight: '500',
+  },
+  errorText: {
+    fontSize: 12,
+    color: '#ef4444',
+    marginTop: 4,
   },
 });
 

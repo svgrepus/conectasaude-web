@@ -1,4 +1,6 @@
 import { supabase } from './supabase';
+import { authService } from './auth';
+import { getSupabaseHeaders } from '../config/supabase';
 
 // Interface baseada no objeto de retorno da API
 export interface EstoqueMovimento {
@@ -17,22 +19,24 @@ export interface EstoqueMovimento {
 class EstoqueMovimentosService {
   private readonly table = 'estoque_movimentos_active';
 
+  private getHeaders(): Record<string, string> {
+    const accessToken = authService.getAccessToken();
+    return getSupabaseHeaders(accessToken || undefined);
+  }
+
   // Testar se a tabela existe
   async testConnection(): Promise<boolean> {
     try {
-      console.log('🧪 Testando conexão com tabela:', this.table);
-      
       const { data, error } = await supabase
         .from(this.table)
         .select('id', { count: 'exact', head: true })
         .limit(1);
 
       if (error) {
-        console.error('❌ Erro ao testar tabela:', error);
+        console.error('❌ Erro ao testar tabela:', error.message);
         return false;
       }
 
-      console.log('✅ Tabela acessível');
       return true;
     } catch (error) {
       console.error('❌ Erro no teste de conexão:', error);
@@ -43,17 +47,6 @@ class EstoqueMovimentosService {
   // Buscar movimentações por ID do estoque de medicamento
   async getByEstoqueId(medicamentosEstoqueId: string): Promise<EstoqueMovimento[]> {
     try {
-      console.log('🔍 Buscando movimentações para estoque:', medicamentosEstoqueId);
-      console.log('📊 Usando tabela:', this.table);
-      
-      // Log do usuário atual para debug
-      const { data: user } = await supabase.auth.getUser();
-      console.log('👤 Usuário atual:', user?.user ? 'Autenticado' : 'Não autenticado');
-      
-      if (!user?.user) {
-        throw new Error('Usuário não autenticado. Faça login novamente.');
-      }
-      
       const { data, error } = await supabase
         .from(this.table)
         .select('*')
@@ -61,18 +54,10 @@ class EstoqueMovimentosService {
         .order('executed_at', { ascending: false });
 
       if (error) {
-        console.error('❌ Erro Supabase ao buscar movimentações:', {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code,
-          medicamentosEstoqueId
-        });
+        console.error('❌ Erro ao buscar movimentações:', error.message);
         throw new Error(`Erro na consulta: ${error.message}`);
       }
 
-      console.log('✅ Movimentações encontradas:', data?.length || 0);
-      console.log('📋 Dados retornados:', data);
       return data || [];
     } catch (error) {
       console.error('❌ Erro no EstoqueMovimentosService.getByEstoqueId:', error);
@@ -255,17 +240,6 @@ class EstoqueMovimentosService {
     error?: string;
   }> {
     try {
-      console.log('📤 Registrando saída de estoque:', params);
-      
-      // Verificar se o usuário está autenticado
-      const { data: user } = await supabase.auth.getUser();
-      console.log('👤 Usuário autenticado:', user?.user ? 'Sim' : 'Não');
-      
-      if (!user?.user) {
-        throw new Error('Usuário não autenticado. Faça login novamente.');
-      }
-      
-      console.log('🚀 Chamando RPC registrar_saida_estoque');
       const { data, error } = await supabase.rpc('registrar_saida_estoque', {
         p_medicamentos_estoque_id: params.medicamentos_estoque_id,
         p_quantidade: params.quantidade,
@@ -273,15 +247,11 @@ class EstoqueMovimentosService {
         p_executed_by: params.executed_by || null
       });
 
-      console.log('📊 Resposta da RPC - data:', data);
-      console.log('📊 Resposta da RPC - error:', error);
-
       if (error) {
-        console.error('❌ Erro na RPC registrar_saida_estoque:', error);
+        console.error('❌ Erro na RPC registrar_saida_estoque:', error.message);
         throw new Error(error.message);
       }
 
-      console.log('✅ Resposta da RPC:', data);
       return data;
     } catch (error) {
       console.error('❌ Erro no EstoqueMovimentosService.registrarSaidaEstoque:', error);
